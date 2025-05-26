@@ -20,7 +20,7 @@
       </div>
 
       <!-- ✅ 접히는 내비게이션 메뉴 -->
-      <div class="collapse navbar-collapse mt-2 mt-lg-0" id="mainNavbar">
+      <div class="collapse navbar-collapse mt-2 mt-lg-0 text-nowrap" id="mainNavbar">
         <!-- 드롭다운 메뉴 중앙 정렬 -->
         <ul class="navbar-nav d-flex justify-content-center w-100 flex-row flex-wrap gap-3 align-items-center">
           <NavbarDropdown id="menu1" title="버스 이용 안내" :items="busMenu" />

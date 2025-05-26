@@ -41,11 +41,12 @@ export default {
 </script>
 
 <style scoped>
+/*사이드바 검색 폼*/
 .sidebar-content {
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
-  background-color: #212529;
+  background-color: #4889cd;
   color: white;
 }
 

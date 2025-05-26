@@ -112,7 +112,7 @@ async function fetchWeather() {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('https://localhost:8081/api/public/api-key')
+    const { data } = await axios.get('/api/public/api-key')   // 나중에 여기 주소 수정필요
     apiKey.value = data.apiKey
     await fetchWeather()
 
