@@ -126,11 +126,12 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use "@/assets/web-user";
+
 .visible {
   display: inline-block;
   transition: opacity 0.3s ease;
-  color: #dddddd;
   opacity: 1;
 }
 </style>

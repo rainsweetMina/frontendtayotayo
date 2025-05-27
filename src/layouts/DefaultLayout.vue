@@ -30,13 +30,13 @@
 
 <script>
 import HeaderComponent from '/src/layouts/components/Header/HeaderComponent.vue'
-import SidebarComponent from '/src/layouts/components/Sidebar/SidebarComponent.vue'
+import BusSearchPage from '/src/modules/busSearch/views/BusSearchPage.vue'
 
 export default {
   name: 'DefaultLayout',
   components: {
     HeaderComponent,
-    SidebarComponent
+    SidebarComponent: BusSearchPage
   },
   data() {
     return {
@@ -52,11 +52,13 @@ export default {
 </script>
 
 <style>
+/*시이드 바 하단부*/
 .sidebar-wrapper {
-  width: 250px;
-  background-color: #212529;
-  color: white;
+  width: 300px;
+  background-color: #fafaff;
+  color: black;
   overflow-y: auto;
+  flex-direction: column;
   height: calc(100vh); /* 헤더 높이만큼 제한 */
   scrollbar-width: none;
   transition: transform 0.3s ease;
@@ -77,7 +79,7 @@ export default {
   left: 0;
   transform: none;
   z-index: 1050;
-  background-color: #333;
+  background-color: #4889cd;  /*토큰버튼 색상*/
   color: white;
   border: none;
   padding: 0.5rem 0.75rem;
@@ -89,7 +91,7 @@ export default {
 
 /* 사이드바 열려 있을 때 버튼 위치 오른쪽으로 이동 */
 .sidebar-toggle-btn.with-sidebar {
-  left: 250px;
+  left: 300px;
 }
 
 .main-content {

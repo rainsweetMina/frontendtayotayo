@@ -31,3 +31,7 @@ export default {
   }
 }
 </script>
+
+<style scoped lang="scss">
+@use "@/assets/web-user";
+</style>
