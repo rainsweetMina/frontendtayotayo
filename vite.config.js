@@ -6,7 +6,7 @@ import fs from 'fs'
 
 export default defineConfig({
   server: {
-    port: 8080,          // 기본: 5173 → 변경 가능
+    port: 5173,          // 기본: 5173 → 변경 가능
     host: '0.0.0.0',      // 외부 기기 접속 허용
     proxy: {
       '/api': {
@@ -14,7 +14,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       }
-    }
+    },
+    https: {
+      key: fs.readFileSync('./cert/key.pem'),
+      cert: fs.readFileSync('./cert/cert.pem'),
+    },
   },
   plugins: [
     vue(),
@@ -24,19 +28,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
-  },
-  server: {
-    https: {
-      key: fs.readFileSync('./cert/key.pem'),
-      cert: fs.readFileSync('./cert/cert.pem'),
-    },
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'https://localhost:8081',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
   }
+
+
 })
