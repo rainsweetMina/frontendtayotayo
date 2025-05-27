@@ -1,48 +1,80 @@
 <template>
   <div class="sidebar-content">
-    <SearchBox @search="searchBus" />
-    <BusStopList :stops="busStops" />
+    <SearchBox @search="searchBus"/>
+    <BusStopList :stops="busStops" @selectStop="moveToStop"/>
+    <BusRouteList :routes="busRoutes" @select="selectRoute"/>
   </div>
 </template>
 
 <script>
+import {drawBusRouteMapORS, drawBusStopMarkers, clearMapElements} from '@/composables/map-utils'
+import axios from "axios";
+
 import SearchBox from '../components/SearchBox.vue'
 import BusStopList from '../components/BusStopList.vue'
-import { drawBusStopMarkers } from '@/composables/map-utils'
+import BusRouteList from "../components/BusRouteList.vue";
 
 export default {
-  components: { SearchBox, BusStopList },
+  components: {SearchBox, BusStopList, BusRouteList},
   data() {
     return {
-      busStops: []
+      busStops: [],
+      busRoutes: []
     }
   },
   methods: {
     async searchBus(keyword) {
-      if (!keyword.trim()) {
-        alert('검색어를 입력하세요.');
-        return;
-      }
+      if (!keyword.trim()) return;
 
       try {
-        const res = await fetch(`/api/bus/searchBSorBN?keyword=${encodeURIComponent(keyword)}`);
-        const data = await res.json();
-
+        const map = window.leafletMap;
+        if (map) {
+          clearMapElements(map);  // ✅ 여기!
+        }
+        const {data} = await axios.get('/api/bus/searchBSorBN', {
+          params: {keyword}
+        });
         this.busStops = data.busStops || [];
+        this.busRoutes = data.busNumbers || [];
+        drawBusStopMarkers(window.leafletMap, this.busStops);
+      } catch (err) {
+        console.error(err);
+        alert('검색 중 오류가 발생했습니다.');
+      }
+    },
+    moveToStop(stop) {
+      const latlng = L.latLng(parseFloat(stop.ypos), parseFloat(stop.xpos));
+      const map = window.leafletMap;
+      map.setView(latlng, 16);
+      const marker = window.busStopMarkers?.find(m =>
+          m.getLatLng().lat === latlng.lat && m.getLatLng().lng === latlng.lng
+      );
+      if (marker) marker.openPopup();
+    },
+    async selectRoute(route) {
+      const routeId = route.routeId;
 
-        if (this.busStops.length > 0) {
-          // ✅ 지도 마커 찍기
-          drawBusStopMarkers(window.leafletMap, this.busStops);
+      try {
+        const [stopRes, linkRes] = await Promise.all([
+          axios.get('/api/bus/bus-route', {params: {routeId}}),
+          axios.get('/api/bus/bus-route-link', {params: {routeId}})
+        ]);
 
-          // ✅ 지도 위치 이동
-          const first = this.busStops[0];
-          if (first?.xpos && first?.ypos) {
-            const latlng = L.latLng(parseFloat(first.ypos), parseFloat(first.xpos));
-            window.leafletMap.setView(latlng, 16);
-          }
+        const stopData = stopRes.data;
+        const linkData = linkRes.data.forward || [];
+
+        const map = window.leafletMap;
+
+        drawBusStopMarkers(map, stopData);
+        drawBusRouteMapORS(map, linkData);
+
+        if (linkData.length > 0) {
+          const first = linkData[0];
+          map.setView([parseFloat(first.ypos), parseFloat(first.xpos)], 16);
         }
       } catch (err) {
-        console.error('❌ 검색 실패:', err);
+        console.error('🛑 노선 데이터 조회 실패:', err);
+        alert('노선 정보를 불러오는 데 실패했습니다.');
       }
     }
   }

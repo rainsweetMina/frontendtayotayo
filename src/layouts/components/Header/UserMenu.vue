@@ -34,4 +34,8 @@ export default {
 
 <style scoped lang="scss">
 @use "@/assets/web-user";
+
+.nav-item:hover .nav-link:hover {
+  color: #ddd;
+}
 </style>

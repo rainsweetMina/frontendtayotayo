@@ -4,7 +4,7 @@
 
     <!-- 사이드바 -->
     <div
-        class="sidebar-wrapper d-flex flex-column border-end"
+        class="sidebar-wrapper d-flex flex-column border-end searchBox"
         :class="{ 'sidebar-hidden': !isSidebarOpen }"
     >
       <SidebarComponent />
@@ -12,7 +12,7 @@
 
     <!-- 토글 버튼 -->
     <button
-        class="sidebar-toggle-btn"
+        class="sidebar-toggle-btn searchBox"
         :class="{ 'with-sidebar': isSidebarOpen }"
         @click="toggleSidebar"
     >
@@ -20,7 +20,7 @@
     </button>
 
     <!-- 본문 -->
-    <div class="main-content">
+    <div class="main-content p-0">
       <main>
         <slot />
       </main>
@@ -52,13 +52,16 @@ export default {
 </script>
 
 <style>
+.searchBox {
+  position: fixed;
+  z-index: 2050;
+}
 /*시이드 바 하단부*/
 .sidebar-wrapper {
-  width: 300px;
+  width: 350px;
   background-color: #fafaff;
   color: black;
   overflow-y: auto;
-  flex-direction: column;
   height: calc(100vh); /* 헤더 높이만큼 제한 */
   scrollbar-width: none;
   transition: transform 0.3s ease;
@@ -91,7 +94,7 @@ export default {
 
 /* 사이드바 열려 있을 때 버튼 위치 오른쪽으로 이동 */
 .sidebar-toggle-btn.with-sidebar {
-  left: 300px;
+  left: 350px;
 }
 
 .main-content {

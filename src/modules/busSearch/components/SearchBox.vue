@@ -1,6 +1,6 @@
 <template>
   <div class="search-box">
-    <form @submit.prevent="onSearch" class="d-flex flex-2">
+    <form @submit.prevent="onSearch" class="d-flex flex-2 p-3">
       <input
           type="text"
           v-model="keyword"
@@ -22,6 +22,7 @@ export default {
   methods: {
     onSearch() {
       this.$emit('search', this.keyword)
+      this.keyword = ''
     }
   }
 }
