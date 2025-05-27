@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getAllRoutes } from '../services/api'
-import RouteViewer from '../../../forntendtayotayo/src/components/RouteViewer.vue'
+import RouteViewer from "@/components/RouteViewer.vue"
+
 
 const routes = ref([])
 const selectedRouteId = ref('')

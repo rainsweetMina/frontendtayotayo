@@ -11,8 +11,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import api from '../api/notice';
-
+import api from '@/api/notice';
 const notices = ref([]);
 
 onMounted(async () => {
