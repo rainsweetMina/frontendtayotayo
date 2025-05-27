@@ -1,23 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import BusRoutes from '../pages/BusRoutes.vue'
-import NoticeList from "@/views/board/notice/NoticeList.vue";
-import NoticeDetail from "@/views/board/notice/NoticeDetail.vue";
-import NoticeForm from "@/views/board/notice/NoticeForm.vue";
+import HomeView from '@/views/HomeView.vue'
 
-
-
+import busSearchRoutes from '@/modules/busSearch/router'
+import busMapRoutes from '@/modules/busMap/router'
 
 const routes = [
-    { path: '/', component: BusRoutes },
-    { path: '/notice', component: NoticeList },
-    { path: '/notice/:id', component: NoticeDetail},
-    { path: '/admin/notice/new', component: NoticeForm },
-    { path: '/admin/notice/:id/edit', component: NoticeForm },
+    { path: '/', component: HomeView },
+    ...busSearchRoutes,
+    ...busMapRoutes,
 ]
 
 const router = createRouter({
     history: createWebHistory(),
-    routes,
+    routes
 })
 
-export default router;
+export default router
