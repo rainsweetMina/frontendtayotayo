@@ -30,7 +30,7 @@ export default {
 }
 .navbar .dropdown-menu {
   position: absolute !important; /* 드롭다운이 아래 공간을 밀지 않게 함 */
-  z-index: 1050;                 /* 겹침 우선순위 확보 */
+  z-index: 3050;                 /* 겹침 우선순위 확보 */
 }
 .layout-header:hover {
   color: #ddd;

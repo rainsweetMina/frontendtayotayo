@@ -5,18 +5,18 @@
     <!-- 사이드바 -->
     <div
         class="sidebar-wrapper d-flex flex-column border-end searchBox"
-        :class="{ 'sidebar-hidden': !isSidebarOpen }"
+        :class="{ 'sidebar-hidden': !store.sidebarOpen }"
     >
-      <SidebarComponent />
+      <BusSearchPage />
     </div>
 
     <!-- 토글 버튼 -->
     <button
         class="sidebar-toggle-btn searchBox"
-        :class="{ 'with-sidebar': isSidebarOpen }"
-        @click="toggleSidebar"
+        :class="{ 'with-sidebar': store.sidebarOpen }"
+        @click="store.toggleSidebar(!store.sidebarOpen)"
     >
-      {{ isSidebarOpen ? '<' : '>' }}
+      {{ store.sidebarOpen ? '<' : '>' }}
     </button>
 
     <!-- 본문 -->
@@ -28,27 +28,12 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { useSearchStore } from '@/stores/searchStore'
 import HeaderComponent from '/src/layouts/components/Header/HeaderComponent.vue'
 import BusSearchPage from '/src/modules/busSearch/views/BusSearchPage.vue'
 
-export default {
-  name: 'DefaultLayout',
-  components: {
-    HeaderComponent,
-    SidebarComponent: BusSearchPage
-  },
-  data() {
-    return {
-      isSidebarOpen: false
-    }
-  },
-  methods: {
-    toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen
-    }
-  }
-}
+const store = useSearchStore()
 </script>
 
 <style>
