@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
+    "connect-history-api-fallback": "^2.0.0",
+    "http-proxy-middleware": "^3.0.5",
     "vite": "^6.2.4",
     "vite-plugin-vue-devtools": "^7.7.2"
   }
