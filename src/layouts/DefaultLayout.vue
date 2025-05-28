@@ -4,7 +4,7 @@
 
     <!-- 사이드바 -->
     <div
-        class="sidebar-wrapper d-flex flex-column border-end"
+        class="sidebar-wrapper d-flex flex-column border-end searchBox"
         :class="{ 'sidebar-hidden': !isSidebarOpen }"
     >
       <SidebarComponent />
@@ -12,7 +12,7 @@
 
     <!-- 토글 버튼 -->
     <button
-        class="sidebar-toggle-btn"
+        class="sidebar-toggle-btn searchBox"
         :class="{ 'with-sidebar': isSidebarOpen }"
         @click="toggleSidebar"
     >
@@ -20,7 +20,7 @@
     </button>
 
     <!-- 본문 -->
-    <div class="main-content">
+    <div class="main-content p-0">
       <main>
         <slot />
       </main>
@@ -30,13 +30,13 @@
 
 <script>
 import HeaderComponent from '/src/layouts/components/Header/HeaderComponent.vue'
-import SidebarComponent from '/src/layouts/components/Sidebar/SidebarComponent.vue'
+import BusSearchPage from '/src/modules/busSearch/views/BusSearchPage.vue'
 
 export default {
   name: 'DefaultLayout',
   components: {
     HeaderComponent,
-    SidebarComponent
+    SidebarComponent: BusSearchPage
   },
   data() {
     return {
@@ -52,10 +52,15 @@ export default {
 </script>
 
 <style>
+.searchBox {
+  position: fixed;
+  z-index: 2050;
+}
+/*시이드 바 하단부*/
 .sidebar-wrapper {
-  width: 250px;
-  background-color: #212529;
-  color: white;
+  width: 350px;
+  background-color: #fafaff;
+  color: black;
   overflow-y: auto;
   height: calc(100vh); /* 헤더 높이만큼 제한 */
   scrollbar-width: none;
@@ -77,7 +82,7 @@ export default {
   left: 0;
   transform: none;
   z-index: 1050;
-  background-color: #333;
+  background-color: #4889cd;  /*토큰버튼 색상*/
   color: white;
   border: none;
   padding: 0.5rem 0.75rem;
@@ -89,7 +94,7 @@ export default {
 
 /* 사이드바 열려 있을 때 버튼 위치 오른쪽으로 이동 */
 .sidebar-toggle-btn.with-sidebar {
-  left: 250px;
+  left: 350px;
 }
 
 .main-content {

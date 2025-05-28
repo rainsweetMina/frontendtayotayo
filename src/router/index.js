@@ -1,15 +1,13 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '@/views/HomeView.vue'
 
-// 라우트 모듈 병합
-import mainRoutes from './routes/mainRoutes'
-import authRoutes from './routes/authRoutes'
-import mypageRoutes from './routes/mypageRoutes'
+import busSearchRoutes from '@/modules/busSearch/router'
+import busMapRoutes from '@/modules/busMap/router'
 
 const routes = [
-    ...mainRoutes,
-    ...authRoutes,
-    ...mypageRoutes
+    { path: '/', component: HomeView },
+    ...busSearchRoutes,
+    ...busMapRoutes,
 ]
 
 const router = createRouter({
@@ -18,3 +16,24 @@ const router = createRouter({
 })
 
 export default router
+
+// // src/router/index.js
+// import { createRouter, createWebHistory } from 'vue-router'
+//
+// // 라우트 모듈 병합
+// import mainRoutes from './routes/mainRoutes'
+// import authRoutes from './routes/authRoutes'
+// import mypageRoutes from './routes/mypageRoutes'
+//
+// const routes = [
+//     ...mainRoutes,
+//     ...authRoutes,
+//     ...mypageRoutes
+// ]
+//
+// const router = createRouter({
+//     history: createWebHistory(),
+//     routes
+// })
+//
+// export default router
