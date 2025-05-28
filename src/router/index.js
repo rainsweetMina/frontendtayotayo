@@ -1,13 +1,24 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 
+// 메인 홈 페이지 (BusRoutes가 메인 페이지 역할을 한다면)
+import BusRoutes from '@/pages/BusRoutes.vue'
+
+// 각 모듈별 라우트 가져오기
 import busSearchRoutes from '@/modules/busSearch/router'
 import busMapRoutes from '@/modules/busMap/router'
+import myPageRoutes from '@/modules/mypage/router'
+import LoginView from "@/modules/mypage/views/LoginView.vue";
+
 
 const routes = [
-    { path: '/', component: HomeView },
+    { path: '/', component: BusRoutes }, // 메인 홈 화면 지정
+    { path: '/auth/login', name: 'Login', component: LoginView }, // 로그인 화면
+
+    // 도메인 모듈별 라우트 병합
     ...busSearchRoutes,
     ...busMapRoutes,
+    ...myPageRoutes
 ]
 
 const router = createRouter({
@@ -16,24 +27,3 @@ const router = createRouter({
 })
 
 export default router
-
-// // src/router/index.js
-// import { createRouter, createWebHistory } from 'vue-router'
-//
-// // 라우트 모듈 병합
-// import mainRoutes from './routes/mainRoutes'
-// import authRoutes from './routes/authRoutes'
-// import mypageRoutes from './routes/mypageRoutes'
-//
-// const routes = [
-//     ...mainRoutes,
-//     ...authRoutes,
-//     ...mypageRoutes
-// ]
-//
-// const router = createRouter({
-//     history: createWebHistory(),
-//     routes
-// })
-//
-// export default router

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import BusRoutes from '../pages/BusRoutes.vue'
+import BusRoutes from '@/pages/BusRoutes.vue'
 import NoticeList from "@/views/board/NoticeList.vue";
 import NoticeDetail from "@/views/board/NoticeDetail.vue";
 import NoticeForm from "@/views/board/NoticeForm.vue";

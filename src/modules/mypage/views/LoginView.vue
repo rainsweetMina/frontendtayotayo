@@ -34,7 +34,7 @@ const handleLogin = async () => {
     formData.append('username', userId.value)
     formData.append('password', password.value)
 
-    const response = await axios.post('api/login', formData, {
+    const response = await axios.post('/login', formData, {
       withCredentials: true, // ✅ 세션 쿠키 유지
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'

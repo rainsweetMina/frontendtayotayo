@@ -11,9 +11,15 @@ export default defineConfig({
         host: '0.0.0.0', // 외부 기기 접속 허용
         proxy: {
             '/api': {
-                target: 'https://docs.yi.or.kr:8094',
+                // target: 'https://docs.yi.or.kr:8094',
+                target: 'https://localhost:8081',
                 changeOrigin: true,
                 secure: false,
+            },
+            '/login': {
+                target: 'https://localhost:8081', // 스프링 서버 주소
+                changeOrigin: true,
+                secure: false
             }
         },
         https: {
