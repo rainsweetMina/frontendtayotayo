@@ -1,23 +1,24 @@
 <template>
-  <DefaultLayout>
+  <DefaultLayout v-if="layout !== 'none'">
     <router-view />
   </DefaultLayout>
+  <router-view v-else />
 </template>
 
-<script>
+<script setup>
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 import DefaultLayout from './layouts/DefaultLayout.vue'
 
-export default {
-  name: 'App',
-  components: { DefaultLayout }
-}
+const route = useRoute()
+const layout = computed(() => route.meta.layout || 'default') // 기본값은 'default'
 </script>
 
 <style>
 html, body, #app {
   margin: 0;
   padding: 0;
-  width: 100vw; /* ✅ 뷰포트 전체 너비를 강제로 사용 */
+  width: 100vw;
   max-width: 100vw;
   height: 100vh;
   overflow-x: hidden;

@@ -1,7 +1,7 @@
 <template>
 
   <li v-if="!isAuthenticated" class="nav-item">
-    <router-link to="/login" class="nav-link">회원가입(로그인)</router-link>
+    <router-link to="/auth/login" class="nav-link">회원가입(로그인)</router-link>
   </li>
   <li v-if="isUser" class="nav-item">
     <router-link to="/mypage" class="nav-link">마이페이지</router-link>
