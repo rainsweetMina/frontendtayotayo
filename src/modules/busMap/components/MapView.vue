@@ -4,8 +4,8 @@
 
 <script>
 import { onMounted, ref, watch, onBeforeUnmount } from 'vue'
+import { useSearchStore } from '@/stores/searchStore'
 import axios from 'axios'
-
 import L from 'leaflet'
 
 export default {
@@ -35,7 +35,7 @@ export default {
           position => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            map.setView([lat, lng], 16);
+            map.flyTo([lat, lng], 16);
 
             // 현재 위치 표시
             const greenSvgIcon = L.divIcon({
@@ -69,6 +69,7 @@ export default {
     routeId: String
   },
   setup(props) {
+    const store = useSearchStore()
     const busMarkers = ref([])
     let intervalId = null
 
@@ -93,7 +94,6 @@ export default {
       if (!props.routeId) return
       try {
         const res = await axios.get(`/api/bus/bus-route-Bus?routeId=${props.routeId}`)
-        console.log('📦 실시간 위치:', res.data)
         drawBusMarkers(res.data.busLocationList || [])
       } catch (err) {
         console.error('실시간 위치 호출 실패:', err)
@@ -119,7 +119,31 @@ export default {
     })
 
     onMounted(() => {
-      startLocationPolling()
+      // startLocationPolling()
+      const drawBusStopMarkers = () => {
+        const stops = [
+          { bsId: '101', bsNm: '경대북문', xPos: 128.5933, yPos: 35.8656 },
+          { bsId: '102', bsNm: '서문시장입구', xPos: 128.5941, yPos: 35.8672 }
+          // ... 또는 axios로 받아온 정류장 데이터
+        ]
+
+        stops.forEach(stop => {
+          const marker = L.circleMarker([stop.yPos, stop.xPos], {
+            radius: 6,
+            color: '#007bff',
+            fillColor: '#007bff',
+            fillOpacity: 0.9
+          }).addTo(window.leafletMap)
+
+          marker.on('click', () => {
+            store.setSelectedStop({
+              bsId: stop.bsId,
+              bsNm: stop.bsNm
+            })
+          })
+        })
+      }
+
     })
 
     onBeforeUnmount(() => {

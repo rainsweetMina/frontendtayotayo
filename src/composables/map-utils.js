@@ -24,14 +24,13 @@ export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
     window.routePolylines.push(polyline);
 
     map.fitBounds(polyline.getBounds());
+
+    return polyline;
 }
 
 
 export function clearMapElements(map) {
-    if (!map) {
-        console.warn('❗ map 객체 없음 (clearMapElements)');
-        return;
-    }
+    if (!map) return
 
     // ✅ 마커 제거
     if (window.busStopMarkers) {
@@ -55,6 +54,18 @@ export function clearMapElements(map) {
             if (map.hasLayer(line)) map.removeLayer(line);
         });
         window.routePolylines = [];
+    }
+
+    // ✅ 기존 라인 제거
+    if (window.routeLineLayers) {
+        window.routeLineLayers.forEach(layer => map.removeLayer(layer))
+        window.routeLineLayers = []
+    }
+
+    // ✅ 기존 마커 제거
+    if (window.routePointMarkers) {
+        window.routePointMarkers.forEach(marker => map.removeLayer(marker))
+        window.routePointMarkers = []
     }
 
     // ✅ 버스 아이콘 제거
