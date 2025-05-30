@@ -1,39 +1,38 @@
 <template>
-  <div class="bus-map-page d-flex">
-    <div class="searchBox">
-      <!-- ✅ 항상 보이는 검색창 -->
-      <SearchBox v-model="searchKeyword" @search="handleSearch" />
-
-      <!-- ✅ 검색 결과 있을 때만 리스트 출력 -->
-      <div v-if="busStops.length || busRoutes.length">
-        <BusStopList :busStops="busStops" @selectStop="moveToStop" />
-        <BusRouteList :routes="busRoutes" @select="selectRoute" />
+  <div class="bus-map-page">
+    <!-- ✅ 로고 + 검색창 맵 위에 띄우기 -->
+    <div class="floating-search top-0 start-1">
+      <router-link to="/" class="logo-link">
+        <Logo />
+      </router-link>
+      <div class="search-box-wrapper">
+        <SearchBox v-model="searchKeyword" @search="handleSearch" />
       </div>
     </div>
 
-    <!-- ✅ 지도 -->
-    <div class="map-container" :class="{ 'shifted': store.sidebarOpen }">
+    <div class="map-container">
       <MapView />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import {ref, watch} from 'vue'
 import axios from 'axios'
-import { useSearchStore } from '@/stores/searchStore'
+import {useSearchStore} from '@/stores/searchStore'
 import {clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
 
 import MapView from '../components/MapView.vue'
 import SearchBox from '../../busSearch/components/SearchBox.vue'
-import BusStopList from '../../busSearch/components/BusStopList.vue'
-import BusRouteList from '../../busSearch/components/BusRouteList.vue'
+import Logo from "@/layouts/components/Header/Logo.vue";
 
 // 상태 및 스토어
 const store = useSearchStore()
 const searchKeyword = ref('')
 const busStops = ref([])
 const busRoutes = ref([])
+
+// 지도 요소 전역 초기화
 window.routeLineLayers = []
 window.routePointMarkers = []
 
@@ -44,8 +43,8 @@ function handleSearch(keyword) {
   store.setKeyword(keyword);
   store.toggleSidebar(true);
 
-  axios.get('/api/bus/searchBSorBN', { params: { keyword } })
-      .then(({ data }) => {
+  axios.get('/api/bus/searchBSorBN', {params: {keyword}})
+      .then(({data}) => {
         busStops.value = data.busStops || []
         busRoutes.value = data.busNumbers || []
         drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
@@ -79,12 +78,6 @@ const endIcon = L.icon({
   iconAnchor: [18, 36]
 })
 
-const transferIcon = L.icon({
-  iconUrl: '/images/transfer_icon.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 36]
-})
-
 // 경로 선택 시 지도 반영
 watch(() => store.selectedRoute, (route) => {
   if (!route || !Array.isArray(route.stationIds)) return
@@ -95,9 +88,8 @@ watch(() => store.selectedRoute, (route) => {
 
   // ❗ 누적 제거
   window.routeLineLayers?.forEach(l => l.remove())
-  window.routeLineLayers = []
-
   window.routePointMarkers?.forEach(m => m.remove())
+  window.routeLineLayers = []
   window.routePointMarkers = []
 
   const coords = route.stationIds
@@ -111,38 +103,19 @@ watch(() => store.selectedRoute, (route) => {
 
   if (coords.length < 2) return
 
-  // 🔻 선
-  if (route.type === '환승' && typeof route.transferIndex === 'number') {
-    const firstLeg = coords.slice(0, route.transferIndex + 1)
-    const secondLeg = coords.slice(route.transferIndex)
-
-    const firstLine = L.polyline(firstLeg.map(p => [p.lat, p.lng]), { color: 'green', weight: 4 })
-    const secondLine = L.polyline(secondLeg.map(p => [p.lat, p.lng]), { color: 'orange', weight: 4, dashArray: '6, 6' })
-
-    firstLine.addTo(map)
-    secondLine.addTo(map)
-
-    window.routeLineLayers.push(firstLine, secondLine)
-
-    const tp = coords[route.transferIndex]
-    const transferMarker = L.marker([tp.lat, tp.lng], { icon: transferIcon })
-        .addTo(map).bindPopup(`🔁 환승지점: ${tp.bsNm}`)
-    window.routePointMarkers.push(transferMarker)
-  } else {
-    const line = L.polyline(coords.map(p => [p.lat, p.lng]), { color: 'green', weight: 4 })
-    line.addTo(map)
-    window.routeLineLayers.push(line)
-  }
+  const line = L.polyline(coords.map(p => [p.lat, p.lng]), {color: 'yellowgreen', weight: 4})
+  line.addTo(map)
+  window.routeLineLayers.push(line)
 
   // 🔘 출발 마커
   const start = coords[0]
-  const startMarker = L.marker([start.lat, start.lng], { icon: startIcon })
+  const startMarker = L.marker([start.lat, start.lng], {icon: startIcon})
       .addTo(map).bindPopup(`출발: ${start.bsNm}`)
   window.routePointMarkers.push(startMarker)
 
   // 🔘 도착 마커
   const end = coords[coords.length - 1]
-  const endMarker = L.marker([end.lat, end.lng], { icon: endIcon })
+  const endMarker = L.marker([end.lat, end.lng], {icon: endIcon})
       .addTo(map).bindPopup(`도착: ${end.bsNm}`)
   window.routePointMarkers.push(endMarker)
 
@@ -153,11 +126,6 @@ watch(() => store.selectedRoute, (route) => {
 </script>
 
 <style scoped>
-.searchBox {
-  width: 350px;
-  z-index: 1080;
-}
-
 .bus-map-page {
   display: flex;
   height: 100vh;
@@ -173,5 +141,28 @@ watch(() => store.selectedRoute, (route) => {
 
 .map-container.shifted {
   margin-left: 200px;
+}.floating-search {
+   position: absolute;
+   top: 20px;
+   left: 20px;
+   z-index: 1000;
+   display: flex;
+   align-items: center;
+
+   /* ❌ 배경 제거 */
+   background: none;
+   padding: 0;
+   border-radius: 0;
+   box-shadow: none;
+ }
+
+.logo-link {
+  display: flex;
+  align-items: center;
+}
+
+.search-box-wrapper {
+  max-width: 200px;
+  flex: 1;
 }
 </style>

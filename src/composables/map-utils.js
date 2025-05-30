@@ -73,6 +73,12 @@ export function clearMapElements(map) {
         window.busLocationMarkers.forEach(marker => map.removeLayer(marker))
         window.busLocationMarkers = []
     }
+
+    // ✅ 환승 마커 제거
+    if (window.transferMarker && map.hasLayer(window.transferMarker)) {
+        map.removeLayer(window.transferMarker)
+        window.transferMarker = null
+    }
 }
 
 // 실시간 버스 정보
@@ -99,10 +105,9 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
                 const body = res.data.body;
 
-                let content = `
-      <div class="popup-wrapper">
-        <div class="popup-title"><b>${stop.bsNm}</b></div>
-    `;
+                let content = `<div class="popup-wrapper">
+                                        <div class="popup-title"><b>${stop.bsNm}</b></div>
+                                    `;
 
                 if (!body.totalCount || !body.items) {
                     content += `<div class="no-info">도착 정보 없음</div></div>`;
@@ -111,9 +116,9 @@ export function drawBusStopMarkersWithArrival(map, stops) {
                 }
 
                 const items = Array.isArray(body.items) ? body.items : [body.items];
+                const routeMap = new Map();
 
                 // ✅ 노선번호별로 하나만 유지 (가장 빠른 arrState 기준)
-                const routeMap = new Map();
                 items.forEach(item => {
                     const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList];
                     arrList.forEach(arr => {

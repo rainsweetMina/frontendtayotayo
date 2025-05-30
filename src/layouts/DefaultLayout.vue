@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid p-0">
-    <HeaderComponent/>
+    <HeaderComponent v-if="route.path !== '/bus/map'" />
 
     <!--사이드바 맵 주소가 바뀐다면 수정필요-->
     <div v-if="route.path === '/bus/map'">
@@ -48,7 +48,7 @@ const store = useSearchStore()
 
 /*시이드 바 하단부*/
 .sidebar-wrapper {
-  width: 350px;
+  width: 400px;
   background-color: #fafaff;
   color: black;
   overflow-y: auto;
@@ -84,7 +84,7 @@ const store = useSearchStore()
 
 /* 사이드바 열려 있을 때 버튼 위치 오른쪽으로 이동 */
 .sidebar-toggle-btn.with-sidebar {
-  left: 350px;
+  left: 400px;
 }
 
 .main-content {

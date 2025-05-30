@@ -3,7 +3,8 @@
 </template>
 
 <script>
-import { onMounted, ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
+import { drawBusRouteMapORS } from '@/composables/map-utils'
 import { useSearchStore } from '@/stores/searchStore'
 import axios from 'axios'
 import L from 'leaflet'
@@ -39,12 +40,11 @@ export default {
 
             // 현재 위치 표시
             const greenSvgIcon = L.divIcon({
-              html: `
-    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="45" viewBox="0 0 24 36" fill="none">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.6-5.4-12-12-12z" fill="#2ecc71"/>
-      <circle cx="12" cy="12" r="5" fill="white"/>
-    </svg>
-  `,
+              html: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="45" viewBox="0 0 24 36" fill="none">
+                        <path d="M12 0C   5.4 0 0 5.4 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.6-5.4-12-12-12z" fill="#2ecc71"/>
+                        <circle cx="12" cy="12" r="5" fill="white"/>
+                      </svg>
+                    `,
               className: '', // 기본 스타일 제거
               iconSize: [30, 45],
               iconAnchor: [15, 45]
@@ -100,6 +100,7 @@ export default {
       }
     }
 
+    // 여기 지금 비활성화
     const startLocationPolling = () => {
       fetchBusLocations()
       intervalId = setInterval(fetchBusLocations, 10000) // 10초마다 갱신
@@ -111,44 +112,135 @@ export default {
       clearBusMarkers()
     }
 
-    watch(() => props.routeId, (newVal, oldVal) => {
-      if (newVal !== oldVal) {
-        stopLocationPolling()
-        startLocationPolling()
-      }
-    })
+    watch(() => store.selectedRoute, (route) => {
+      if (!route || route.type !== '환승' || !route.transferStationName) return;
+      if (!route || !route.stationIds?.length) return;
 
-    onMounted(() => {
-      // startLocationPolling()
-      const drawBusStopMarkers = () => {
-        const stops = [
-          { bsId: '101', bsNm: '경대북문', xPos: 128.5933, yPos: 35.8656 },
-          { bsId: '102', bsNm: '서문시장입구', xPos: 128.5941, yPos: 35.8672 }
-          // ... 또는 axios로 받아온 정류장 데이터
-        ]
+      const allStations = route.stationIds;
 
-        stops.forEach(stop => {
-          const marker = L.circleMarker([stop.yPos, stop.xPos], {
-            radius: 6,
-            color: '#007bff',
-            fillColor: '#007bff',
-            fillOpacity: 0.9
-          }).addTo(window.leafletMap)
+      const transferStop = route.stationIds.find(s =>
+          s.bsNm.replace(/\s/g, '') === route.transferStationName.replace(/\s/g, '')
+      );
 
-          marker.on('click', () => {
-            store.setSelectedStop({
-              bsId: stop.bsId,
-              bsNm: stop.bsNm
-            })
-          })
-        })
+      if (!transferStop) {
+        console.warn('❌ 환승 정류장을 못 찾았습니다:', route.transferStationName);
+        return;
       }
 
-    })
+      const lat = parseFloat(transferStop.yPos ?? transferStop.ypos);
+      const lng = parseFloat(transferStop.xPos ?? transferStop.xpos);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        console.warn('❌ 환승 정류장의 좌표가 유효하지 않습니다:', transferStop);
+        return;
+      }
+
+      // 기존 환승 마커 제거
+      if (window.transferMarker) {
+        window.leafletMap.removeLayer(window.transferMarker);
+        window.transferMarker = null;
+      }
+
+      // ✅ 기존 라인 제거
+      if (window.routePolylines) {
+        window.routePolylines.forEach(line => window.leafletMap.removeLayer(line));
+        window.routePolylines = [];
+      }
+
+      // 환승 마커 생성
+      const marker = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: '/images/transfer_icon.png',
+          iconSize: [30, 30],
+          iconAnchor: [15, 30]
+        }),
+        title: '환승지점: ' + transferStop.bsNm
+      }).addTo(window.leafletMap);
+
+      if (route.type === '환승' && route.transferStationName) {
+        const transferIdx = allStations.findIndex(s =>
+            s.bsNm.replace(/\s/g, '') === route.transferStationName.replace(/\s/g, '')
+        );
+
+        if (transferIdx > 0) {
+          const section1 = allStations.slice(0, transferIdx + 1);
+          const section2 = allStations.slice(transferIdx);
+
+          drawBusRouteMapORS(window.leafletMap, section1, 'yellowgreen');  // 환승 전
+          drawBusRouteMapORS(window.leafletMap, section2, 'orange');   // 환승 후
+        } else {
+          console.warn('❌ 환승 인덱스가 유효하지 않음:', route.transferStationName);
+          drawBusRouteMapORS(window.leafletMap, allStations, 'gray');
+        }
+      } else {
+        // 직통이면 한 번만
+        drawBusRouteMapORS(window.leafletMap, allStations, 'yellowgreen');
+      }
+
+      marker.on('click', async () => {
+        try {
+          const res = await axios.get(`/api/bus/bus-arrival`, {
+            params: { bsId: transferStop.bsId }
+          });
+
+          const body = res.data.body;
+
+          let content = `
+            <div class="popup-wrapper">
+              <div class="popup-title"><b>${transferStop.bsNm}</b> (🔁 환승지점)</div>
+          `;
+
+          if (!body.totalCount || !body.items) {
+            content += `<div class="no-info">도착 정보 없음</div></div>`;
+            marker.bindPopup(content).openPopup();
+            return;
+          }
+
+          const items = Array.isArray(body.items) ? body.items : [body.items];
+          const routeMap = new Map();
+
+          items.forEach(item => {
+            const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList];
+            arrList.forEach(arr => {
+              const existing = routeMap.get(item.routeNo);
+              if (!existing || arr.arrTime < existing.arrTime) {
+                routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn });
+              }
+            });
+          });
+
+          const sortedArrivals = [...routeMap.values()];
+          content += `<div class="popup-scroll-area">`;
+
+          sortedArrivals.forEach(arr => {
+            content += `
+              <div class="bus-info">
+                <div class="route-no">🚌 ${arr.routeNo}</div>
+                <div class="arr-time">${arr.arrState}</div>
+                <div class="direction">${arr.updn ?? ''}</div>
+              </div>
+            `;
+          });
+
+          content += `</div></div>`;
+          marker.bindPopup(content).openPopup();
+
+        } catch (err) {
+          marker.bindPopup(`<b>${transferStop.bsNm}</b><br>도착 정보 조회 실패`).openPopup();
+          console.error('❌ 도착 정보 요청 실패:', err);
+        }
+      });
+      window.transferMarker = marker;
+    });
 
     onBeforeUnmount(() => {
-      stopLocationPolling()
-    })
+      stopLocationPolling();
+
+      if (window.transferMarker) {
+        window.leafletMap.removeLayer(window.transferMarker);
+        window.transferMarker = null;
+      }
+    });
 
     return {}
   }
@@ -158,7 +250,7 @@ export default {
 <style scoped>
 .leaflet-map {
   width: 100%;
-  height: 92vh;
+  height: 100vh;
   border: 1px solid #ccc;
 }
 </style>

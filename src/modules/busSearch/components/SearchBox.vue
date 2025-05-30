@@ -8,7 +8,7 @@
           placeholder="버스 번호/정류장 검색"
           style="flex: 5;"
       />
-      <button @click="onSearch" class="btn btn-outline-primary" style="flex:1;">검색</button>
+      <button @click="onSearch" class="btn btn-primary" style="flex:1;">검색</button>
     </span>
   </div>
 </template>
@@ -23,3 +23,10 @@ function onSearch() {
   store.toggleSidebar(true)
 }
 </script>
+
+<style scoped>
+input {
+  border: 1px #4889cd solid;
+  border-radius: 4px;
+}
+</style>
