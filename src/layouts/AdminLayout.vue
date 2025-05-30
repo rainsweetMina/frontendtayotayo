@@ -31,4 +31,10 @@
 <script setup>
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminUserMenu from '../components/AdminUserMenu.vue'
-</script> 
+</script>
+
+<style scoped>
+.min-h-screen {
+  min-height: 100vh;
+}
+</style> 
