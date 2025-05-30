@@ -10,9 +10,14 @@ import LoginView from "@/modules/mypage/views/LoginView.vue";
 
 const routes = [
     { path: '/', component: HomeView },
-    { path: '/auth/login', name: 'Login', component: LoginView }, // 로그인 화면
+    { 
+        path: '/login', 
+        name: 'Login', 
+        component: LoginView,
+        meta: { layout: 'none' }
+    },
 
-    // 도메인 모듈별 라우트 병합
+    // 도메인 모듈별 라우트 병합np
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes

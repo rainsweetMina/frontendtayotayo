@@ -1,6 +1,8 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+axios.defaults.withCredentials = true
+axios.defaults.baseURL = 'https://localhost:8081'
 
 export function useUserInfo() {
     const user = ref({
@@ -11,7 +13,7 @@ export function useUserInfo() {
 
     onMounted(async () => {
         try {
-            const res = await axios.get('/api/user/info', { withCredentials: true })
+            const res = await axios.get('/api/user/info')
             user.value = {
                 name: res.data.username,
                 email: res.data.email
