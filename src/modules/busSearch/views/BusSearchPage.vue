@@ -1,12 +1,18 @@
 <template>
   <div class="sidebar-content">
-    <SearchBox/>
+    <SearchBoxWrapper/>
+    <RouteResultList
+        :routes="store.routeResults"
+        @selectRoute="selectRouteFromPath"
+    />
     <div>
       <BusStopList
           :stops="busStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
           @selectStop="handleStopClick"
+          @selectAsStart="setStartStop"
+          @selectAsEnd="setEndStop"
       />
     </div>
     <BusRouteList :routes="busRoutes" @select="selectRoute"/>
@@ -22,6 +28,8 @@ import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} fro
 import SearchBox from '../components/SearchBox.vue'
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
+import RouteResultList from '../components/RouteResultList.vue'
+import SearchBoxWrapper from "@/modules/busSearch/components/SearchBoxWrapper.vue";
 
 const store = useSearchStore()
 
@@ -29,6 +37,8 @@ const busStops = ref([])
 const busRoutes = ref([])
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
+let lastStartId = null
+let lastEndId = null
 
 watch(() => store.lastSearchedKeyword, async (keyword) => {
   if (!keyword.trim()) return
@@ -57,15 +67,13 @@ async function handleStopClick(stop) {
 
   // ✅ 지도 이동
   if (!isNaN(lat) && !isNaN(lng)) {
-    map.setView([lat, lng], 17)
+    map.flyTo([lat, lng], 17)
 
     // ✅ 기존 정류장 마커에서 해당 위치 마커 찾기
     const marker = (window.busStopMarkers || []).find(m =>
         m.getLatLng().lat === lat && m.getLatLng().lng === lng
     )
-    if (marker) {
-      marker.openPopup()
-    }
+    if (marker) marker.openPopup()
   }
 
   if (!arrivalDataMap.value[bsId]) {
@@ -79,6 +87,41 @@ async function handleStopClick(stop) {
       arrivalDataMap.value[bsId] = []
     }
   }
+}
+
+function selectRouteFromPath(route) {
+  store.setSelectedRoute(route)  // 지도 반영은 mapPage.vue 쪽에서 watch로 처리
+}
+
+function setStartStop(stop) {
+  store.setStartStop(stop)
+  tryFindRoute() // 출+도착 다 선택되었을 경우 길찾기 호출
+}
+function setEndStop(stop) {
+  store.setEndStop(stop)
+  tryFindRoute()
+}
+async function tryFindRoute() {
+  if (!store.startStop || !store.endStop) return;
+
+  // 이미 같은 경로로 요청했는지 체크 (선택)
+  if (
+      store.routeResults.length > 0 &&
+      store.startStop.bsId === lastStartId &&
+      store.endStop.bsId === lastEndId
+  ) return;
+
+  const { data } = await axios.get('/api/bus/findRoutes', {
+    params: {
+      startBsId: store.startStop.bsId,
+      endBsId: store.endStop.bsId
+    }
+  })
+  store.setRouteResults(data)
+
+  // 필요 시 캐시용으로 저장
+  lastStartId = store.startStop.bsId
+  lastEndId = store.endStop.bsId
 }
 
 function selectRoute(route) {
@@ -133,7 +176,7 @@ function selectRoute(route) {
           const lat = parseFloat(yPos)
           const lng = parseFloat(xPos)
           if (!isNaN(lat) && !isNaN(lng)) {
-            map.setView([lat, lng], 16)
+            map.flyTo([lat, lng], 16)
           }
         }
       }))

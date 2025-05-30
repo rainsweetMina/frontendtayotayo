@@ -7,6 +7,10 @@
         @click="$emit('selectStop', stop)"
     >
       <strong>{{ stop.bsNm }}</strong>
+      <div class="buttons">
+        <button @click="$emit('selectAsStart', stop)">출발</button>
+        <button @click="$emit('selectAsEnd', stop)">도착</button>
+      </div>
 
       <!-- 도착 정보 영역 -->
       <div v-if="openedStopId === stop.bsId" class="arrival-info my-2">
@@ -36,6 +40,8 @@ defineProps({
   openedStopId: String,
   arrivalDataMap: Object
 })
+
+defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 </script>
 
 <style scoped>
@@ -76,5 +82,15 @@ defineProps({
 .arrival-empty {
   font-size: 0.9em;
   padding-top: 5px;
+}
+
+.stop-item {
+  margin-bottom: 8px;
+}
+.buttons {
+  margin-top: 4px;
+}
+button {
+  margin-right: 4px;
 }
 </style>

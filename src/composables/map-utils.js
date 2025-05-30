@@ -24,14 +24,13 @@ export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
     window.routePolylines.push(polyline);
 
     map.fitBounds(polyline.getBounds());
+
+    return polyline;
 }
 
 
 export function clearMapElements(map) {
-    if (!map) {
-        console.warn('❗ map 객체 없음 (clearMapElements)');
-        return;
-    }
+    if (!map) return
 
     // ✅ 마커 제거
     if (window.busStopMarkers) {
@@ -57,10 +56,28 @@ export function clearMapElements(map) {
         window.routePolylines = [];
     }
 
+    // ✅ 기존 라인 제거
+    if (window.routeLineLayers) {
+        window.routeLineLayers.forEach(layer => map.removeLayer(layer))
+        window.routeLineLayers = []
+    }
+
+    // ✅ 기존 마커 제거
+    if (window.routePointMarkers) {
+        window.routePointMarkers.forEach(marker => map.removeLayer(marker))
+        window.routePointMarkers = []
+    }
+
     // ✅ 버스 아이콘 제거
     if (window.busLocationMarkers) {
         window.busLocationMarkers.forEach(marker => map.removeLayer(marker))
         window.busLocationMarkers = []
+    }
+
+    // ✅ 환승 마커 제거
+    if (window.transferMarker && map.hasLayer(window.transferMarker)) {
+        map.removeLayer(window.transferMarker)
+        window.transferMarker = null
     }
 }
 
@@ -88,10 +105,9 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
                 const body = res.data.body;
 
-                let content = `
-      <div class="popup-wrapper">
-        <div class="popup-title"><b>${stop.bsNm}</b></div>
-    `;
+                let content = `<div class="popup-wrapper">
+                                        <div class="popup-title"><b>${stop.bsNm}</b></div>
+                                    `;
 
                 if (!body.totalCount || !body.items) {
                     content += `<div class="no-info">도착 정보 없음</div></div>`;
@@ -100,9 +116,9 @@ export function drawBusStopMarkersWithArrival(map, stops) {
                 }
 
                 const items = Array.isArray(body.items) ? body.items : [body.items];
+                const routeMap = new Map();
 
                 // ✅ 노선번호별로 하나만 유지 (가장 빠른 arrState 기준)
-                const routeMap = new Map();
                 items.forEach(item => {
                     const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList];
                     arrList.forEach(arr => {
