@@ -8,11 +8,14 @@ import myPageRoutes from '@/modules/mypage/router'
 import LoginView from "@/modules/mypage/views/LoginView.vue";
 
 
+import lostFoundRoutes from '@/modules/lostFound/router'
+
+
 const routes = [
     { path: '/', component: HomeView },
-    { 
-        path: '/login', 
-        name: 'Login', 
+    {
+        path: '/login',
+        name: 'Login',
         component: LoginView,
         meta: { layout: 'none' }
     },
@@ -20,7 +23,8 @@ const routes = [
     // 도메인 모듈별 라우트 병합np
     ...busSearchRoutes,
     ...busMapRoutes,
-    ...myPageRoutes
+    ...myPageRoutes,
+    ...lostFoundRoutes ,
 ]
 
 const router = createRouter({
