@@ -7,53 +7,69 @@
 
     <hr class="my-4" />
 
-    <!-- 목록 -->
     <div v-if="lostItems.length">
       <LostItemCard
           v-for="item in lostItems"
           :key="item.id"
           :item="item"
           @delete="handleDelete"
+          @edit="openEditModal"
       />
     </div>
     <div v-else class="text-muted">등록된 분실물이 없습니다.</div>
+
+    <!-- ✅ 수정 모달 -->
+    <Modal v-if="showEditModal" @close="closeModal">
+      <LostItemEdit :item="selectedItem" @updated="fetchItems" @close="closeModal" />
+    </Modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { getMyLostItems, createLostItem, deleteLostItem } from '@/modules/lostFound/api/lostFound';
+import LostItemCard from '@/modules/lostFound/components/LostItemCard.vue';
+import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue';
+import Modal from '@/modules/lostFound/components/Modal.vue';
+import LostItemEdit from '@/modules/lostFound/components/LostItemEdit.vue';
 
-import { getMyLostItems, createLostItem, deleteLostItem } from '@/modules/lostFound/api/lostFound'
-import LostItemCard from '@/modules/lostFound/components/LostItemCard.vue'
-import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue'
+const lostItems = ref([]);
+const route = useRoute();
 
-const lostItems = ref([])
-const route = useRoute()
+const showEditModal = ref(false);
+const selectedItem = ref(null);
 
-const isLostPage = computed(() => {
-  return route.path.startsWith('/lost') && !route.path.startsWith('/mypage/lost')
-})
-
+const isLostPage = computed(() => route.path.startsWith('/lost') && !route.path.startsWith('/mypage/lost'));
 
 const fetchItems = async () => {
-  const { data } = await getMyLostItems()
-  lostItems.value = data
-}
+  const { data } = await getMyLostItems();
+  lostItems.value = data;
+};
 
-onMounted(fetchItems)
+onMounted(fetchItems);
 
 const handleCreate = async (formData) => {
-  await createLostItem(formData)
-  await fetchItems()
-}
+  await createLostItem(formData);
+  await fetchItems();
+};
 
 const handleDelete = async (id) => {
   if (confirm('정말 삭제하시겠습니까?')) {
-    await deleteLostItem(id)
-    await fetchItems()
+    await deleteLostItem(id);
+    await fetchItems();
   }
-}
+};
+
+const openEditModal = (item) => {
+  selectedItem.value = item;
+  showEditModal.value = true;
+};
+
+const closeModal = () => {
+  selectedItem.value = null;
+  showEditModal.value = false;
+};
 </script>
 
 <style scoped>
