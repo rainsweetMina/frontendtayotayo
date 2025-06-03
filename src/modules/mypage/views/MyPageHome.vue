@@ -1,164 +1,108 @@
 <template>
-  <div class="mypage">
-    <h1>마이페이지</h1>
+  <div class="mypage-main">
+    <!-- 사용자 정보 -->
+    <section class="user-info">
+      <h4>👤 {{ user?.name }}님, 환영합니다!</h4>
+      <p>최근 접속일: {{ formattedLastLogin }}</p>
+    </section>
 
-    <nav class="menu">
-      <router-link to="/mypage/favorites">즐겨찾기</router-link>
-      <div class="dropdown">
-        <span class="dropdown-label">분실물 센터 ▾</span>
-        <div class="dropdown-content">
-          <router-link to="/mypage/lost">📝 분실물 신고</router-link>
-          <router-link to="/mypage/found">📋 습득물 목록</router-link>
-        </div>
+    <!-- 카드 요약 보기 -->
+    <section class="summary-cards">
+      <div class="card" @click="$router.push('/mypage/favorites')">
+        <h3>⭐ 즐겨찾기</h3>
+        <p>버스 {{ favorites.busCount }}개, 정류장 {{ favorites.stopCount }}개</p>
       </div>
-      <router-link to="/mypage/qna">질문/답변</router-link>
-      <router-link to="/mypage/apikey-request">API 키 발급</router-link>
-    </nav>
+      <div class="card" @click="$router.push('/mypage/lost')">
+        <h3>📦 분실물</h3>
+        <p>최근 신고 {{ lostItems }}건</p>
+      </div>
+      <div class="card" @click="$router.push('/mypage/qna')">
+        <h3>💬 Q&A</h3>
+        <p>답변 대기 {{ qnaCount }}건</p>
+      </div>
+    </section>
 
-    <div v-if="user.name" class="user-info">
-      <p>안녕하세요, <strong>{{ user.name }}</strong>님!</p>
-      <p><strong>이메일:</strong> {{ user.email }}</p>
-    </div>
-
-    <div class="actions">
-      <router-link to="/mypage/modify">정보 수정</router-link>
-      <router-link to="/mypage/password">비밀번호 변경</router-link>
-      <a href="/logout" class="logout-link">로그아웃</a>
-      <router-link to="/mypage/withdraw" class="danger-link">회원 탈퇴</router-link>
-    </div>
-
-    <router-view />
+    <!-- 설정 및 관리 -->
+    <section class="settings">
+      <router-link to="/mypage/modify">⚙️ 내 정보 수정</router-link>
+      <router-link to="/mypage/password">🔐 비밀번호 변경</router-link>
+      <router-link to="/mypage/withdraw">🗑️ 회원 탈퇴</router-link>
+    </section>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 const { user } = useUserInfo()
+
+// 예시 데이터
+const favorites = ref({ busCount: 2, stopCount: 1 })
+const lostItems = ref(1)
+const qnaCount = ref(2)
+
+// ✅ computed로 안전하게 포맷된 날짜 출력
+const formattedLastLogin = computed(() => {
+  if (!user.value || !user.value.lastLoginAt) return '정보 없음'
+
+  try {
+    const date = new Date(user.value.lastLoginAt)
+    return date.toLocaleString('ko-KR', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    })
+  } catch {
+    return '정보 없음'
+  }
+})
 </script>
 
 <style scoped>
-.mypage {
+.mypage-main {
   max-width: 800px;
-  margin: 40px auto;
-  padding: 2.5rem;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #2c3e50;
+  margin: auto;
+  padding: 2rem;
 }
-
-.mypage h1 {
-  font-size: 2rem;
-  margin-bottom: 1.8rem;
-  text-align: center;
-  color: #2c3e50;
-  border-bottom: 2px solid #4889cd;
-  padding-bottom: 0.5rem;
-}
-
-.menu {
+.user-info {
+  background: #f0f4ff;
+  padding: 1rem;
+  border-radius: 1rem;
   margin-bottom: 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.card {
+  background: white;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+}
+.settings {
   display: flex;
+  gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
-  font-size: 1rem;
 }
-
-.menu a,
-.menu .dropdown-label {
-  color: #4889cd;
+.settings a {
+  background: #eee;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s;
-}
-
-.menu a:hover,
-.menu .dropdown-label:hover {
-  color: #2877cd;
-  text-decoration: underline;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-label {
-  cursor: pointer;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-  padding: 10px 15px;
-  min-width: 160px;
-  top: 100%;
-  left: 0;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.dropdown-content a {
-  display: block;
-  padding: 8px 0;
   color: #333;
-  text-decoration: none;
-  transition: background 0.2s;
+  transition: background 0.2s ease;
 }
-
-.dropdown-content a:hover {
-  background-color: #f2f2f2;
-}
-
-.user-info {
-  background-color: #f9fbff;
-  border: 1px solid #dbeaff;
-  padding: 1.2rem 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-}
-
-.user-info p {
-  margin: 0.3rem 0;
-  font-size: 1rem;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  align-items: flex-start;
-}
-
-.actions a {
-  color: #4889cd;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.actions a:hover {
-  color: #2877cd;
-  text-decoration: underline;
-}
-
-.actions a.logout-link {
-  color: #e74c3c;
-  font-weight: bold;
-}
-
-.actions a.danger-link {
-  color: red;
-  font-weight: bold;
+.settings a:hover {
+  background: #ccc;
 }
 </style>

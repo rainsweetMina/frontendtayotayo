@@ -20,19 +20,6 @@ const layout = computed(() => route.meta.layout || 'default')
 const auth = useAuthStore()
 
 onMounted(async () => {
-  try {
-    const res = await axios.get('/api/user/info', { withCredentials: true })
-    const user = res.data
-    auth.login({
-      role: user.role,
-      username: user.username,
-      userId: user.userId,
-      email: user.email
-    })
-  } catch (err) {
-    console.warn('❌ 로그인 상태 아님 또는 오류:', err)
-    // 로그인 안 되어 있거나 세션 없음
-  }
 })
 </script>
 

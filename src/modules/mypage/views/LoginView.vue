@@ -34,6 +34,12 @@
         <button @click="loginWithGoogle">Google</button>
         <button @click="loginWithKakao">Kakao</button>
       </div>
+
+      <div class="register-link">
+        <p>아직 계정이 없으신가요?</p>
+        <button @click="goToRegister">회원가입</button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -47,8 +53,8 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const auth = useAuthStore()
 
-const userId = ref('')
-const password = ref('')
+const userId = ref('user')
+const password = ref('!1aaaaaa')
 const rememberId = ref(false)
 const error = ref('')
 
@@ -67,24 +73,14 @@ watch(rememberId, (checked) => {
 const handleLogin = async () => {
   try {
     const formData = new URLSearchParams()
-    formData.append('userId', userId.value)
+    formData.append('username', userId.value)
     formData.append('password', password.value)
 
-    const res = await axios.post('https://localhost:8081/api/login', {
-      userId: userId.value,
-      password: password.value
-    }, {
+    const res = await axios.post('https://localhost:8081/auth/login', formData, {
       withCredentials: true,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      transformRequest: [(data) => {
-        const params = new URLSearchParams()
-        for (const key in data) {
-          params.append(key, data[key])
-        }
-        return params
-      }]
+      }
     })
 
     // 로그인 성공 시 사용자 정보 가져오기
@@ -109,6 +105,10 @@ const handleLogin = async () => {
     console.error(err)
     error.value = '아이디 또는 비밀번호가 잘못되었거나 서버 오류입니다.'
   }
+}
+
+const goToRegister = () => {
+  router.push('/register')
 }
 
 const loginWithGoogle = () => {
@@ -224,5 +224,30 @@ button[type="submit"]:hover {
 .social-login button:last-child {
   background-color: #fee500;
   color: #3c1e1e;
+}
+
+.register-link {
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.register-link p {
+  margin-bottom: 0.5rem;
+}
+
+.register-link button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+.register-link button:hover {
+  background-color: #388e3c;
 }
 </style>
