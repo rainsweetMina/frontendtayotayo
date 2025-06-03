@@ -14,6 +14,16 @@ export default [
         path: '/lost',
         name: 'LostPublicList',
         component: () => import('@/modules/lostFound/views/user/LostPublicList.vue')
+    },
+    {
+        path: '/found',
+        name: 'FoundPublicList',
+        component: () => import('@/modules/lostFound/views/user/FoundPublicList.vue')
+    },
+    {
+        path: '/admin/found',
+        name: 'FoundAdminList',
+        component: () => import('@/modules/lostFound/views/admin/FoundAdminList.vue')
     }
 
 

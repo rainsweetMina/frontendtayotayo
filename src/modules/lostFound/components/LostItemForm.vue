@@ -1,6 +1,8 @@
 <template>
   <div class="card p-4 bg-light">
-    <h5 class="text-center mb-4">분실물 등록</h5>
+    <h5 class="text-center mb-4">
+      {{ props.initialData ? '분실물 수정' : '분실물 등록' }}
+    </h5>
     <form @submit.prevent="onSubmit" class="mb-4">
       <!-- 1. 분실물 -->
       <div class="mb-3">
@@ -30,9 +32,7 @@
         <label class="form-label">노선번호</label>
         <select v-model="form.busNumber" class="form-select" required>
           <option disabled value="">선택하세요</option>
-          <option v-for="bus in buses" :key="bus" :value="bus">
-            {{ bus }}
-          </option>
+          <option v-for="bus in buses" :key="bus" :value="bus">{{ bus }}</option>
         </select>
       </div>
 
@@ -42,18 +42,23 @@
         <textarea v-model="form.content" class="form-control" rows="3"></textarea>
       </div>
 
-      <!-- 등록 버튼 -->
-      <button type="submit" class="btn btn-primary">등록</button>
+      <!-- 등록/수정 버튼 -->
+      <button type="submit" class="btn btn-primary">
+        {{ props.initialData ? '수정' : '등록' }}
+      </button>
     </form>
   </div>
 </template>
 
-
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostFound';
+import { ref, reactive, onMounted, watch } from 'vue'
+import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js'
 
-const emit = defineEmits(['submit']);
+const emit = defineEmits(['submit'])
+
+const props = defineProps({
+  initialData: Object
+})
 
 const form = reactive({
   title: '',
@@ -62,35 +67,60 @@ const form = reactive({
   busCompany: '',
   busNumber: '',
   lostTime: '',
-});
+})
 
-const busCompanies = ref([]);
-const buses = ref([]);
+const busCompanies = ref([])
+const buses = ref([])
 
 onMounted(async () => {
   const { data } = await getBusCompanies();
   busCompanies.value = data;
+
+  if (props.initialData) {
+    Object.assign(form, props.initialData);
+
+    // 날짜 변환
+    if (form.lostTime) {
+      const dt = new Date(form.lostTime);
+      const yyyy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, '0');
+      const dd = String(dt.getDate()).padStart(2, '0');
+      const hh = String(dt.getHours()).padStart(2, '0');
+      const min = String(dt.getMinutes()).padStart(2, '0');
+      form.lostTime = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    }
+
+    const company = busCompanies.value.find(c => c.companyName === form.busCompany);
+    form.busCompanyId = company?.id || '';
+
+    if (form.busCompanyId) {
+      await fetchBuses();
+    }
+  }
 });
 
 const fetchBuses = async () => {
-  if (!form.busCompanyId) return;
-  const { data } = await getBusesByCompany(form.busCompanyId);
-  buses.value = data;
+  if (!form.busCompanyId) return
+  const { data } = await getBusesByCompany(form.busCompanyId)
+  buses.value = data
 
-  const selectedCompany = busCompanies.value.find(c => c.id === form.busCompanyId);
-  form.busCompany = selectedCompany ? selectedCompany.companyName : '';
-};
+  const selectedCompany = busCompanies.value.find(c => c.id === form.busCompanyId)
+  form.busCompany = selectedCompany ? selectedCompany.companyName : ''
+}
 
 const onSubmit = () => {
-  emit('submit', { ...form });
-  form.title = '';
-  form.content = '';
-  form.busCompanyId = '';
-  form.busCompany = '';
-  form.busNumber = '';
-  form.lostTime = '';
-  buses.value = [];
-};
+  emit('submit', { ...form })
+  if (!props.initialData) {
+    // 등록 시에만 초기화
+    form.title = ''
+    form.content = ''
+    form.busCompanyId = ''
+    form.busCompany = ''
+    form.busNumber = ''
+    form.lostTime = ''
+    buses.value = []
+  }
+}
 </script>
 
 <style scoped>
