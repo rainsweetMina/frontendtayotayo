@@ -28,7 +28,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { getMyLostItems, createLostItem, deleteLostItem } from '@/modules/lostFound/api/lostFound';
+import { getMyLostItems, createLostItem, deleteLostItem } from '@/modules/lostFound/api/lostPublic.js';
 import LostItemCard from '@/modules/lostFound/components/LostItemCard.vue';
 import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue';
 import Modal from '@/modules/lostFound/components/Modal.vue';

@@ -103,7 +103,7 @@ import axios from 'axios';
 import Modal from '@/modules/lostFound/components/Modal.vue';
 import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue';
 import LostPublicDetail from '@/modules/lostFound/views/user/LostPublicDetail.vue';
-import { getAllLostItems, getBusCompanies, getBusesByCompany, createLostItem } from '@/modules/lostFound/api/lostFound';
+import { getAllLostItems, getBusCompanies, getBusesByCompany, createLostItem } from '@/modules/lostFound/api/lostPublic.js';
 
 const router = useRouter();
 const goToMyLostItems = () => router.push('/mypage/lost');

@@ -26,16 +26,19 @@
 }
 
 .modal-content {
-  background: transparent;
-  padding: 0;
+  background: #fff; /* ✅ 기본 배경색 */
+  padding: 1.5rem;   /* ✅ 내부 여백 */
   border-radius: 10px;
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;  /* ✅ 전체 폼에 스크롤을 넘기기 위해 hidden */
   position: relative;
   z-index: 2101;
+  display: flex;
+  flex-direction: column;
 }
+
 
 .close-btn {
   position: absolute;

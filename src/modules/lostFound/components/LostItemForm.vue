@@ -52,7 +52,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
-import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostFound'
+import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js'
 
 const emit = defineEmits(['submit'])
 

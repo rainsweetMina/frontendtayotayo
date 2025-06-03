@@ -5,7 +5,7 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 import LostItemForm from './LostItemForm.vue';
-import { updateLostItem } from '@/modules/lostFound/api/lostFound';
+import { updateLostItem } from '@/modules/lostFound/api/lostPublic.js';
 
 const props = defineProps({ item: Object });
 const emit = defineEmits(['updated', 'close']);
