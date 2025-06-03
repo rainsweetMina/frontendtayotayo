@@ -41,5 +41,10 @@ export default [
         path: '/register',
         name: 'Register',
         component: () => import('../views/RegisterView.vue')
+    },
+
+    {
+        path: '/mypage/notifications',
+        component: () => import('@/modules/mypage/views/NotificationListView.vue')
     }
 ]

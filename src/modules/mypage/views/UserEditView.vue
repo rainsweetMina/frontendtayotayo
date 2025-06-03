@@ -19,7 +19,7 @@
         <input :value="user.signupType" disabled />
 
         <label>가입일</label>
-        <input :value="user.signupDate" disabled />
+        <input :value="formattedSignupDate" disabled />
       </div>
 
       <div class="form-section">
@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
@@ -67,16 +67,29 @@ onMounted(() => {
   form.value.phoneNumber = user.value.phoneNumber || ''
 })
 
+const formattedSignupDate = computed(() => {
+  if (!user.value?.signupDate) return '정보 없음'
+
+  try {
+    const date = new Date(user.value.signupDate)
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch {
+    return '정보 없음'
+  }
+})
+
 const submit = async () => {
   try {
-    // 사용자 정보 수정
     await axios.post('/api/mypage/modify', {
       name: form.value.name,
       email: form.value.email,
       phoneNumber: form.value.phoneNumber
     })
 
-    // 새 비밀번호가 있을 때만 변경 시도
     if (form.value.newPassword) {
       await axios.post('/api/mypage/password', {
         currentPassword: form.value.currentPassword,
@@ -178,4 +191,3 @@ button:hover {
   text-decoration: underline;
 }
 </style>
-

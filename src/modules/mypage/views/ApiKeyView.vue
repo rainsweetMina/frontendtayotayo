@@ -5,11 +5,32 @@
     <div v-if="isLoading">로딩 중...</div>
 
     <div v-else-if="apiKey">
-      <p><strong>API 키:</strong> <code>{{ apiKey.apiKey }}</code></p>
-      <p><strong>상태:</strong> {{ apiKey.active ? '활성화됨' : '비활성화됨' }}</p>
-      <p><strong>발급일:</strong> {{ formatDate(apiKey.createdAt) }}</p>
+      <p>
+        <strong>API 키:</strong>
+        <code>{{ displayApiKey }}</code>
+        <button @click="toggleVisible" class="toggle-btn">
+          {{ isVisible ? '숨기기' : '보기' }}
+        </button>
+        <button @click="copyApiKey" class="copy-btn">복사</button>
+      </p>
 
-      <!-- ✅ 재발급 버튼 -->
+      <p><strong>상태:</strong>
+        <span v-if="apiKey.status === 'APPROVED' && apiKey.active">활성화됨</span>
+        <span v-else-if="apiKey.status === 'PENDING'">승인 대기 중</span>
+        <span v-else-if="apiKey.status === 'EXPIRED'">만료됨</span>
+        <span v-else>알 수 없음 ({{ apiKey.status }})</span> <!-- 디버깅용 -->
+      </p>
+
+      <p><strong>발급일:</strong> {{ formatDate(apiKey.createdAt) }}</p>
+      <p><strong>만료일:</strong> {{ formatDate(apiKey.expiresAt) }}</p>
+
+      <div v-if="apiKey.callbackUrls?.length">
+        <strong>📡 등록된 Callback URL</strong>
+        <ul class="callback-list">
+          <li v-for="(url, idx) in apiKey.callbackUrls" :key="idx">{{ url }}</li>
+        </ul>
+      </div>
+
       <button @click="reissueApiKey" class="reissue-button">🔁 재발급 요청</button>
     </div>
 
@@ -19,20 +40,23 @@
     </div>
 
     <router-link to="/mypage" class="back-button">← 마이페이지로 돌아가기</router-link>
+
+    <div v-if="copied" class="toast">✅ 복사 완료!</div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 const { user, isLoggedIn, isLoading } = useUserInfo()
 const apiKey = ref(null)
+const isVisible = ref(false)
+const copied = ref(false)
 
 const fetchApiKey = async () => {
   if (!user.value?.userId) return
-
   try {
     const res = await axios.get(`/api/user/apikey/getApiKey`, {
       params: { userId: user.value.userId }
@@ -60,34 +84,58 @@ const requestApiKey = async () => {
     await axios.post('/api/user/apikey/request', requestBody)
     await fetchApiKey()
   } catch (e) {
-    console.error('API 키 신청 실패:', e)
     alert('API 키 신청 중 오류 발생')
   }
 }
 
 const reissueApiKey = async () => {
-  if (!user.value?.userId) return
-
   try {
-    await axios.post(`/api/user/apikey/reissue`, null, {
-      params: { userId: user.value.userId }
-    })
+    await axios.post(`/api/user/apikey/reissue`)  // userId는 서버가 인증 정보로 처리
     alert('API 키가 재발급되었습니다.')
     await fetchApiKey()
   } catch (e) {
-    console.error('재발급 실패:', e)
-    alert(e.response?.data || '재발급 중 오류가 발생했습니다.')
+    const msg = e.response?.data
+        ? (typeof e.response.data === 'string' ? e.response.data : JSON.stringify(e.response.data))
+        : '재발급 중 오류가 발생했습니다.'
+    alert(msg)
   }
 }
 
-// ✅ formatDate 함수 추가
+const toggleVisible = () => {
+  isVisible.value = !isVisible.value
+}
+
+const copyApiKey = async () => {
+  if (!apiKey.value?.apiKey) return
+  try {
+    await navigator.clipboard.writeText(apiKey.value.apiKey)
+    copied.value = true
+    setTimeout(() => (copied.value = false), 1500)
+  } catch {
+    alert('복사 실패')
+  }
+}
+
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
   return isNaN(d) ? '잘못된 날짜' : d.toLocaleString()
 }
 
-// 자동으로 키 불러오기
+const isExpired = (expiresAt) => {
+  if (!expiresAt) return false
+  const now = new Date()
+  const exp = new Date(expiresAt)
+  return exp.getTime() < now.getTime()
+}
+
+const displayApiKey = computed(() => {
+  if (!apiKey.value?.apiKey) return '-'
+  if (isVisible.value) return apiKey.value.apiKey
+  const len = apiKey.value.apiKey.length
+  return '*'.repeat(len - 4) + apiKey.value.apiKey.slice(-4)
+})
+
 watch(isLoggedIn, (loggedIn) => {
   if (loggedIn) fetchApiKey()
 })
@@ -96,7 +144,6 @@ onMounted(() => {
   if (isLoggedIn.value) fetchApiKey()
 })
 </script>
-
 
 <style scoped>
 .apikey-wrapper {
@@ -120,25 +167,29 @@ onMounted(() => {
   font-family: monospace;
 }
 
-.back-button {
-  display: inline-block;
-  margin-top: 20px;
-  text-decoration: none;
-  color: #007bff;
-}
-
 button {
-  padding: 8px 16px;
-  font-size: 15px;
-  margin-top: 10px;
-  background: #007bff;
-  color: white;
+  padding: 6px 12px;
+  font-size: 14px;
+  margin: 4px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
 }
-button:hover {
-  background: #0056b3;
+
+.copy-btn {
+  background: #5cb85c;
+  color: white;
+}
+.copy-btn:hover {
+  background: #4cae4c;
+}
+
+.toggle-btn {
+  background: #6c757d;
+  color: white;
+}
+.toggle-btn:hover {
+  background: #5a6268;
 }
 
 .reissue-button {
@@ -148,5 +199,44 @@ button:hover {
 }
 .reissue-button:hover {
   background: #e0a800;
+}
+
+.back-button {
+  display: inline-block;
+  margin-top: 20px;
+  text-decoration: none;
+  color: #007bff;
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  animation: fadeout 1.5s forwards;
+  font-size: 14px;
+}
+
+@keyframes fadeout {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; display: none; }
+}
+
+.callback-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 20px;
+}
+.callback-list li {
+  background: #eaeaea;
+  margin: 4px auto;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 </style>

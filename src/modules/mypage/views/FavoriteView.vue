@@ -60,7 +60,7 @@
       </div>
     </div>
   </div>
-  <button class="back-button" @click="router.back()">이전으로</button>
+  <button class="back-button" @click="router.back()">← 마이페이지로 돌아가기</button>
 </template>
 
 <script setup>
