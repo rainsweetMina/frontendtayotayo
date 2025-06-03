@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <div class="map-container">
+    <div class="map-container" :class="{ 'shifted': store.sidebarOpen }">
       <MapView />
     </div>
   </div>
@@ -78,6 +78,7 @@ const endIcon = L.icon({
   iconAnchor: [18, 36]
 })
 
+
 // 경로 선택 시 지도 반영
 watch(() => store.selectedRoute, (route) => {
   if (!route || !Array.isArray(route.stationIds)) return
@@ -141,28 +142,26 @@ watch(() => store.selectedRoute, (route) => {
 
 .map-container.shifted {
   margin-left: 200px;
-}.floating-search {
-   position: absolute;
-   top: 20px;
-   left: 20px;
-   z-index: 1000;
-   display: flex;
-   align-items: center;
+}
 
-   /* ❌ 배경 제거 */
-   background: none;
-   padding: 0;
-   border-radius: 0;
-   box-shadow: none;
- }
-
-.logo-link {
+.floating-search {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;         /* ✅ 줄바꿈 방지 */
+  gap: 10px;                 /* ✅ 간격 부여 */
+}
+
+.logo-link {
+  margin-right: -20px;  /* ❗ 인접 요소와 붙이기 위함 */
 }
 
 .search-box-wrapper {
-  max-width: 200px;
   flex: 1;
+  width: 300px;
+  max-width: none;           /* ✅ 너비 제한 해제 */
 }
 </style>

@@ -1,21 +1,25 @@
 <template>
   <div class="sidebar-content">
     <SearchBoxWrapper/>
+
     <RouteResultList
+        v-if="store.routeResults.length"
         :routes="store.routeResults"
         @selectRoute="selectRouteFromPath"
     />
-    <div>
+
+    <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
+    <div v-else>
       <BusStopList
-          :stops="busStops"
+          :stops="store.busStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
       />
+      <BusRouteList :routes="store.busRoutes" @select="selectRoute" />
     </div>
-    <BusRouteList :routes="busRoutes" @select="selectRoute"/>
   </div>
 </template>
 
@@ -23,9 +27,9 @@
 import {ref, watch} from 'vue'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
+import {tryFindRoute} from "@/utils/route-search.js";
 import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
 
-import SearchBox from '../components/SearchBox.vue'
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
 import RouteResultList from '../components/RouteResultList.vue'
@@ -33,8 +37,6 @@ import SearchBoxWrapper from "@/modules/busSearch/components/SearchBoxWrapper.vu
 
 const store = useSearchStore()
 
-const busStops = ref([])
-const busRoutes = ref([])
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
 let lastStartId = null
@@ -49,9 +51,13 @@ watch(() => store.lastSearchedKeyword, async (keyword) => {
     const {data} = await axios.get('/api/bus/searchBSorBN', {
       params: {keyword}
     })
-    busStops.value = data.busStops || []
-    busRoutes.value = data.busNumbers || []
-    drawBusStopMarkersWithArrival(map, busStops.value)
+    store.busStops = data.busStops || []
+    store.busRoutes = data.busNumbers || []
+
+    store.routeResults = []
+    store.selectedRoute = null
+
+    drawBusStopMarkersWithArrival(map, store.busStops)
   } catch (err) {
     console.error('❌ 자동 검색 실패:', err)
   }
@@ -95,33 +101,27 @@ function selectRouteFromPath(route) {
 
 function setStartStop(stop) {
   store.setStartStop(stop)
-  tryFindRoute() // 출+도착 다 선택되었을 경우 길찾기 호출
+  store.departure = stop.bsNm  // ✅ 인풋 연동
+  store.selectingField = 'start'
+
+  if (store.endStop) {
+    store.busStops = []
+    store.busRoutes = []
+  }
+
+  tryFindRoute()// 출+도착 다 선택되었을 경우 길찾기 호출
 }
 function setEndStop(stop) {
   store.setEndStop(stop)
+  store.arrival = stop.bsNm  // ✅ 인풋 연동
+  store.selectingField = 'end'
+
+  if (store.startStop) {
+    store.busStops = []
+    store.busRoutes = []
+  }
+
   tryFindRoute()
-}
-async function tryFindRoute() {
-  if (!store.startStop || !store.endStop) return;
-
-  // 이미 같은 경로로 요청했는지 체크 (선택)
-  if (
-      store.routeResults.length > 0 &&
-      store.startStop.bsId === lastStartId &&
-      store.endStop.bsId === lastEndId
-  ) return;
-
-  const { data } = await axios.get('/api/bus/findRoutes', {
-    params: {
-      startBsId: store.startStop.bsId,
-      endBsId: store.endStop.bsId
-    }
-  })
-  store.setRouteResults(data)
-
-  // 필요 시 캐시용으로 저장
-  lastStartId = store.startStop.bsId
-  lastEndId = store.endStop.bsId
 }
 
 function selectRoute(route) {

@@ -33,16 +33,20 @@
       <!-- 🔻 상세 정류장 표시 -->
       <div class="summary" v-if="openedIndex === idx && route.stationIds?.length">
         🚏 총 {{ route.stationIds.length }}개 정류장
-        <div v-if="route.type === '환승' && route.transferStationName" class="transfer-info text-primary">
-          🔁 환승지점: {{ route.transferStationName }}
-        </div>
         <ul class="station-list mt-2">
           <li
               v-for="(station, sIdx) in route.stationIds"
               :key="sIdx"
               class="station-item"
           >
-            {{ station.bsNm }}
+            <template v-if="station.bsId === route.transferStationId">
+              <div class="transfer-inline">
+                <span class="transfer-inline-label">🔁 환승지점 : {{ station.bsNm }}</span>
+              </div>
+            </template>
+            <template v-else>
+              {{ station.bsNm }}
+            </template>
           </li>
         </ul>
       </div>
@@ -51,9 +55,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import {ref, computed} from 'vue'
 
-const props = defineProps({ routes: Array })
+const props = defineProps({routes: Array})
 const openedIndex = ref(null)
 const selectedRouteId = ref(null)
 const emit = defineEmits(['selectRoute'])
@@ -87,13 +91,16 @@ const filteredRoutes = computed(() =>
   margin-bottom: 10px;
   background: #fff;
 }
+
 .route-item:hover {
   background: #f9f9f9;
 }
+
 .route-type {
   display: flex;
   align-items: center;
 }
+
 .badge {
   font-size: 0.8em;
   padding: 3px 6px;
@@ -101,35 +108,61 @@ const filteredRoutes = computed(() =>
   margin-right: 10px;
   color: white;
 }
+
 .route-item.selected {
   border-color: #2196f3;
   background-color: #e3f2fd;
 }
+
 .badge.direct {
   background-color: #4caf50;
 }
+
 .badge.transfer {
   background-color: #ff9800;
 }
+
 .route-main {
   font-weight: bold;
   flex: 1;
 }
+
 .duration {
   font-size: 0.9em;
   color: #666;
   margin-top: 4px;
 }
+
 .summary {
   font-size: 0.9em;
   margin-top: 8px;
 }
+
 .station-list {
   margin-top: 4px;
   padding-left: 20px;
 }
+
 .station-item {
-  list-style-type: disc;
+  padding: 2px 0;
+  font-size: 14px;
+  list-style-type: circle;
+}
+.transfer-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #007bff;
+  font-weight: bold;
+  margin-left: -4px;
+}
+
+.transfer-icon {
+  width: 16px;
+  height: 16px;
+}
+.transfer-inline-label {
+  font-size: 14px;
 }
 
 .duration {
@@ -148,5 +181,10 @@ const filteredRoutes = computed(() =>
 
 .dropdown-icon.open {
   transform: rotate(180deg);
+}
+
+ul {
+  list-style: none;
+  padding: 0 20px;
 }
 </style>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { renderPopupComponent } from '@/utils/popup-mount'
 
 export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
     if (!Array.isArray(coordinates) || coordinates.length === 0) {
@@ -131,19 +132,9 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
                 const sortedArrivals = [...routeMap.values()];
 
-                content += `<div class="popup-scroll-area">`;
-                sortedArrivals.forEach(arr => {
-                    content += `
-        <div class="bus-info">
-          <div class="route-no">🚌 ${arr.routeNo}</div>
-          <div class="arr-time">${arr.arrState}</div>
-          <div class="direction">${arr.updn ?? ''}</div>
-        </div>
-      `;
-                });
-                content += `</div></div>`; // scroll-area, wrapper
+                const popupContent = renderPopupComponent(marker, stop, sortedArrivals)
+                marker.bindPopup(popupContent).openPopup()
 
-                marker.bindPopup(content).openPopup();
             } catch (err) {
                 marker.bindPopup(`<b>${stop.bsNm}</b><br>도착 정보 조회 실패`).openPopup();
                 console.error('❌ 도착 정보 요청 실패:', err);

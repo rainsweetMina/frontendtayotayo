@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import {ref} from 'vue'
 
 export const useSearchStore = defineStore('searchStore', {
     state: () => ({
@@ -11,6 +12,11 @@ export const useSearchStore = defineStore('searchStore', {
         endStop: null,           // 도착 정류장 객체
         routeResults: [],
         selectedRoute: null,
+        forceRouteMode: false,
+
+        // ✅ 자동완성 및 목록 관련 상태 추가
+        busStops: [],
+        busRoutes: [],
 
         // ✅ 현재 선택 중인 필드: 'start' | 'end' | null
         selectingField: null
@@ -29,11 +35,13 @@ export const useSearchStore = defineStore('searchStore', {
             this.startStop = stop
             this.routeResults = []
             this.selectedRoute = null
+            this.forceRouteMode = true
         },
         setEndStop(stop) {
             this.endStop = stop
             this.routeResults = []
             this.selectedRoute = null
+            this.forceRouteMode = true
         },
         resetStops() {
             this.startStop = null
