@@ -132,7 +132,7 @@ const fetchDashboardData = async () => {
   try {
     const [statsRes, logsRes] = await Promise.all([
       fetch('/api/admin/dashboard/stats'),
-      fetch('/api/admin/activity-logs?limit=10')
+      fetch('/api/admin/activity-logs?limit=5')
     ]);
     
     const [statsData, logsData] = await Promise.all([

@@ -1,7 +1,7 @@
 import { RouteRecordRaw } from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
 
-const routes: Array<RouteRecordRaw> = [
+const routes = [
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',

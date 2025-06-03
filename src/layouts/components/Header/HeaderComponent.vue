@@ -33,7 +33,7 @@
         <div class="d-none d-lg-block">
             <WeatherDisplay />
           </div>
-          <UserMenu :role="role" />
+          <UserMenu :role="auth.role" />
         </div>
 
       </div>

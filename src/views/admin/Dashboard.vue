@@ -108,17 +108,17 @@
     </div>
 
     <!-- 최근 활동 목록 -->
-    <div class="mt-8">
+    <div class="mt-6">
       <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
+        <div class="px-3 py-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900">최근 시스템 활동</h3>
-          <div class="mt-4">
+          <div class="mt-3">
             <div class="flow-root">
-              <ul class="-my-5 divide-y divide-gray-200">
-                <li v-for="activity in recentActivities" :key="activity.id" class="py-4">
-                  <div class="flex items-center space-x-4">
+              <ul class="-my-3 divide-y divide-gray-200">
+                <li v-for="activity in recentActivities" :key="activity.id" class="py-3">
+                  <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
-                      <span class="inline-flex items-center justify-center h-8 w-8 rounded-full" :class="getActivityTypeClass(activity.type)">
+                      <span class="inline-flex items-center justify-center h-7 w-7 rounded-full" :class="getActivityTypeClass(activity.type)">
                         <span class="text-sm font-medium leading-none text-white">{{ activity.type.charAt(0) }}</span>
                       </span>
                     </div>
@@ -126,7 +126,7 @@
                       <p class="text-sm font-medium text-gray-900 truncate">
                         {{ activity.description }}
                       </p>
-                      <p class="text-sm text-gray-500">
+                      <p class="text-xs text-gray-500">
                         {{ activity.timestamp }}
                       </p>
                     </div>
@@ -142,10 +142,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import Chart from 'chart.js/auto'
+import { getDashboardStats, getApiResponseTimes } from '@/api/admin'
+import SockJS from 'sockjs-client'
+import { Stomp } from '@stomp/stompjs'
 
-// 통계 데이터
+// 상태 데이터
 const stats = ref({
   busRotations: 0,
   busRotationsIncrease: 0,
@@ -154,45 +157,249 @@ const stats = ref({
   pendingQna: 0
 })
 
+// 관리자 활동 로그
+const recentActivities = ref([])
+const activityColors = {
+  '등록': 'bg-green-500',
+  '수정': 'bg-blue-500',
+  '삭제': 'bg-red-500',
+  '작업': 'bg-gray-500'
+}
+
 // 차트 참조
 const apiResponseChart = ref(null)
 const redisMemoryChart = ref(null)
+let redisChart = null
+let responseTimeChart = null
 
-// 최근 활동 데이터
-const recentActivities = ref([])
+// WebSocket 연결
+let stompClient = null
+
+const connectWebSocket = () => {
+  console.log('Attempting to connect to WebSocket...')
+  const socket = new SockJS('https://localhost:8081/ws')
+  
+  socket.onopen = () => {
+    console.log('SockJS connection opened')
+  }
+  
+  socket.onclose = (event) => {
+    console.log('SockJS connection closed:', event)
+    setTimeout(connectWebSocket, 3000)
+  }
+  
+  socket.onerror = (error) => {
+    console.error('SockJS error:', error)
+  }
+  
+  stompClient = Stomp.over(socket)
+  
+  stompClient.debug = function(str) {
+    console.log('STOMP: ', str)
+  }
+  
+  const headers = {
+    login: '',
+    passcode: '',
+    'heart-beat': '10000,10000'
+  }
+  
+  stompClient.connect(headers, frame => {
+    console.log('STOMP Connected:', frame)
+    
+    // Redis 메모리 정보 구독
+    stompClient.subscribe('/topic/redis-memory', message => {
+      console.log('Received Redis memory info:', message.body)
+      try {
+        const memoryInfo = JSON.parse(message.body)
+        updateRedisChart(memoryInfo)
+      } catch (error) {
+        console.error('Failed to parse Redis memory info:', error, message.body)
+      }
+    })
+
+    // 관리자 활동 로그 구독
+    stompClient.subscribe('/topic/admin-audit-logs', message => {
+      try {
+        const logEntry = JSON.parse(message.body)
+        addActivityLog(logEntry)
+      } catch (error) {
+        console.error('Failed to parse admin audit log:', error)
+      }
+    })
+  }, error => {
+    console.error('STOMP connection failed:', error)
+    setTimeout(connectWebSocket, 3000)
+  })
+}
+
+const updateRedisChart = (memoryInfo) => {
+  // 게이지 텍스트 플러그인 정의
+  const gaugeText = {
+    id: 'gaugeText',
+    afterDatasetsDraw(chart, args, pluginOptions) {
+      const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+
+      ctx.save();
+      const xCenter = width / 2 + left;
+      const yCenter = (height / 2 + top) * 0.9;  // 반원이므로 약간 위로 조정
+
+      // 사용량 텍스트
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.font = 'bold 24px Arial';
+      ctx.fillStyle = '#333';
+      const usageText = `${memoryInfo.usedMemory.toFixed(2)} MB`;
+      ctx.fillText(usageText, xCenter, yCenter);
+
+      // 연결된 클라이언트 수
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#888';
+      const clientText = `연결된 클라이언트: ${memoryInfo.connectedClients || 0}`;
+      ctx.fillText(clientText, xCenter, yCenter + 15);
+
+      ctx.restore();
+    }
+  };
+
+  if (!redisChart) {
+    redisChart = new Chart(redisMemoryChart.value, {
+      type: 'doughnut',
+      data: {
+        labels: ['사용 중', '여유 공간'],
+        datasets: [{
+          data: [0, 100],
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(211, 211, 211, 0.3)'
+          ],
+          borderWidth: 0,
+          circumference: 180,
+          rotation: 270
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          },
+          title: {
+            display: true,
+            text: 'Redis 메모리 사용량',
+            position: 'bottom',
+            padding: {
+              top: 10,
+              bottom: 0
+            }
+          },
+          gaugeText: {}
+        },
+        layout: {
+          padding: {
+            top: 20
+          }
+        }
+      },
+      plugins: [gaugeText]
+    })
+  }
+
+  // 차트 데이터 업데이트
+  const usedMemory = memoryInfo.usedMemory || 0;
+  const maxValue = Math.max(1, usedMemory);  // 최소 1MB 설정
+  
+  redisChart.data.datasets[0].data = [usedMemory, maxValue - usedMemory];
+  redisChart.update();
+}
+
+// 활동 로그 처리 함수
+const addActivityLog = (logEntry) => {
+  const activity = {
+    id: logEntry.id || Date.now(),
+    type: getActivityType(logEntry.action),
+    description: `${logEntry.adminId}님이 ${logEntry.target}을(를) ${logEntry.action}했습니다.`,
+    timestamp: new Date(logEntry.timestamp).toLocaleString()
+  }
+  
+  recentActivities.value.unshift(activity)
+  if (recentActivities.value.length > 5) {  // 최대 5개로 제한
+    recentActivities.value.pop()
+  }
+}
 
 // 활동 타입에 따른 색상 클래스
+const getActivityType = (action) => {
+  if (action.includes('등록')) return '등록'
+  if (action.includes('수정')) return '수정'
+  if (action.includes('삭제')) return '삭제'
+  return '작업'
+}
+
 const getActivityTypeClass = (type) => {
-  const classes = {
-    error: 'bg-red-500',
-    warning: 'bg-yellow-500',
-    info: 'bg-blue-500',
-    success: 'bg-green-500'
+  return activityColors[type] || 'bg-gray-500'
+}
+
+// 초기 활동 로그 로드
+const loadInitialLogs = async () => {
+  try {
+    const response = await fetch('https://localhost:8081/api/admin/logs?limit=5')
+    const data = await response.json()
+    console.log('Received audit logs:', data)
+
+    // 데이터가 content 필드 내에 있는 경우를 처리
+    const logs = Array.isArray(data) ? data : (data.content || [])
+    
+    // 최대 5개만 사용
+    recentActivities.value = logs.slice(0, 5).map(log => ({
+      id: log.id,
+      type: getActivityType(log.action),
+      description: `${log.adminId}님이 ${log.target}을(를) ${log.action}했습니다.`,
+      timestamp: new Date(log.timestamp).toLocaleString()
+    }))
+  } catch (error) {
+    console.error('Failed to load initial audit logs:', error)
+    recentActivities.value = []
   }
-  return classes[type] || 'bg-gray-500'
 }
 
 // 데이터 로드
 const loadDashboardData = async () => {
   try {
-    // API 호출은 나중에 구현
-    // const statsResponse = await fetch('/api/admin/dashboard/stats')
-    // const statsData = await statsResponse.json()
-    // stats.value = statsData
+    const [statsData, apiTimesData] = await Promise.all([
+      getDashboardStats(),
+      getApiResponseTimes()
+    ])
+    
+    // 통계 데이터 업데이트
+    stats.value = {
+      busRotations: statsData.busRotations || 0,
+      busRotationsIncrease: statsData.busRotationsIncrease || 0,
+      users: statsData.users || 0,
+      usersIncrease: statsData.usersIncrease || 0,
+      pendingQna: statsData.pendingQna || 0
+    }
 
-    // const activitiesResponse = await fetch('/api/admin/dashboard/activities')
-    // const activitiesData = await activitiesResponse.json()
-    // recentActivities.value = activitiesData
-
-    // 임시 데이터로 차트 초기화
+    // API 응답 시간 차트 업데이트
     if (apiResponseChart.value) {
-      new Chart(apiResponseChart.value, {
+      // 기존 차트가 있다면 제거
+      if (responseTimeChart) {
+        responseTimeChart.destroy()
+      }
+
+      console.log('API 응답 시간 데이터:', apiTimesData)
+
+      responseTimeChart = new Chart(apiResponseChart.value, {
         type: 'line',
         data: {
-          labels: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'],
+          labels: Array.isArray(apiTimesData) ? apiTimesData.map(item => item.date) : [],
           datasets: [{
-            label: '응답 시간 (ms)',
-            data: [12, 19, 3, 5, 2, 3, 20, 33, 23, 12, 15, 10],
+            label: '평균 응답 시간 (ms)',
+            data: Array.isArray(apiTimesData) ? apiTimesData.map(item => item.averageResponseTime) : [],
             borderColor: 'rgb(59, 130, 246)',
             tension: 0.1,
             fill: false
@@ -202,56 +409,28 @@ const loadDashboardData = async () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: '응답 시간 (ms)'
+            legend: { position: 'top' },
+            title: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `응답 시간: ${context.parsed.y.toFixed(2)} ms`;
+                }
               }
             }
-          }
-        }
-      })
-    }
-
-    if (redisMemoryChart.value) {
-      new Chart(redisMemoryChart.value, {
-        type: 'line',
-        data: {
-          labels: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'],
-          datasets: [{
-            label: '메모리 사용량 (MB)',
-            data: [256, 270, 265, 280, 295, 310, 315, 320, 310, 290, 285, 280],
-            borderColor: 'rgb(34, 197, 94)',
-            tension: 0.1,
-            fill: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: false
-            }
           },
           scales: {
             y: {
               beginAtZero: true,
               title: {
                 display: true,
-                text: '메모리 사용량 (MB)'
+                text: '평균 응답 시간 (ms)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: '시간'
               }
             }
           }
@@ -263,48 +442,25 @@ const loadDashboardData = async () => {
   }
 }
 
-// 컴포넌트 마운트 시 데이터 로드
+// 컴포넌트 마운트 시 데이터 로드 및 WebSocket 연결
 onMounted(() => {
-  // 임시 통계 데이터 설정
-  stats.value = {
-    busRotations: 1234,
-    busRotationsIncrease: 12,
-    users: 5678,
-    usersIncrease: 8,
-    pendingQna: 23
+  loadDashboardData()
+  loadInitialLogs()
+  connectWebSocket()
+})
+
+onUnmounted(() => {
+  console.log('Component unmounting, disconnecting WebSocket...')
+  if (stompClient && stompClient.connected) {
+    stompClient.disconnect(() => {
+      console.log('STOMP disconnected')
+    })
   }
-
-  // 임시 활동 데이터 설정
-  recentActivities.value = [
-    {
-      id: 1,
-      type: 'info',
-      description: '시스템 백업이 완료되었습니다.',
-      timestamp: '5분 전'
-    },
-    {
-      id: 2,
-      type: 'warning',
-      description: '서버 CPU 사용량이 80%를 초과했습니다.',
-      timestamp: '15분 전'
-    },
-    {
-      id: 3,
-      type: 'success',
-      description: '새로운 버스 노선이 추가되었습니다.',
-      timestamp: '30분 전'
-    },
-    {
-      id: 4,
-      type: 'error',
-      description: 'Redis 연결이 일시적으로 끊겼습니다.',
-      timestamp: '1시간 전'
-    }
-  ]
-
-  // nextTick을 사용하여 DOM이 업데이트된 후 차트 초기화
-  nextTick(() => {
-    loadDashboardData()
-  })
+  if (redisChart) {
+    redisChart.destroy()
+  }
+  if (responseTimeChart) {
+    responseTimeChart.destroy()
+  }
 })
 </script> 
