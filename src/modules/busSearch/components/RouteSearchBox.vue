@@ -79,7 +79,7 @@ const debouncedFetch = debounce(async (type, keyword) => {
       params: { keyword }
     })
 
-    const stops = data.busStops || []
+    const stops = data || []
     if (type === 'start') startSuggestions.value = stops
     else endSuggestions.value = stops
   } catch (e) {

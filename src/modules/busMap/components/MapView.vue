@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import { ref, onBeforeUnmount } from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
 import ContextMenu from './ContextMenu.vue'
@@ -169,7 +168,7 @@ export default {
       }).addTo(this.map)
 
       this.contextMenu.visible = false
-      this.tryDrawRoute()
+      this.tryAutoRouteFromCoords()
     },
     selectAsEnd(coords) {
       if (this.endMarker) {
@@ -186,54 +185,44 @@ export default {
       }).addTo(this.map)
 
       this.contextMenu.visible = false
-      this.tryDrawRoute()
+      this.tryAutoRouteFromCoords()
     },
-    async tryDrawRoute() {
+    async tryAutoRouteFromCoords() {
       if (!this.startCoord || !this.endCoord) return
 
-      // 기존 경로 제거
-      if (this.routePolyline) {
-        this.map.removeLayer(this.routePolyline)
-      }
-
       try {
-        const res = await axios.get('/api/bus/route-auto', {
+        // 1. 좌표 기반 인근 정류장 탐색
+        const nearbyRes = await axios.get('/api/bus/nearby-stops', {
           params: {
             startX: this.startCoord.lng,
             startY: this.startCoord.lat,
             endX: this.endCoord.lng,
-            endY: this.endCoord.lat
+            endY: this.endCoord.lat,
+            radius: 150
           }
         })
 
-        const result = res.data;
-
-        if (!result.length) {
-          console.warn('경로 결과 없음');
-          return;
+        const { startCandidates, endCandidates } = nearbyRes.data
+        if (!startCandidates.length || !endCandidates.length) {
+          console.warn('❌ 인근 정류장 없음')
+          return
         }
 
-        // ORS 경로가 있는 경우에만 그리기
-        const route = result[0];
-        if (!route.busStopDTOList || route.busStopDTOList.length < 2) {
-          console.warn('정류장 경로 없음');
-          return;
-        }
+        const startStop = startCandidates[0]
+        const endStop = endCandidates[0]
 
-        if (route.orsPath && route.orsPath.length > 1) {
-          const path = route.orsPath.map(p => [p.yPos, p.xPos])  // Leaflet은 [lat, lng] 순서
+        // 2. 실제 경로 탐색 (직통/환승 경로 포함)
+        const routeRes = await axios.get('/api/bus/findRoutes', {
+          params: {
+            startBsId: startStop.bsId,
+            endBsId: endStop.bsId
+          }
+        })
 
-          this.routePolyline = L.polyline(path, {
-            color: 'blue',
-            weight: 4
-          }).addTo(this.map)
+        useSearchStore().routeResults = routeRes.data
 
-          this.map.fitBounds(this.routePolyline.getBounds())
-        } else {
-          console.warn('❗ ORS 경로 없음 → 직선 fallback')
-        }
       } catch (err) {
-        console.error('🚨 길찾기 실패:', err)
+        console.error('🚨 경로 탐색 실패:', err)
       }
     },
     handleSelectedRoute(route) {

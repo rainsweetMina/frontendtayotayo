@@ -5,10 +5,10 @@
         :key="route.routeId + '-' + idx"
         class="route-item"
         :class="{ selected: selectedRouteId === route.routeId }"
-        @click="toggle(idx, route)"
+        @click="toggleRoute(idx, route)"
     >
       <!-- 🔻 경로 정보 -->
-      <div @click="toggle(idx)" class="route-type cursor-pointer">
+      <div @click="toggleRoute(idx, route)" class="route-type cursor-pointer">
         <span class="badge" :class="route.type === '직통' ? 'direct' : 'transfer'">
           {{ route.type }}
         </span>
@@ -20,17 +20,16 @@
 
       <div class="duration">
          <span>
-    {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length || 0 }}개 정류장
-  </span>
+            {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length || 0 }}개 정류장
+          </span>
         <span
             class="dropdown-icon"
             :class="{ open: openedIndex === idx }"
         >
-    ▼
-  </span>
+          ▼
+        </span>
       </div>
 
-      <!-- 🔻 상세 정류장 표시 -->
       <div class="summary" v-if="openedIndex === idx && route.stationIds?.length">
         🚏 총 {{ route.stationIds.length }}개 정류장
         <ul class="station-list mt-2">
@@ -56,19 +55,16 @@
 
 <script setup>
 import {ref, computed} from 'vue'
+import axios from 'axios'
 
 const props = defineProps({routes: Array})
 const openedIndex = ref(null)
 const selectedRouteId = ref(null)
-const emit = defineEmits(['selectRoute'])
 
-function toggle(idx, route = null) {
-  openedIndex.value = openedIndex.value === idx ? null : idx
-  if (route) {
-    selectedRouteId.value = route.routeId
-    emit('selectRoute', route)
-  }
-}
+const emit = defineEmits([
+  'selectRoute',     // 👉 클릭 시 상위 컴포넌트에 선택된 경로 전달
+  'drawRoutePath'    // 👉 ORS 경로 데이터 전달
+])
 
 // ✅ 직통 소요시간 100분 초과 제거
 const filteredRoutes = computed(() =>
@@ -81,6 +77,71 @@ const filteredRoutes = computed(() =>
         // ✅ 소요시간 오름차순 정렬
         .sort((a, b) => a.estimatedMinutes - b.estimatedMinutes)
 )
+
+async function toggleRoute(idx, route = null) {
+  openedIndex.value = openedIndex.value === idx ? null : idx
+
+  if (!route) return
+
+  selectedRouteId.value = route.routeId
+
+  const coords = route.stationIds?.map(bs => ({
+    xPos: bs.xPos ?? bs.xpos,
+    yPos: bs.yPos ?? bs.ypos
+  })).filter(bs => bs.xPos && bs.yPos) || []
+
+  if (coords.length < 2) return
+
+  let isResponseHandled = false
+
+  // 🔄 타임아웃 설정 (예: 1500ms)
+  const timeoutId = setTimeout(() => {
+    if (!isResponseHandled) {
+      emit('selectRoute', route) // fallback emit
+      isResponseHandled = true
+    }
+  }, 2000)
+
+  try {
+    const res = await axios.post('/api/bus/ors/polyline', coords)
+    if (isResponseHandled) return // 이미 fallback으로 처리되었으면 무시
+
+    isResponseHandled = true
+    clearTimeout(timeoutId)
+
+    const polyline = res.data
+    const firstStop = route.stationIds[0]
+    const lastStop = route.stationIds.at(-1)
+    const transfer = route.transferStationId
+        ? route.stationIds.find(s => s.bsId === route.transferStationId)
+        : null
+
+    emit('drawRoutePath', {
+      polyline,
+      start: {
+        bsId: firstStop.bsId,
+        bsNm: firstStop.bsNm,
+        xPos: firstStop.xPos ?? firstStop.xpos,
+        yPos: firstStop.yPos ?? firstStop.ypos
+      },
+      end: {
+        bsId: lastStop.bsId,
+        bsNm: lastStop.bsNm,
+        xPos: lastStop.xPos ?? lastStop.xpos,
+        yPos: lastStop.yPos ?? lastStop.ypos
+      },
+      transferStation: transfer,
+      beforeColor: 'yellowgreen',
+      afterColor: 'orange'
+    })
+  } catch (err) {
+    console.error('❌ ORS 경로 요청 실패:', err)
+    if (!isResponseHandled) {
+      emit('selectRoute', route) // fallback emit on error
+      isResponseHandled = true
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -148,6 +209,7 @@ const filteredRoutes = computed(() =>
   font-size: 14px;
   list-style-type: circle;
 }
+
 .transfer-inline {
   display: flex;
   align-items: center;
@@ -161,6 +223,7 @@ const filteredRoutes = computed(() =>
   width: 16px;
   height: 16px;
 }
+
 .transfer-inline-label {
   font-size: 14px;
 }
