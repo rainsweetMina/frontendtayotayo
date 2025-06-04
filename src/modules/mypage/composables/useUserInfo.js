@@ -49,7 +49,7 @@ export function useUserInfo() {
 
     // ✅ 마운트 시 사용자 정보 자동 로딩 (로그인/회원가입 페이지 제외)
     onMounted(async () => {
-        const publicPages = ['/login', '/register']
+        const publicPages = ['/', '/login', '/register']
         const currentPath = route.path
 
         if (!publicPages.some(path => currentPath.startsWith(path))) {
