@@ -91,14 +91,24 @@ function selectAsEnd(coords) {
 }
 
 function clearStartMarker() {
-  if (startMarker.value && map.value.hasLayer(startMarker.value)) {
-    map.value.removeLayer(startMarker.value)
+  if (startMarker.value) {
+    console.log('🧹 clearStartMarker - startMarker:', startMarker.value)
+    if (map.value.hasLayer(startMarker.value)) {
+      map.value.removeLayer(startMarker.value)
+      console.log('🧹 removed startMarker')
+    }
   }
-  if (window.lastStartMarker && map.value.hasLayer(window.lastStartMarker)) {
-    map.value.removeLayer(window.lastStartMarker)
-    window.lastStartMarker = null
+
+  if (window.lastStartMarker) {
+    console.log('🧹 clearStartMarker - lastStartMarker:', window.lastStartMarker)
+    if (map.value.hasLayer(window.lastStartMarker)) {
+      map.value.removeLayer(window.lastStartMarker)
+      console.log('🧹 removed lastStartMarker')
+    }
   }
+
   startMarker.value = null
+  window.lastStartMarker = null
 }
 
 function clearEndMarker() {
@@ -282,23 +292,65 @@ async function fetchBusLocations() {
 }
 
 function drawStartMarker(coord) {
-  console.log('🖊️ drawStartMarker 실행:', coord)
-  clearStartMarker()
+  clearAllStartMarkers()
+
   const marker = L.marker([coord.lat, coord.lng], {
     icon: L.icon({ iconUrl: '/images/start_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
   }).addTo(map.value)
+
+  console.log('📍 새로 추가된 marker 객체:', marker)
+  console.log('💾 기존 startMarker.value:', startMarker.value)
+  console.log('💾 기존 window.lastStartMarker:', window.lastStartMarker)
+
   startMarker.value = marker
   window.lastStartMarker = marker
 }
 
 function drawEndMarker(coord) {
-  console.log('🖊️ drawEndMarker 실행:', coord)
-  clearEndMarker()
+  console.log('🖊️ drawStartMarker 실행:', coord)
+  clearStartMarker()
+
+  // ✅ 동일 위치 마커 전부 제거
+  removeAllMarkersAtCoord(coord)
+
   const marker = L.marker([coord.lat, coord.lng], {
-    icon: L.icon({ iconUrl: '/images/arrival_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
+    icon: L.icon({ iconUrl: '/images/start_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
   }).addTo(map.value)
-  endMarker.value = marker
-  window.lastEndMarker = marker
+
+  startMarker.value = marker
+  window.lastStartMarker = marker
+}
+
+function removeAllMarkersAtCoord(coord) {
+  const lat = coord.lat
+  const lng = coord.lng
+
+  map.value.eachLayer(layer => {
+    if (layer instanceof L.Marker) {
+      const pos = layer.getLatLng()
+      if (pos.lat === lat && pos.lng === lng) {
+        map.value.removeLayer(layer)
+      }
+    }
+  })
+}
+
+function clearAllStartMarkers() {
+  const candidates = [
+    startMarker.value,
+    window.lastStartMarker,
+    ...(window.routePointMarkers || [])
+  ]
+
+  candidates.forEach(m => {
+    if (m && map.value.hasLayer(m)) {
+      map.value.removeLayer(m)
+    }
+  })
+
+  startMarker.value = null
+  window.lastStartMarker = null
+  window.routePointMarkers = []
 }
 
 function handleSelectedRoute(route) {
@@ -444,7 +496,9 @@ watch(() => store.startCoord, (coord) => {
   console.log('🎯 startCoord 변경됨:', coord)
   clearStartMarker()
   if (window.routePointMarkers?.length) {
-    window.routePointMarkers.forEach(m => map.value.removeLayer(m))
+    window.routePointMarkers.forEach(m => {
+      if (map.value.hasLayer(m)) map.value.removeLayer(m)
+    })
     window.routePointMarkers = []
   }
   if (coord) drawStartMarker(coord)
