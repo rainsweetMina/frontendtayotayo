@@ -107,7 +107,7 @@ const fetchApiKeySummary = async () => {
 
 const fetchNotificationCount = async () => {
   try {
-    const res = await axios.get('/api/notifications/count', { withCredentials: true })
+    const res = await axios.get('/api/mypage/notifications/count', { withCredentials: true })
     notificationCount.value = res.data.count
   } catch (err) {
     console.error('❌ 알림 수 로딩 실패:', err)
@@ -116,7 +116,7 @@ const fetchNotificationCount = async () => {
 
 const fetchQnaCount = async () => {
   try {
-    const res = await axios.get('/api/mypage/qna/count', { withCredentials: true })
+    const res = await axios.get('/api/qna/count', { withCredentials: true })
     qnaCount.value = res.data.count
   } catch (err) {
     console.error('❌ Q&A 개수 로드 실패:', err)
