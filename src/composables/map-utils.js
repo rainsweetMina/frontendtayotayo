@@ -103,6 +103,13 @@ export function clearMapElements(map) {
         map.removeLayer(window.transferMarker);
         window.transferMarker = null;
     }
+
+    ['lastStartMarker', 'lastEndMarker', 'lastTransferMarker', 'transferMarker'].forEach(key => {
+        if (window[key] && map.hasLayer(window[key])) {
+            map.removeLayer(window[key])
+            window[key] = null
+        }
+    })
 }
 
 // 실시간 버스 정보

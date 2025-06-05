@@ -8,6 +8,10 @@ export const useSearchStore = defineStore('searchStore', {
         sidebarOpen: false,
 
         // 🔽 길찾기 관련 상태
+        startCoord: null,
+        endCoord: null,
+        startBsId: null,
+        endBsId: null,
         startStop: null,         // 출발 정류장 객체 (bsId, bsNm 등)
         endStop: null,           // 도착 정류장 객체
         routeResults: [],
@@ -66,6 +70,18 @@ export const useSearchStore = defineStore('searchStore', {
         setEndCoordText(text) {
             this.endCoordText = text
             this.arrival = text
+        },
+        setStartCoord(coord) {
+            this.startCoord = coord
+        },
+        setEndCoord(coord) {
+            this.endCoord = coord
+        },
+        setStartBsId(bsId) {
+            this.startBsId = bsId
+        },
+        setEndBsId(bsId) {
+            this.endBsId = bsId
         },
 
         // ✅ selectingField에 따라 자동 할당

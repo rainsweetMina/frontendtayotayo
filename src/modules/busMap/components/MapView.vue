@@ -60,6 +60,7 @@ function selectAsStart(coords) {
 
   if (store.setStartCoordText) {
     store.setStartCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+    store.startCoord = coords
   }
 
   contextMenu.value.visible = false
@@ -82,6 +83,7 @@ function selectAsEnd(coords) {
 
   if (store.setEndCoordText) {
     store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+    store.endCoord = coords
   }
 
   contextMenu.value.visible = false
@@ -89,17 +91,25 @@ function selectAsEnd(coords) {
 }
 
 function clearStartMarker() {
-  if (startMarker.value) {
+  if (startMarker.value && map.value.hasLayer(startMarker.value)) {
     map.value.removeLayer(startMarker.value)
-    startMarker.value = null
   }
+  if (window.lastStartMarker && map.value.hasLayer(window.lastStartMarker)) {
+    map.value.removeLayer(window.lastStartMarker)
+    window.lastStartMarker = null
+  }
+  startMarker.value = null
 }
 
 function clearEndMarker() {
-  if (endMarker.value) {
+  if (endMarker.value && map.value.hasLayer(endMarker.value)) {
     map.value.removeLayer(endMarker.value)
-    endMarker.value = null
   }
+  if (window.lastEndMarker && map.value.hasLayer(window.lastEndMarker)) {
+    map.value.removeLayer(window.lastEndMarker)
+    window.lastEndMarker = null
+  }
+  endMarker.value = null
 }
 
 function clearTransferMarker() {
@@ -271,6 +281,26 @@ async function fetchBusLocations() {
   }
 }
 
+function drawStartMarker(coord) {
+  console.log('🖊️ drawStartMarker 실행:', coord)
+  clearStartMarker()
+  const marker = L.marker([coord.lat, coord.lng], {
+    icon: L.icon({ iconUrl: '/images/start_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
+  }).addTo(map.value)
+  startMarker.value = marker
+  window.lastStartMarker = marker
+}
+
+function drawEndMarker(coord) {
+  console.log('🖊️ drawEndMarker 실행:', coord)
+  clearEndMarker()
+  const marker = L.marker([coord.lat, coord.lng], {
+    icon: L.icon({ iconUrl: '/images/arrival_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
+  }).addTo(map.value)
+  endMarker.value = marker
+  window.lastEndMarker = marker
+}
+
 function handleSelectedRoute(route) {
   clearStartMarker()
   clearEndMarker()
@@ -410,7 +440,30 @@ onBeforeUnmount(() => {
   clearEndMarker()
 })
 
-watch(() => store.selectedRoute, handleSelectedRoute, { deep: true })
+watch(() => store.startCoord, (coord) => {
+  console.log('🎯 startCoord 변경됨:', coord)
+  clearStartMarker()
+  if (window.routePointMarkers?.length) {
+    window.routePointMarkers.forEach(m => map.value.removeLayer(m))
+    window.routePointMarkers = []
+  }
+  if (coord) drawStartMarker(coord)
+})
+
+watch(() => store.endCoord, (coord) => {
+  console.log('🎯 endCoord 변경됨:', coord)
+  clearEndMarker()
+  if (coord) drawEndMarker(coord)
+})
+
+watch(
+    () => [store.startCoord, store.endCoord],
+    async ([start, end]) => {
+      if (!start || !end) return
+      await tryAutoRouteFromCoords(start, end)  // ORS 경로 조회
+    },
+    { deep: true }
+)
 
 watch(
     () => props.routeId,

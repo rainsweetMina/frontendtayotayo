@@ -87,23 +87,17 @@ const debouncedFetch = debounce(async (type, keyword) => {
   }
 }, 200, { leading: true, trailing: true })
 
-watch(() => store.departure, (val) => {
-  if (store.selectingField !== 'start') return
-  if (!val?.trim() || val.trim().length < 1) {
-    startSuggestions.value = []
-    return
-  }
-  debouncedFetch('start', val)
-})
 
-watch(() => store.arrival, (val) => {
-  if (store.selectingField !== 'end') return
-  if (!val?.trim() || val.trim().length < 1) {
-    endSuggestions.value = []
-    return
-  }
-  debouncedFetch('end', val)
-})
+function handleStartStopSelect(bs) {
+  store.setStartCoord({ lat: bs.yPos, lng: bs.xPos })
+  store.setStartBsId(bs.bsId)
+}
+
+function handleEndStopSelect(bs) {
+  store.setEndCoord({ lat: bs.yPos, lng: bs.xPos })
+  store.setEndBsId(bs.bsId)
+}
+
 
 function selectStop(type, stop) {
   if (type === 'start') {
@@ -182,6 +176,24 @@ async function searchRoutes() {
     alert('경로를 찾는 데 실패했습니다.')
   }
 }
+
+watch(() => store.departure, (val) => {
+  if (store.selectingField !== 'start') return
+  if (!val?.trim() || val.trim().length < 1) {
+    startSuggestions.value = []
+    return
+  }
+  debouncedFetch('start', val)
+})
+
+watch(() => store.arrival, (val) => {
+  if (store.selectingField !== 'end') return
+  if (!val?.trim() || val.trim().length < 1) {
+    endSuggestions.value = []
+    return
+  }
+  debouncedFetch('end', val)
+})
 </script>
 
 <style scoped>

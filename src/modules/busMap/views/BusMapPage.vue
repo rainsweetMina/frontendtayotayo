@@ -81,62 +81,14 @@ const selectRoute = (route) => {
   store.setSelectedRoute(route)
 }
 
-const startIcon = L.icon({
-  iconUrl: '/images/start_icon.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 36]
-})
-
-const endIcon = L.icon({
-  iconUrl: '/images/arrival_icon.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 36]
-})
-
-
 // 경로 선택 시 지도 반영
 watch(() => store.selectedRoute, (route) => {
-  if (!route || !Array.isArray(route.stationIds)) return
-  const map = window.leafletMap
-  if (!map) return
+  if (!route?.stationIds?.length) return
 
-  clearMapElements(map)
-
-  // ❗ 누적 제거
-  window.routeLineLayers?.forEach(l => l.remove())
-  window.routePointMarkers?.forEach(m => m.remove())
-  window.routeLineLayers = []
-  window.routePointMarkers = []
-
-  const coords = route.stationIds
-      .map(s => ({
-        lat: parseFloat(s.ypos),
-        lng: parseFloat(s.xpos),
-        bsNm: s.bsNm,
-        bsId: s.bsId
-      }))
-      .filter(p => !isNaN(p.lat) && !isNaN(p.lng))
-
-  if (coords.length < 2) return
-
-  const line = L.polyline(coords.map(p => [p.lat, p.lng]), {color: 'yellowgreen', weight: 4})
-  line.addTo(map)
-  window.routeLineLayers.push(line)
-
-  // 🔘 출발 마커
-  const start = coords[0]
-  const startMarker = L.marker([start.lat, start.lng], {icon: startIcon})
-      .addTo(map).bindPopup(`출발: ${start.bsNm}`)
-  window.routePointMarkers.push(startMarker)
-
-  // 🔘 도착 마커
-  const end = coords[coords.length - 1]
-  const endMarker = L.marker([end.lat, end.lng], {icon: endIcon})
-      .addTo(map).bindPopup(`도착: ${end.bsNm}`)
-  window.routePointMarkers.push(endMarker)
-
-  // 지도 중심 이동
-  map.flyTo([start.lat, start.lng], 16)
+  const start = route.__startCoord
+  const end = route.__endCoord
+  if (start) store.setStartCoord(start)
+  if (end) store.setEndCoord(end)
 })
 
 </script>

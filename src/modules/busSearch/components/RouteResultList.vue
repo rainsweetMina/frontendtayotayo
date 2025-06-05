@@ -58,30 +58,23 @@ import {ref, computed} from 'vue'
 import axios from 'axios'
 
 const props = defineProps({routes: Array})
-const openedIndex = ref(null)
-const selectedRouteId = ref(null)
-
 const emit = defineEmits([
   'selectRoute',     // 👉 클릭 시 상위 컴포넌트에 선택된 경로 전달
   'drawRoutePath'    // 👉 ORS 경로 데이터 전달
 ])
 
+const openedIndex = ref(null)
+const selectedRouteId = ref(null)
+
+const filteredRoutes = computed(() => {
+  return props.routes
+      .filter(route => !(route.type === '직통' && route.estimatedMinutes > 100))
+      .sort((a, b) => a.estimatedMinutes - b.estimatedMinutes)
+})
+
 // ✅ 직통 소요시간 100분 초과 제거
-const filteredRoutes = computed(() =>
-    props.routes
-        .filter(route => {
-          // ✅ 직통 노선이면서 100분 초과면 제외
-          if (route.type === '직통' && route.estimatedMinutes > 100) return false
-          return true
-        })
-        // ✅ 소요시간 오름차순 정렬
-        .sort((a, b) => a.estimatedMinutes - b.estimatedMinutes)
-)
-
 async function toggleRoute(idx, route = null) {
-  emit('selectRoute', route)
   openedIndex.value = openedIndex.value === idx ? null : idx
-
   if (!route) return
 
   selectedRouteId.value = route.routeId
@@ -94,18 +87,16 @@ async function toggleRoute(idx, route = null) {
   if (coords.length < 2) return
 
   let isResponseHandled = false
-
-  // 🔄 타임아웃 설정 (예: 1500ms)
   const timeoutId = setTimeout(() => {
     if (!isResponseHandled) {
-      emit('selectRoute', route) // fallback emit
+      emit('selectRoute', route)
       isResponseHandled = true
     }
   }, 2000)
 
   try {
     const res = await axios.post('/api/bus/ors/polyline', coords)
-    if (isResponseHandled) return // 이미 fallback으로 처리되었으면 무시
+    if (isResponseHandled) return
 
     isResponseHandled = true
     clearTimeout(timeoutId)
@@ -135,10 +126,23 @@ async function toggleRoute(idx, route = null) {
       beforeColor: 'yellowgreen',
       afterColor: 'orange'
     })
+
+    // 👉 출발/도착 좌표도 함께 포함시켜서 emit
+    emit('selectRoute', {
+      ...route,
+      __startCoord: {
+        lat: firstStop.yPos ?? firstStop.ypos,
+        lng: firstStop.xPos ?? firstStop.xpos
+      },
+      __endCoord: {
+        lat: lastStop.yPos ?? lastStop.ypos,
+        lng: lastStop.xPos ?? lastStop.xpos
+      }
+    })
   } catch (err) {
     console.error('❌ ORS 경로 요청 실패:', err)
     if (!isResponseHandled) {
-      emit('selectRoute', route) // fallback emit on error
+      emit('selectRoute', route)
       isResponseHandled = true
     }
   }
