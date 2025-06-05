@@ -11,7 +11,7 @@ export default defineConfig({
     plugins: [
         vue(),
         vueDevTools(),
-        basicSsl()
+        // basicSsl()  // ✅ HTTPS 인증서 적용
     ],
     resolve: {
         alias: {
@@ -20,7 +20,7 @@ export default defineConfig({
         }
     },
     define: {
-        'process.env': {}, // process.env 참조 방지
+        'process.env': {},
         global: 'globalThis'
     },
     build: {
@@ -31,18 +31,31 @@ export default defineConfig({
     server: {
         port: 5173,
         host: '0.0.0.0',
-        open: true,
+        open: false,
         https: {
-            key: fs.readFileSync('./cert/key.pem'),
-            cert: fs.readFileSync('./cert/cert.pem'),
+            key: fs.readFileSync('./cert/localhost+2-key.pem'),
+            cert: fs.readFileSync('./cert/localhost+2.pem')
         },
+
         proxy: {
             '/api': {
+                target: 'https://localhost:8081',
+                changeOrigin: true,
+                secure: false, // ⚠️ 개발 중이므로 false
+                configure: (proxy) => {
+                    proxy.on('proxyReq', (proxyReq, req, res) => {
+                        // ✅ 인증 쿠키를 프록시 요청에 포함
+                        proxyReq.setHeader('origin', 'https://localhost:5173');
+                    });
+                }
+            },
+            '/auth': {
                 target: 'https://localhost:8081',
                 changeOrigin: true,
                 secure: false
             }
         },
+        cors: true,
         fs: {
             strict: false
         },

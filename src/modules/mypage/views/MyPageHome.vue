@@ -2,8 +2,8 @@
   <div class="mypage-main">
     <!-- 사용자 정보 -->
     <section class="user-info">
-      <h4>👤 {{ user?.name }}님, 환영합니다!</h4>
-      <p>최근 접속일: {{ formattedLastLogin }}</p>
+      <h4>👤 {{ user?.username }}님, 환영합니다!</h4>
+      <p>최근 접속일: {{ user?.lastLoginAt ? formatDate(user.lastLoginAt) : '정보 없음' }}</p>
     </section>
 
     <!-- 새 알림 요약 영역 -->
@@ -47,13 +47,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
-import { useRouter } from 'vue-router'
+
+function formatDate(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const router = useRouter()
-const { user } = useUserInfo()
+const { user, isLoading, isLoggedIn } = useUserInfo()
 
 const favorites = ref({ busCount: 0, stopCount: 0 })
 const lostItems = ref(0)
@@ -63,8 +75,8 @@ const notificationCount = ref(0)
 
 const handleLogout = async () => {
   try {
-    await axios.post('/api/auth/logout')  // 백엔드 로그아웃 API 경로에 맞게 수정
-    router.push('/auth/login')            // 로그아웃 후 로그인 페이지로 이동
+    await axios.post('/auth/logout', null, { withCredentials: true })
+    router.push('/login')
   } catch (error) {
     alert('로그아웃에 실패했습니다.')
     console.error(error)
@@ -73,44 +85,68 @@ const handleLogout = async () => {
 
 const fetchFavoriteSummary = async () => {
   try {
-    const res = await axios.get('/api/mypage/favorites/summary')
+    const res = await axios.get('/api/mypage/favorites/summary', { withCredentials: true })
     favorites.value = res.data
   } catch (err) {
-    console.error('❌ 즐겨찾기 요약 정보 불러오기 실패:', err)
+    console.error('❌ 즐겨찾기 요약 정보 실패:', err)
   }
 }
 
 const fetchApiKeySummary = async () => {
   try {
-    const res = await axios.get('/api/user/apikey/summary')
+    const res = await axios.get('/api/user/apikey/summary', { withCredentials: true })
     const status = res.data.status
     apiKeyStatusText.value =
         status === 'APPROVED' ? '승인됨' :
             status === 'PENDING' ? '승인 대기 중' :
                 '없음'
   } catch (e) {
-    console.error('❌ API 키 정보 실패:', e)
+    console.error('❌ API 키 상태 로딩 실패:', e)
   }
 }
 
 const fetchNotificationCount = async () => {
-  if (!user.value || !user.value.userId) return;
   try {
-    const response = await axios.get(`/api/mypage/notifications/count?userId=${user.value.userId}`);
-    notificationCount.value = response.data.count;
-  } catch (error) {
-    console.error("❌ 알림 개수 실패:", error);
+    const res = await axios.get('/api/notifications/count', { withCredentials: true })
+    notificationCount.value = res.data.count
+  } catch (err) {
+    console.error('❌ 알림 수 로딩 실패:', err)
   }
-};
+}
 
-onMounted(() => {
+const fetchQnaCount = async () => {
+  try {
+    const res = await axios.get('/api/mypage/qna/count', { withCredentials: true })
+    qnaCount.value = res.data.count
+  } catch (err) {
+    console.error('❌ Q&A 개수 로드 실패:', err)
+  }
+}
+
+const waitUntilUserLoaded = async () => {
+  while (isLoading.value) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  if (!isLoggedIn.value) {
+    router.push('/login')
+    return
+  }
+
+  // 로그인 상태 유지되었을 경우
   fetchFavoriteSummary()
   fetchApiKeySummary()
   fetchNotificationCount()
+  fetchQnaCount()
+}
+
+onMounted(async () => {
+  await waitUntilUserLoaded()
 })
 
 const formattedLastLogin = computed(() => {
-  if (!user.value || !user.value.lastLoginAt) return '정보 없음'
+  console.log("🔥 user.value:", user.value)
+  if (!user.value?.lastLoginAt) return '정보 없음'
   try {
     const date = new Date(user.value.lastLoginAt)
     return date.toLocaleString('ko-KR', {

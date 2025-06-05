@@ -4,20 +4,10 @@
       <h2>로그인</h2>
       <form @submit.prevent="handleLogin">
         <div>
-          <input
-              type="text"
-              v-model="userId"
-              placeholder="아이디"
-              required
-          />
+          <input type="text" v-model="userId" placeholder="아이디" required />
         </div>
         <div>
-          <input
-              type="password"
-              v-model="password"
-              placeholder="비밀번호"
-              required
-          />
+          <input type="password" v-model="password" placeholder="비밀번호" required />
         </div>
 
         <div class="remember-box">
@@ -39,7 +29,6 @@
         <p>아직 계정이 없으신가요?</p>
         <button @click="goToRegister">회원가입</button>
       </div>
-
     </div>
   </div>
 </template>
@@ -47,14 +36,14 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-const userId = ref('user')
-const password = ref('!1aaaaaa')
+const userId = ref('')
+const password = ref('')
 const rememberId = ref(false)
 const error = ref('')
 
@@ -76,30 +65,27 @@ const handleLogin = async () => {
     formData.append('username', userId.value)
     formData.append('password', password.value)
 
-    const res = await axios.post('https://localhost:8081/auth/login', formData, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+    await api.post('/auth/login', formData, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
 
-    // 로그인 성공 시 사용자 정보 가져오기
-    const userInfo = await axios.get('/api/user/info', { withCredentials: true })
-    const { username, email } = userInfo.data
-    const role = userInfo.data.role || 'USER'
+    await new Promise(resolve => setTimeout(resolve, 100)) // 세션 반영 기다림
 
-    auth.login({ role, username, userId: userId.value, email })
+    const userInfo = await api.get('/api/user/info')
+    const { userId: fetchedUserId, name, email, role } = userInfo.data
+
+    auth.login({
+      role,
+      username: name,
+      userId: fetchedUserId,
+      email
+    })
 
     if (rememberId.value) {
-      localStorage.setItem('savedUserId', userId.value)
+      localStorage.setItem('savedUserId', fetchedUserId)
     }
 
-    // role에 따라 이동
-    if (role === 'ADMIN') {
-      router.push('/admin/dashboard')
-    } else {
-      router.push('/mypage')
-    }
+    router.push(role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
 
   } catch (err) {
     console.error(err)

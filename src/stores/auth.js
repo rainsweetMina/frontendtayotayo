@@ -3,31 +3,29 @@ import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
-        role: null,
-        username: null,
-        userId: null,
-        email: null
+        user: null
     }),
     getters: {
-        isAuthenticated: (state) => !!state.role,
-        isAdmin: (state) => state.role === 'ADMIN',
-        isUser: (state) => state.role === 'USER'
+        isAuthenticated: (state) => !!state.user,
+        isAdmin: (state) => state.user?.role === 'ADMIN',
+        isUser: (state) => state.user?.role === 'USER'
     },
     actions: {
         login({ role, username, userId, email }) {
-            this.role = role
-            this.username = username
-            this.userId = userId
-            this.email = email
+            this.user = { role, username, userId, email }
         },
         logout() {
-            this.role = null
-            this.username = null
-            this.userId = null
-            this.email = null
+            this.user = null
         }
     },
     persist: {
-        storage: sessionStorage
+        enabled: true,
+        strategies: [
+            {
+                key: 'auth',         // ✅ 저장될 localStorage 키명 명시
+                storage: localStorage,
+                paths: ['user']      // ✅ 저장할 속성 명시
+            }
+        ]
     }
 })

@@ -50,6 +50,7 @@ import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 const { user } = useUserInfo()
+console.log(user)
 const router = useRouter()
 
 const form = ref({
