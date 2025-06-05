@@ -1,25 +1,75 @@
 <template>
-  <div class="search-wrapper">
-    <div class="d-flex justify-content-end p-2">
-      <button @click="isRouteMode = !isRouteMode" class="mode-toggle-btn" :title="isRouteMode ? '일반 검색' : '경로 검색'">
+  <div class="search-wrapper p-2">
+    <!-- ✅ 상단: 로고 + 토글 버튼 -->
+    <div class="d-flex align-items-center justify-content-between mx-2 mt-1">
+      <router-link to="/" class="logo-link">
+        <Logo />
+      </router-link>
+      <button
+          @click="toggleMode"
+          class="mode-toggle-btn"
+          :title="isRouteMode ? '일반 검색' : '경로 검색'"
+      >
         <i :class="isRouteMode ? 'fas fa-magnifying-glass' : 'fas fa-location-dot'"></i>
       </button>
     </div>
 
-    <BasicSearchBox v-if="!isRouteMode" />
-    <RouteSearchBox v-else />
+    <!-- ✅ 검색창: 인풋 한 줄만 아래에 배치 -->
+    <div>
+      <BasicSearchBox v-if="!isRouteMode" @search="handleSearch" />
+      <RouteSearchBox v-else />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import {useSearchStore} from "@/stores/searchStore.js";
 import BasicSearchBox from './SearchBox.vue'
 import RouteSearchBox from './RouteSearchBox.vue'
+import Logo from "@/layouts/components/Header/Logo.vue";
 
+const emit = defineEmits(['search'])
+const store = useSearchStore()
 const isRouteMode = ref(false)
+
+function handleSearch(keyword) {
+  emit('search', keyword) // ❗그대로 상위로 전달만
+}
+
+function toggleMode() {
+  isRouteMode.value = !isRouteMode.value
+
+  // ✅ 모든 입력 필드 초기화
+  store.keyword = ''
+  store.departure = ''
+  store.arrival = ''
+  store.lastSearchedKeyword = ''
+  store.routeResults = []
+  store.busStops = []
+  store.busRoutes = []
+  store.startStop = null
+  store.endStop = null
+}
+
+watch(() => store.forceRouteMode, (val) => {
+  if (val) {
+    isRouteMode.value = true
+    store.forceRouteMode = false  // ✅ 다시 false로 초기화
+  }
+})
 </script>
 
 <style scoped>
+.search-wrapper {
+  width: 100%;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+}
+
 .mode-toggle-btn {
   width: 42px;
   height: 42px;

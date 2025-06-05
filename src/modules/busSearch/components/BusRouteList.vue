@@ -1,5 +1,5 @@
 <template>
-  <div class="bus-route-list p-2">
+  <div class="bus-route-list">
     <div
         v-for="route in routes"
         :key="route.routeId"
@@ -8,13 +8,13 @@
         @click="selectRoute(route)"
     >
       <!-- 노선번호와 색상 뱃지 -->
-      <strong>
+      <strong style="font-size: 17px">
         <span :class="['badge', getBadgeClass(route.routeNo)]">
           {{ getRouteType(route.routeNo) }}
         </span>
         <span class="ms-2">{{ route.routeNo }}</span>
       </strong>
-      <span v-if="route.routeNote" class="ms-1 text-muted">
+      <span v-if="route.routeNote" class="ms-1 text-muted route-note" :title="route.routeNote">
         ({{ route.routeNote }})
       </span>
     </div>
@@ -60,16 +60,28 @@ export default {
 </script>
 
 <style scoped>
+.bus-route-list {
+  padding: 5px 20px;
+}
 .bus-route-item {
-  padding: 10px;
+  padding: 18px 18px;
   border: 1px solid #ddd;
-  margin-bottom: 5px;
-  border-radius: 4px;
+  margin-bottom: 8px;
+  border-radius: 8px;
   cursor: pointer;
+  background: #fff;
   transition: background 0.2s;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .bus-route-item:hover {
   background-color: #f5f5f5;
+}
+.route-note {
+  font-size: 14px;
+  font-weight: bold;
 }
 
 /* 색상 클래스 */
