@@ -17,9 +17,11 @@
 <script setup>
 import { useSearchStore } from '@/stores/searchStore'
 const store = useSearchStore()
+const emit = defineEmits(['search'])
 
 function onSearch() {
   if (!store.keyword.trim()) return
+  emit('search', store.keyword)
   store.commitSearch()
   store.toggleSidebar(true)
 }

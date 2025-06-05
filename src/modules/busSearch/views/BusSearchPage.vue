@@ -19,7 +19,7 @@
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
       />
-      <BusRouteList :routes="store.busRoutes" @select="selectRoute" />
+      <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
     </div>
   </div>
 </template>
@@ -30,7 +30,7 @@ import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
 import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
-import { renderPopupComponent } from '@/utils/popup-mount'
+import {renderPopupComponent} from '@/utils/popup-mount'
 
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
@@ -104,7 +104,7 @@ function isSamePoint(p1, p2, epsilon = 0.00015) {
   return dx < epsilon && dy < epsilon
 }
 
-function drawOrsPolyline({ polyline, start, end, transferStation }) {
+function drawOrsPolyline({polyline, start, end, transferStation}) {
   const map = window.leafletMap
   if (!map || !polyline?.length) return
 
@@ -172,7 +172,7 @@ function drawOrsPolyline({ polyline, start, end, transferStation }) {
     lastTransferMarker = marker
   } else {
     // 환승 없을 경우 단일 경로
-    drawBusRouteMapORS(map, polyline, 'skyblue')
+    drawBusRouteMapORS(map, polyline, 'yellowgreen')
   }
 
   // 출발 마커
@@ -201,6 +201,18 @@ function drawOrsPolyline({ polyline, start, end, transferStation }) {
 }
 
 function selectRouteFromPath(route) {
+  const map = window.leafletMap
+  if (!map) return
+
+  if (window.customStartMarker) {
+    map.removeLayer(window.customStartMarker)
+    window.customStartMarker = null
+  }
+  if (window.customEndMarker) {
+    map.removeLayer(window.customEndMarker)
+    window.customEndMarker = null
+  }
+
   store.setSelectedRoute(route)  // 지도 반영은 mapPage.vue 쪽에서 watch로 처리
 }
 
@@ -216,6 +228,7 @@ function setStartStop(stop) {
 
   tryFindRoute()// 출+도착 다 선택되었을 경우 길찾기 호출
 }
+
 function setEndStop(stop) {
   store.setEndStop(stop)
   store.arrival = stop.bsNm  // ✅ 인풋 연동
@@ -295,7 +308,7 @@ function selectRoute(route) {
 async function bindArrivalPopup(marker, bsId, bsNm) {
   try {
     const res = await axios.get('/api/bus/bus-arrival', {
-      params: { bsId }
+      params: {bsId}
     })
     const body = res.data.body
     const items = Array.isArray(body?.items) ? body.items : body?.items ? [body.items] : []
@@ -313,7 +326,7 @@ async function bindArrivalPopup(marker, bsId, bsNm) {
       })
     })
 
-    const container = renderPopupComponent(marker, { bsId, bsNm }, arrivals)
+    const container = renderPopupComponent(marker, {bsId, bsNm}, arrivals)
     marker.bindPopup(container).openPopup()
   } catch (err) {
     console.error('도착 정보 조회 실패:', err)

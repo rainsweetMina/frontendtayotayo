@@ -79,6 +79,7 @@ const filteredRoutes = computed(() =>
 )
 
 async function toggleRoute(idx, route = null) {
+  emit('selectRoute', route)
   openedIndex.value = openedIndex.value === idx ? null : idx
 
   if (!route) return

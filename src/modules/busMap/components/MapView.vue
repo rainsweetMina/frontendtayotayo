@@ -10,312 +10,421 @@
   />
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
 import ContextMenu from './ContextMenu.vue'
 import { useSearchStore } from '@/stores/searchStore'
 import { drawBusRouteMapORS } from '@/composables/map-utils'
 
-export default {
-  name: 'MapView',
-  components: { ContextMenu },
-  props: { routeId: String },
-  data() {
-    return {
-      startCoord: null,
-      endCoord: null,
-      startMarker: null,
-      endMarker: null,
-      routePolyline: null,
-      map: null,
-      contextMenu: {
-        visible: false,
-        position: { x: 0, y: 0 },
-        coords: { lat: 0, lng: 0 }
-      },
-      busMarkers: [],
-      intervalId: null,
-      store: useSearchStore()
-    }
-  },
-  mounted() {
-    const mapContainer = this.$refs.mapRef
-    this.map = L.map(mapContainer, {
-      zoomControl: false,
-      zoomAnimation: false   // ← 이 줄 추가
-    }).setView([35.865, 128.593], 16)
+const props = defineProps({
+  routeId: String,
+  onUpdateStart: Function,
+  onUpdateEnd: Function
+})
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(this.map)
+const mapRef = ref(null)
+const map = ref(null)
+const store = useSearchStore()
 
-    L.control.zoom({ position: 'bottomright' }).addTo(this.map)
-    window.leafletMap = this.map
+const startCoord = ref(null)
+const endCoord = ref(null)
+const startMarker = ref(null)
+const endMarker = ref(null)
+const transferMarker = ref(null)
+const routePolyline = ref(null)
+const busMarkers = ref([])
+const intervalId = ref(null)
+let longPressTimer = null
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude: lat, longitude: lng } = pos.coords
-        if (this.map && this.map._loaded) {
-          this.map.flyTo([lat, lng], 16)
-        }
+const contextMenu = ref({
+  visible: false,
+  position: { x: 0, y: 0 },
+  coords: { lat: 0, lng: 0 }
+})
 
-        const icon = L.divIcon({
-          html: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="45" viewBox="0 0 24 36"><path d="M12 0C 5.4 0 0 5.4 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.6-5.4-12-12-12z" fill="#2ecc71"/><circle cx="12" cy="12" r="5" fill="white"/></svg>`
-        })
-        L.marker([lat, lng], { icon }).addTo(this.map).openPopup()
-      })
-    }
+function selectAsStart(coords) {
+  clearStartMarker()
+  clearTransferMarker()
+  clearRoutePolylines()
 
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.map.invalidateSize()
-      }, 300)
+  startCoord.value = coords
+  startMarker.value = L.marker(coords, {
+    icon: L.icon({
+      iconUrl: '/images/start_icon.png',
+      iconSize: [36, 36],
+      iconAnchor: [18, 36]
     })
+  }).addTo(map.value)
 
-    const el = this.$refs.mapRef
-    el.addEventListener('contextmenu', this.handleRightClick)
-    el.addEventListener('touchstart', this.handleTouchStart)
-    el.addEventListener('touchend', this.handleTouchEnd)
-    el.addEventListener('click', () => { this.contextMenu.visible = false })
+  if (store.setStartCoordText) {
+    store.setStartCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+  }
 
-    this.$watch(
-        () => this.store.selectedRoute,
-        this.handleSelectedRoute,
-        { deep: true }
-    )
+  contextMenu.value.visible = false
+  tryAutoRouteFromCoords();
+}
 
-    this.$watch(
-        () => this.routeId,
-        () => this.fetchBusLocations()
-    )
-  },
-  methods: {
-    async fetchBusLocations() {
-      if (!this.routeId) return
-      try {
-        const res = await axios.get(`/api/bus/bus-route-Bus?routeId=${this.routeId}`)
-        this.clearBusMarkers()
-        ;(res.data.busLocationList || []).forEach(loc => {
-          const marker = L.circleMarker([loc.yPos, loc.xPos], {
-            radius: 8,
-            color: loc.moveDir === 0 ? 'skyblue' : 'yellow',
-            fillOpacity: 0.9
-          }).addTo(this.map)
-          this.busMarkers.push(marker)
-        })
-      } catch (err) {
-        console.error('실시간 위치 호출 실패:', err)
-      }
-    },
-    clearBusMarkers() {
-      this.busMarkers.forEach(m => this.map.removeLayer(m))
-      this.busMarkers = []
-    },
-    handleRightClick(e) {
-      e.preventDefault()
+function selectAsEnd(coords) {
+  clearEndMarker()
+  clearTransferMarker()
+  clearRoutePolylines()
 
-      const mapRect = this.$refs.mapRef.getBoundingClientRect()
-      const x = e.clientX - mapRect.left
-      const y = e.clientY - mapRect.top
+  endCoord.value = coords
+  endMarker.value = L.marker(coords, {
+    icon: L.icon({
+      iconUrl: '/images/arrival_icon.png',
+      iconSize: [36, 36],
+      iconAnchor: [18, 36]
+    })
+  }).addTo(map.value)
 
-      const latlng = this.map.containerPointToLatLng([x, y])
+  if (store.setEndCoordText) {
+    store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+  }
 
-      console.log('🖱️ 우클릭 좌표 보정:', {
-        clientX: e.clientX,
-        offsetX: x,
-        latlng
-      })
+  contextMenu.value.visible = false
+  tryAutoRouteFromCoords();
+}
 
-      this.contextMenu = {
-        visible: true,
-        position: { x: e.clientX, y: e.clientY }, // 여기는 화면 기준 좌표 (팝업 위치용)
-        coords: latlng                            // 이건 지도 좌표
-      }
-    },
-    handleTouchStart(e) {
-      if (e.touches.length === 1) {
-        const touch = e.touches[0]
-        const mapRect = this.$refs.mapRef.getBoundingClientRect()
-        const x = touch.clientX - mapRect.left
-        const y = touch.clientY - mapRect.top
-
-        this._longPressTimer = setTimeout(() => {
-          const latlng = this.map.containerPointToLatLng([x, y])
-          this.contextMenu = {
-            visible: true,
-            position: { x: touch.clientX, y: touch.clientY },
-            coords: latlng
-          }
-        }, 800)
-      }
-    },
-    handleTouchEnd() {
-      clearTimeout(this._longPressTimer)
-    },
-    selectAsStart(coords) {
-      if (this.startMarker) {
-        this.map.removeLayer(this.startMarker)
-      }
-
-      this.startCoord = coords
-      this.startMarker = L.marker(coords, {
-        icon: L.icon({
-          iconUrl: '/images/start_icon.png',
-          iconSize: [36, 36],
-          iconAnchor: [18, 36]
-        })
-      }).addTo(this.map)
-
-      this.contextMenu.visible = false
-      this.tryAutoRouteFromCoords()
-    },
-    selectAsEnd(coords) {
-      if (this.endMarker) {
-        this.map.removeLayer(this.endMarker)
-      }
-
-      this.endCoord = coords
-      this.endMarker = L.marker(coords, {
-        icon: L.icon({
-          iconUrl: '/images/arrival_icon.png',
-          iconSize: [36, 36],
-          iconAnchor: [18, 36]
-        })
-      }).addTo(this.map)
-
-      this.contextMenu.visible = false
-      this.tryAutoRouteFromCoords()
-    },
-    async tryAutoRouteFromCoords() {
-      if (!this.startCoord || !this.endCoord) return
-
-      try {
-        // 1. 좌표 기반 인근 정류장 탐색
-        const nearbyRes = await axios.get('/api/bus/nearby-stops', {
-          params: {
-            startX: this.startCoord.lng,
-            startY: this.startCoord.lat,
-            endX: this.endCoord.lng,
-            endY: this.endCoord.lat,
-            radius: 150
-          }
-        })
-
-        const { startCandidates, endCandidates } = nearbyRes.data
-        if (!startCandidates.length || !endCandidates.length) {
-          console.warn('❌ 인근 정류장 없음')
-          return
-        }
-
-        const startStop = startCandidates[0]
-        const endStop = endCandidates[0]
-
-        // 2. 실제 경로 탐색 (직통/환승 경로 포함)
-        const routeRes = await axios.get('/api/bus/findRoutes', {
-          params: {
-            startBsId: startStop.bsId,
-            endBsId: endStop.bsId
-          }
-        })
-
-        useSearchStore().routeResults = routeRes.data
-
-      } catch (err) {
-        console.error('🚨 경로 탐색 실패:', err)
-      }
-    },
-    handleSelectedRoute(route) {
-      if (!route || route.type !== '환승' || !route.transferStationName || !route.stationIds?.length) return
-
-      const transferStop = route.stationIds.find(s =>
-          s.bsNm.replace(/\s/g, '') === route.transferStationName.replace(/\s/g, '')
-      )
-      if (!transferStop) return
-
-      const lat = parseFloat(transferStop.yPos ?? transferStop.ypos)
-      const lng = parseFloat(transferStop.xPos ?? transferStop.xpos)
-      if (isNaN(lat) || isNaN(lng)) return
-
-      if (window.transferMarker) {
-        this.map.removeLayer(window.transferMarker)
-        window.transferMarker = null
-      }
-      if (window.routePolylines) {
-        window.routePolylines.forEach(l => this.map.removeLayer(l))
-        window.routePolylines = []
-      }
-
-      const marker = L.marker([lat, lng], {
-        icon: L.icon({ iconUrl: '/images/transfer_icon.png', iconSize: [36, 36], iconAnchor: [15, 30] }),
-        title: '환승지점: ' + transferStop.bsNm
-      }).addTo(this.map)
-
-      const allStations = route.stationIds
-      const transferIdx = allStations.findIndex(s => s.bsNm.replace(/\s/g, '') === route.transferStationName.replace(/\s/g, ''))
-
-      if (transferIdx > 0) {
-        drawBusRouteMapORS(this.map, allStations.slice(0, transferIdx + 1), 'yellowgreen')
-        drawBusRouteMapORS(this.map, allStations.slice(transferIdx), 'orange')
-      } else {
-        drawBusRouteMapORS(this.map, allStations, 'gray')
-      }
-
-      marker.on('click', async () => {
-        try {
-          const res = await axios.get(`/api/bus/bus-arrival`, { params: { bsId: transferStop.bsId } })
-          const body = res.data.body
-          let content = `<div class=\"popup-wrapper\"><div class=\"popup-title\"><b>${transferStop.bsNm}</b> (🔁 환승지점)</div>`
-
-          if (!body.totalCount || !body.items) {
-            content += `<div class=\"no-info\">도착 정보 없음</div></div>`
-            marker.bindPopup(content).openPopup()
-            return
-          }
-
-          const items = Array.isArray(body.items) ? body.items : [body.items]
-          const routeMap = new Map()
-
-          items.forEach(item => {
-            const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
-            arrList.forEach(arr => {
-              const existing = routeMap.get(item.routeNo)
-              if (!existing || arr.arrTime < existing.arrTime) {
-                routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn })
-              }
-            })
-          })
-
-          const sortedArrivals = [...routeMap.values()]
-          content += `<div class=\"popup-scroll-area\">`
-          sortedArrivals.forEach(arr => {
-            content += `<div class=\"bus-info\"><div class=\"route-no\">🚌 ${arr.routeNo}</div><div class=\"arr-time\">${arr.arrState}</div><div class=\"direction\">${arr.updn ?? ''}</div></div>`
-          })
-          content += `</div></div>`
-          marker.bindPopup(content).openPopup()
-        } catch (err) {
-          marker.bindPopup(`<b>${transferStop.bsNm}</b><br>도착 정보 조회 실패`).openPopup()
-          console.error('도착 정보 실패:', err)
-        }
-      })
-
-      window.transferMarker = marker
-    }
-  },
-  beforeUnmount() {
-    clearInterval(this.intervalId)
-    if (window.transferMarker) {
-      this.map.removeLayer(window.transferMarker)
-      window.transferMarker = null
-    }
+function clearStartMarker() {
+  if (startMarker.value) {
+    map.value.removeLayer(startMarker.value)
+    startMarker.value = null
   }
 }
+
+function clearEndMarker() {
+  if (endMarker.value) {
+    map.value.removeLayer(endMarker.value)
+    endMarker.value = null
+  }
+}
+
+function clearTransferMarker() {
+  if (window.transferMarker) {
+    map.value.removeLayer(window.transferMarker)
+    window.transferMarker = null
+  }
+}
+
+function clearBusMarkers() {
+  busMarkers.value.forEach(marker => {
+    if (map.value.hasLayer(marker)) {
+      map.value.removeLayer(marker)
+    }
+  })
+  busMarkers.value = []
+}
+
+function clearRoutePolylines() {
+  if (window.routePolylines) {
+    window.routePolylines.forEach(l => map.value.removeLayer(l))
+    window.routePolylines = []
+  }
+}
+
+function clearMapElementsForSearch() {
+  clearStartMarker()
+  clearEndMarker()
+  clearTransferMarker()
+  clearRoutePolylines()
+}
+
+defineExpose({
+  clearStartMarker,
+  clearEndMarker,
+  clearTransferMarker,
+  clearRoutePolylines,
+  clearMapElementsForSearch
+})
+
+function handleRightClick(e) {
+  e.preventDefault()
+  const rect = mapRef.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  const latlng = map.value.containerPointToLatLng([x, y])
+
+  contextMenu.value = {
+    visible: true,
+    position: { x: e.clientX, y: e.clientY },
+    coords: latlng
+  }
+}
+
+function handleTouchStart(e) {
+  if (e.touches.length === 1) {
+    const touch = e.touches[0]
+    const rect = mapRef.value.getBoundingClientRect()
+    const x = touch.clientX - rect.left
+    const y = touch.clientY - rect.top
+
+    longPressTimer = setTimeout(() => {
+      const latlng = map.value.containerPointToLatLng([x, y])
+      contextMenu.value = {
+        visible: true,
+        position: { x: touch.clientX, y: touch.clientY },
+        coords: latlng
+      }
+    }, 800)
+  }
+}
+
+function handleTouchEnd() {
+  clearTimeout(longPressTimer)
+}
+
+async function tryAutoRouteFromCoords() {
+  if (!startCoord.value || !endCoord.value) return;
+
+  try {
+    const { data: nearbyData } = await axios.get('/api/bus/nearby-stops', {
+      params: {
+        startX: startCoord.value.lng,
+        startY: startCoord.value.lat,
+        endX: endCoord.value.lng,
+        endY: endCoord.value.lat,
+        radius: 300
+      }
+    });
+
+    const { startCandidates, endCandidates } = nearbyData;
+    if (!startCandidates.length || !endCandidates.length) {
+      console.warn('❌ 인근 정류장 없음');
+      return;
+    }
+
+    const startStop = startCandidates[0];
+    const endStop = endCandidates[0];
+
+    // 너무 가까운 경우 직통으로 가정
+    const dist = Math.sqrt(
+        Math.pow(startStop.xPos - endStop.xPos, 2) +
+        Math.pow(startStop.yPos - endStop.yPos, 2)
+    );
+    if (dist < 0.001) {
+      console.warn('🛑 출발지와 도착지가 너무 가까워 경로 탐색 생략');
+      store.routeResults = [{
+        type: '직통',
+        routeNo: null,
+        estimatedMinutes: 0,
+        stationIds: [startStop.bsId],
+        transferCount: 0,
+        startBsId: startStop.bsId,
+        endBsId: endStop.bsId,
+        busStops: [startStop, endStop]
+      }];
+      return;
+    }
+
+    const { data: routeData } = await axios.get('/api/bus/findRoutes', {
+      params: {
+        startBsId: startStop.bsId,
+        endBsId: endStop.bsId
+      }
+    });
+
+    const deduplicated = [];
+    routeData.forEach(route => {
+      const exists = deduplicated.some(r =>
+          r.routeNo === route.routeNo && r.startBsId === route.startBsId
+      );
+      if (!exists) deduplicated.push(route);
+    });
+
+    store.routeResults = deduplicated
+        .sort((a, b) => {
+          const lenA = a.stationIds?.length || 0;
+          const lenB = b.stationIds?.length || 0;
+          if (lenA !== lenB) return lenA - lenB;
+          if (a.type === '직통' && b.type !== '직통') return -1;
+          if (a.type !== '직통' && b.type === '직통') return 1;
+          return 0;
+        })
+        .slice(0, 5);
+  } catch (err) {
+    console.error('🚨 경로 탐색 실패:', err);
+  }
+}
+
+async function fetchBusLocations() {
+  if (!props.routeId) return
+
+  try {
+    const res = await axios.get(`/api/bus/bus-route-Bus?routeId=${props.routeId}`)
+    clearBusMarkers()
+
+    const locations = res.data.busLocationList || []
+    locations.forEach(loc => {
+      const marker = L.circleMarker([loc.yPos, loc.xPos], {
+        radius: 8,
+        color: loc.moveDir === 0 ? 'skyblue' : 'yellow',
+        fillOpacity: 0.9
+      }).addTo(map.value)
+
+      busMarkers.value.push(marker)
+    })
+  } catch (err) {
+    console.error('🚨 실시간 위치 호출 실패:', err)
+  }
+}
+
+function handleSelectedRoute(route) {
+  clearStartMarker()
+  clearEndMarker()
+  clearTransferMarker()
+  clearRoutePolylines()
+
+  if (
+      !route ||
+      route.type !== '환승' ||
+      !route.transferStationName ||
+      !route.stationIds?.length
+  ) return
+
+  const transferStop = route.stationIds.find(s =>
+      s.bsNm.replace(/\s/g, '') === route.transferStationName.replace(/\s/g, '')
+  )
+  if (!transferStop) return
+
+  const lat = parseFloat(transferStop.yPos ?? transferStop.ypos)
+  const lng = parseFloat(transferStop.xPos ?? transferStop.xpos)
+  if (isNaN(lat) || isNaN(lng)) return
+
+  const marker = L.marker([lat, lng], {
+    icon: L.icon({
+      iconUrl: '/images/transfer_icon.png',
+      iconSize: [36, 36],
+      iconAnchor: [15, 30]
+    }),
+    title: '환승지점: ' + transferStop.bsNm
+  }).addTo(map.value)
+
+  transferMarker.value = marker
+  window.transferMarker = marker // 외부 참조 위해 유지
+
+  const allStations = route.stationIds
+  const transferIdx = allStations.findIndex(s =>
+      s.bsNm.replace(/\s/g, '') === route.transferStationName.replace(/\s/g, '')
+  )
+
+  if (transferIdx > 0) {
+    drawBusRouteMapORS(map.value, allStations.slice(0, transferIdx + 1), 'yellowgreen')
+    drawBusRouteMapORS(map.value, allStations.slice(transferIdx), 'orange')
+  } else {
+    drawBusRouteMapORS(map.value, allStations, 'gray')
+  }
+
+  marker.on('click', async () => {
+    try {
+      const res = await axios.get(`/api/bus/bus-arrival`, { params: { bsId: transferStop.bsId } })
+      const body = res.data.body
+      let content = `<div class="popup-wrapper"><div class="popup-title"><b>${transferStop.bsNm}</b> (🔁 환승지점)</div>`
+
+      if (!body.totalCount || !body.items) {
+        content += `<div class="no-info">도착 정보 없음</div></div>`
+        marker.bindPopup(content).openPopup()
+        return
+      }
+
+      const items = Array.isArray(body.items) ? body.items : [body.items]
+      const routeMap = new Map()
+
+      items.forEach(item => {
+        const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
+        arrList.forEach(arr => {
+          const existing = routeMap.get(item.routeNo)
+          if (!existing || arr.arrTime < existing.arrTime) {
+            routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn })
+          }
+        })
+      })
+
+      const sortedArrivals = [...routeMap.values()]
+      content += `<div class="popup-scroll-area">`
+      sortedArrivals.forEach(arr => {
+        content += `<div class="bus-info"><div class="route-no">🚌 ${arr.routeNo}</div><div class="arr-time">${arr.arrState}</div><div class="direction">${arr.updn ?? ''}</div></div>`
+      })
+      content += `</div></div>`
+      marker.bindPopup(content).openPopup()
+    } catch (err) {
+      marker.bindPopup(`<b>${transferStop.bsNm}</b><br>도착 정보 조회 실패`).openPopup()
+      console.error('도착 정보 실패:', err)
+    }
+  })
+}
+
+onMounted(() => {
+  map.value = L.map(mapRef.value, {
+    zoomControl: false,
+    zoomAnimation: false
+  }).setView([35.865, 128.593], 16)
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map.value)
+
+  L.control.zoom({ position: 'bottomright' }).addTo(map.value)
+  window.leafletMap = map.value
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude: lat, longitude: lng } = pos.coords
+      if (map.value && map.value._loaded) {
+        map.value.flyTo([lat, lng], 16)
+      }
+    })
+  }
+
+  setTimeout(() => {
+    map.value.invalidateSize()
+  }, 300)
+
+  mapRef.value.addEventListener('contextmenu', handleRightClick)
+  mapRef.value.addEventListener('touchstart', handleTouchStart)
+  mapRef.value.addEventListener('touchend', handleTouchEnd)
+  mapRef.value.addEventListener('click', () => {
+    contextMenu.value.visible = false
+  })
+})
+
+onBeforeUnmount(() => {
+  clearInterval(intervalId.value)
+
+  if (window.transferMarker) {
+    map.value.removeLayer(window.transferMarker)
+    window.transferMarker = null
+  }
+
+  if (window.routePolylines) {
+    window.routePolylines.forEach(l => map.value.removeLayer(l))
+    window.routePolylines = []
+  }
+
+  busMarkers.value.forEach(m => map.value.removeLayer(m))
+  busMarkers.value = []
+
+  clearStartMarker()
+  clearEndMarker()
+})
+
+watch(() => store.selectedRoute, handleSelectedRoute, { deep: true })
+
+watch(
+    () => props.routeId,
+    () => {
+      fetchBusLocations()
+    }
+)
 </script>
+
 <style scoped>
 .leaflet-map {
   width: 100%;
   height: 100vh;
   border: 1px solid #ccc;
-  position: relative; /* 추가 */
+  position: relative;
 }
 </style>

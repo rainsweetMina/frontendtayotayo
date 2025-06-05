@@ -16,7 +16,7 @@
 
     <!-- ✅ 검색창: 인풋 한 줄만 아래에 배치 -->
     <div>
-      <BasicSearchBox v-if="!isRouteMode" />
+      <BasicSearchBox v-if="!isRouteMode" @search="handleSearch" />
       <RouteSearchBox v-else />
     </div>
   </div>
@@ -29,8 +29,13 @@ import BasicSearchBox from './SearchBox.vue'
 import RouteSearchBox from './RouteSearchBox.vue'
 import Logo from "@/layouts/components/Header/Logo.vue";
 
+const emit = defineEmits(['search'])
 const store = useSearchStore()
 const isRouteMode = ref(false)
+
+function handleSearch(keyword) {
+  emit('search', keyword) // ❗그대로 상위로 전달만
+}
 
 function toggleMode() {
   isRouteMode.value = !isRouteMode.value

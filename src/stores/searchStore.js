@@ -18,6 +18,10 @@ export const useSearchStore = defineStore('searchStore', {
         busStops: [],
         busRoutes: [],
 
+        // ✅ 좌표 텍스트용 필드 추가
+        startCoordText: '',
+        endCoordText: '',
+
         // ✅ 현재 선택 중인 필드: 'start' | 'end' | null
         selectingField: null
     }),
@@ -54,6 +58,14 @@ export const useSearchStore = defineStore('searchStore', {
         },
         setSelectedRoute(route) {
             this.selectedRoute = route
+        },
+        setStartCoordText(text) {
+            this.startCoordText = text
+            this.departure = text //
+        },
+        setEndCoordText(text) {
+            this.endCoordText = text
+            this.arrival = text
         },
 
         // ✅ selectingField에 따라 자동 할당

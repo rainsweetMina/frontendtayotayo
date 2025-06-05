@@ -11,7 +11,11 @@
     </div>
 
     <div class="map-container" :class="{ 'shifted': store.sidebarOpen }">
-      <MapView />
+      <MapView
+          ref="mapRef"
+          :onUpdateStart="coord => startCoordText = coord"
+          :onUpdateEnd="coord => endCoordText = coord"
+      />
     </div>
   </div>
 </template>
@@ -31,6 +35,9 @@ const store = useSearchStore()
 const searchKeyword = ref('')
 const busStops = ref([])
 const busRoutes = ref([])
+const startCoordText = ref('')
+const endCoordText = ref('')
+const mapRef = ref(null)
 
 // 지도 요소 전역 초기화
 window.routeLineLayers = []
@@ -38,13 +45,21 @@ window.routePointMarkers = []
 
 // 검색 실행
 function handleSearch(keyword) {
-  if (!keyword.trim()) return;
+  if (!keyword.trim()) return
 
-  store.setKeyword(keyword);
-  store.toggleSidebar(true);
+  // ✅ 지도 클리어
+  mapRef.value?.clearMapElementsForSearch?.()
+  mapRef.value?.clearStartMarker?.()
+  mapRef.value?.clearEndMarker?.()
+  mapRef.value?.clearTransferMarker?.()
+  mapRef.value?.clearRoutePolylines?.()
 
-  axios.get('/api/bus/searchBSorBN', {params: {keyword}})
-      .then(({data}) => {
+  // ✅ 검색 수행
+  store.setKeyword(keyword)
+  store.toggleSidebar(true)
+
+  axios.get('/api/bus/searchBSorBN', { params: { keyword } })
+      .then(({ data }) => {
         busStops.value = data.busStops || []
         busRoutes.value = data.busNumbers || []
         drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
