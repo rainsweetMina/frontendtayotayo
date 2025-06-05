@@ -84,15 +84,26 @@ const handleLogin = async () => {
     })
 
     // 로그인 성공 시 사용자 정보 가져오기
-    const userInfo = await axios.get('/api/user/info', { withCredentials: true })
-    const { username, email } = userInfo.data
-    const role = userInfo.data.role || 'USER'
+    // const userInfo = await axios.get('/api/user/info', { withCredentials: true })
+    // const { username, email } = userInfo.data
+    // const role = userInfo.data.role || 'USER'
+    //
+    // auth.login({ role, username, userId: userId.value, email })
+    //
+    // if (rememberId.value) {
+    //   localStorage.setItem('savedUserId', userId.value)
+    // }
+    const userInfo = await axios.get('/api/user/info', { withCredentials: true });
+    const { id, username, email, role = 'USER' } = userInfo.data;
+    console.log("1111 -> " + id)
 
-    auth.login({ role, username, userId: userId.value, email })
+    auth.login({
+      id,                   // 🔥 숫자형 고유 ID
+      userId: username,     // 사용자 계정명 (문자열 ID)
+      email,
+      role
+    });
 
-    if (rememberId.value) {
-      localStorage.setItem('savedUserId', userId.value)
-    }
 
     // role에 따라 이동
     if (role === 'ADMIN') {

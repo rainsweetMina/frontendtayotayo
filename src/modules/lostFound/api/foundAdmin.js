@@ -1,44 +1,55 @@
-// src/modules/lostFound/api/foundAdmin.js
 import axios from 'axios';
 
+// axios 인스턴스 생성
+const axiosInstance = axios.create({
+    withCredentials: true,
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+});
+
 const ADMIN_FOUND_API = '/api/admin/found';
-const BUS_COMPANY_API = '/api/bus-companies';
-const BUS_ROUTE_API = '/api/bus-routes';
 
-// ----------------------
-// 습득물 관리 관련 API
-// ----------------------
+// ✅ 등록 (FormData 직접 받음)
+export const registerFoundItem = (formData) => {
+    return axiosInstance.post(ADMIN_FOUND_API, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
 
-// 목록 조회 (검색 조건 포함)
+// ✅ 수정 (FormData로 PUT 또는 POST)
+export const updateFoundItem = (id, formData) => {
+    return axiosInstance.post(`${ADMIN_FOUND_API}/update/${id}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
+// 목록 조회
 export const getFoundItemsForAdmin = (params) =>
-    axios.get(ADMIN_FOUND_API, { params });
-
-// 등록
-export const registerFoundItem = (dto) =>
-    axios.post(ADMIN_FOUND_API, dto);
-
-// 수정
-export const updateFoundItem = (id, dto) =>
-    axios.put(`${ADMIN_FOUND_API}/${id}`, dto);
+    axiosInstance.get(ADMIN_FOUND_API, { params });
 
 // 삭제
 export const deleteFoundItem = (id) =>
-    axios.delete(`${ADMIN_FOUND_API}/${id}`);
+    axiosInstance.delete(`${ADMIN_FOUND_API}/delete/${id}`);
 
 // 숨김
 export const hideFoundItem = (id) =>
-    axios.patch(`${ADMIN_FOUND_API}/${id}/hide`);
+    axiosInstance.patch(`${ADMIN_FOUND_API}/hide/${id}`);
 
 // 매칭
 export const matchFoundItem = (foundId, lostId) =>
-    axios.post(`${ADMIN_FOUND_API}/${foundId}/match`, { lostId });
+    axiosInstance.patch(`${ADMIN_FOUND_API}/match/${foundId}`, null, {
+        params: { lostItemId: lostId },
+    });
 
+// 버스회사 목록 조회
+export const getBusCompanies = () =>
+    axiosInstance.get('/api/companies');
 
-// ----------------------------
-// 버스회사 및 노선 조회 API
-// ----------------------------
-
-// 전체 버스회사 목록 조회
-export const getBusCompanies = () => axios.get('/api/companies');
+// 버스 노선 조회
 export const getBusRoutesByCompany = (companyId) =>
-    axios.get(`/api/companies/${companyId}/routes`);
+    axiosInstance.get(`/api/companies/${companyId}/routes`);

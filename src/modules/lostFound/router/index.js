@@ -24,7 +24,13 @@ export default [
         path: '/admin/found',
         name: 'FoundAdminList',
         component: () => import('@/modules/lostFound/views/admin/FoundAdminList.vue')
+    },
+    {
+        path: '/admin/registered-lost-items',
+        name: 'RegisteredFoundItems',
+        component: () => import('@/modules/lostFound/views/admin/ReportedFoundItems.vue')
     }
+
 
 
 

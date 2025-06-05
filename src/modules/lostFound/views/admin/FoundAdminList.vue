@@ -47,9 +47,13 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="item in items" :key="item.id">
-        <td>{{ item.id }}</td>
-        <td><img :src="item.photoUrl" width="50" height="50" /></td>
+      <tr v-for="item in items" :key="item.id" :class="{ 'table-secondary': item.visible === false}">
+        <td>
+             <span v-if="item.visible === false" class="text-muted" title="숨김 항목">
+              <i class="bi bi-eye-slash-fill me-1"></i>
+            </span>
+          {{ item.id }}</td>
+        <td><img :src="getPhotoUrl(item.photoUrl)" width="50" height="50" /></td>
         <td>{{ item.itemName }}</td>
         <td>{{ formatDate(item.foundTime) }}</td>
         <td>{{ formatStatus(item) }}</td>
@@ -80,7 +84,7 @@
 import { ref, onMounted } from 'vue';
 import Modal from '@/modules/lostFound/components/Modal.vue';
 import FoundItemForm from '@/modules/lostFound/components/FoundItemForm.vue';
-import { getFoundItemsForAdmin } from '@/modules/lostFound/api/foundAdmin'; // ✅ 만들어야 함
+import { getFoundItemsForAdmin } from '@/modules/lostFound/api/foundAdmin';
 import {
   matchFoundItem,
   deleteFoundItem,
@@ -107,7 +111,6 @@ const formatDate = (dateStr) => {
 
 const formatStatus = (item) => {
   if (item.isDeleted) return '삭제됨';
-  if (!item.visible) return '숨김';
   if (item.status === 'RETURNED') return '수령완료';
   return '보관중';
 };
@@ -180,7 +183,13 @@ const hideItem = async (item) => {
     alert('숨김 실패');
   }
 };
+const getPhotoUrl = (photoUrl) => {
+  return photoUrl ? `/uploads/found/${photoUrl}` : '/img/no-image.png';
+};
 
+onMounted(() => {
+  fetchFoundItems();
+});
 
 // TODO: matchItem, deleteItem, hideItem 추가 필요
 </script>
