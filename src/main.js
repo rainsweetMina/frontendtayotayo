@@ -18,6 +18,9 @@ import './assets/main.css'
 import EmptyLayout from "@/layouts/components/EmptyLayout.vue"
 import DashboardLayout from "@/layouts/components/DashboardLayout.vue"
 
+// ✅ Axios 전역 설정 적용
+import './config/axios'
+
 // ✅ Pinia 생성 및 persist 적용
 const pinia = createPinia()
 pinia.use(piniaPersistedState)

@@ -4,6 +4,25 @@
       <h1 class="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>
     </div>
 
+    <!-- 인증 에러 메시지 -->
+    <div v-if="!isAuthenticated && authError" class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">{{ authError }}</h3>
+          <div class="mt-2">
+            <a href="https://localhost:8081/auth/login" target="_blank" class="text-sm font-medium text-red-600 hover:text-red-500">
+              백엔드 로그인 페이지로 이동 →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 통계 카드 섹션 -->
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <!-- 버스 회차 현황 -->
@@ -119,7 +138,7 @@
                   <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
                       <span class="inline-flex items-center justify-center h-7 w-7 rounded-full" :class="getActivityTypeClass(activity.type)">
-                        <span class="text-sm font-medium leading-none text-white">{{ activity.type.charAt(0) }}</span>
+                        <span class="text-sm font-medium leading-none text-white">{{ getActivityEmoji(activity.type) }}</span>
                       </span>
                     </div>
                     <div class="flex-1 min-w-0">
@@ -147,6 +166,7 @@ import Chart from 'chart.js/auto'
 import { getDashboardStats, getApiResponseTimes } from '@/api/admin'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
+import axios from '@/config/axios'
 
 // 상태 데이터
 const stats = ref({
@@ -156,6 +176,10 @@ const stats = ref({
   usersIncrease: 0,
   pendingQna: 0
 })
+
+// 인증 상태
+const isAuthenticated = ref(true)
+const authError = ref('')
 
 // 관리자 활동 로그
 const recentActivities = ref([])
@@ -344,11 +368,23 @@ const getActivityTypeClass = (type) => {
   return activityColors[type] || 'bg-gray-500'
 }
 
+// 활동 타입에 따른 이모티콘 반환
+const getActivityEmoji = (type) => {
+  switch (type) {
+    case '등록': return '✨'
+    case '수정': return '✏️'
+    case '삭제': return '🗑️'
+    default: return '⚡'
+  }
+}
+
 // 초기 활동 로그 로드
 const loadInitialLogs = async () => {
   try {
-    const response = await fetch('https://localhost:8081/api/admin/logs?limit=5')
-    const data = await response.json()
+    const response = await axios.get('/api/admin/logs', {
+      params: { limit: 5 }
+    })
+    const data = response.data
     console.log('Received audit logs:', data)
 
     // 데이터가 content 필드 내에 있는 경우를 처리
@@ -363,7 +399,25 @@ const loadInitialLogs = async () => {
     }))
   } catch (error) {
     console.error('Failed to load initial audit logs:', error)
-    recentActivities.value = []
+    
+    // 인증 에러인 경우 표시
+    if (error.message === 'Authentication required') {
+      isAuthenticated.value = false
+      authError.value = '인증이 필요합니다. 다시 로그인해주세요.'
+      
+      // 더미 데이터 표시
+      recentActivities.value = [
+        {
+          id: 1,
+          type: '작업',
+          description: '로그인이 필요합니다.',
+          timestamp: new Date().toLocaleString()
+        }
+      ]
+    } else {
+      // 다른 에러의 경우 빈 배열
+      recentActivities.value = []
+    }
   }
 }
 
@@ -437,8 +491,18 @@ const loadDashboardData = async () => {
         }
       })
     }
+    
+    // 데이터 로드 성공 시 인증 상태 업데이트
+    isAuthenticated.value = true
+    authError.value = ''
   } catch (error) {
     console.error('대시보드 데이터 로드 중 오류:', error)
+    
+    // 인증 에러인 경우 표시
+    if (error.message === 'Authentication required') {
+      isAuthenticated.value = false
+      authError.value = '인증이 필요합니다. 다시 로그인해주세요.'
+    }
   }
 }
 

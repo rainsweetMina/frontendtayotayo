@@ -10,7 +10,6 @@ import { useRoute } from 'vue-router'
 import { computed, onMounted } from 'vue'
 import DefaultLayout from './layouts/DefaultLayout.vue'
 
-import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
