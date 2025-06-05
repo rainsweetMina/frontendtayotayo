@@ -6,7 +6,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '@/config/axios'
 
 const weatherList = ref([])
 const currentIndex = ref(0)

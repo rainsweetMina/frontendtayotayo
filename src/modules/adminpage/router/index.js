@@ -16,6 +16,9 @@ import AdminBusRouteStops from '@/views/admin/BusRouteStops.vue'
 import AdminBusStops from '@/views/admin/BusStops.vue'
 import AdminBusStopAdd from '@/views/admin/BusStopAdd.vue'
 import AdminBusStopSearch from '@/views/admin/BusStopSearch.vue'
+import NoticeManagement from '@/modules/adminpage/dashboard/views/NoticeManagement.vue'
+import NoticeDetail from '@/modules/adminpage/dashboard/views/NoticeDetail.vue'
+import NoticeWrite from '@/modules/adminpage/dashboard/views/NoticeWrite.vue'
 
 export const adminRoutes = {
   path: "/admin",
@@ -33,7 +36,27 @@ export const adminRoutes = {
     {
       path: "notice",
       name: "AdminNotice",
-      component: AdminNotice
+      component: NoticeManagement
+    },
+    {
+      path: "notices",
+      name: "NoticeManagement",
+      component: NoticeManagement
+    },
+    {
+      path: "notices/new",
+      name: "NoticeWrite",
+      component: NoticeWrite
+    },
+    {
+      path: "notices/:id",
+      name: "NoticeDetail",
+      component: NoticeDetail
+    },
+    {
+      path: "notices/:id/edit",
+      name: "NoticeEdit",
+      component: NoticeWrite
     },
     {
       path: "qna",

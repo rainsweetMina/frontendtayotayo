@@ -1,11 +1,8 @@
 // src/modules/mypage/composables/useUserInfo.js
 
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '@/config/axios'
 import { useRouter, useRoute } from 'vue-router'
-
-axios.defaults.withCredentials = true
-axios.defaults.baseURL = 'https://localhost:8081'
 
 const user = ref(null)
 const isLoading = ref(true)
