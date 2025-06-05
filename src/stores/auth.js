@@ -3,7 +3,11 @@ import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
-        user: null
+        id:null,
+        role: null,
+        username: null,
+        userId: null,
+        email: null
     }),
     getters: {
         isAuthenticated: (state) => !!state.user,
@@ -11,11 +15,19 @@ export const useAuthStore = defineStore('auth', {
         isUser: (state) => state.user?.role === 'USER'
     },
     actions: {
-        login({ role, username, userId, email }) {
-            this.user = { role, username, userId, email }
+        login({id, role, username, userId, email }) {
+            this.id = id
+            this.role = role
+            this.username = username
+            this.userId = userId
+            this.email = email
         },
         logout() {
-            this.user = null
+            this.id = null
+            this.role = null
+            this.username = null
+            this.userId = null
+            this.email = null
         }
     },
     persist: {

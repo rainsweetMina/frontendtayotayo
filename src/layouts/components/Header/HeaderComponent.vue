@@ -33,10 +33,9 @@
         <div class="d-none d-lg-block">
             <WeatherDisplay />
           </div>
-          <UserMenu :role="auth.role" />
         </div>
-
       </div>
+      <UserMenu :role="auth.role" />
     </div>
   </nav>
 </template>

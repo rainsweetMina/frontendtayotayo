@@ -252,4 +252,4 @@ const formatDateTime = (date) => {
 onMounted(() => {
   fetchLostItems(1)
 })
-</script> 
+</script>

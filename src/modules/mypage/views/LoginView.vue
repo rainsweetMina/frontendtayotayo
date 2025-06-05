@@ -34,6 +34,7 @@
 </template>
 
 <script setup>
+import axios from 'axios'
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/axiosInstance'
@@ -69,12 +70,15 @@ const handleLogin = async () => {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
 
+    // 로그인 성공 시 사용자 정보 가져오기
     await new Promise(resolve => setTimeout(resolve, 100)) // 세션 반영 기다림
-
-    const userInfo = await api.get('/api/user/info')
-    const { userId: fetchedUserId, name, email, role } = userInfo.data
+    const userInfo = await axios.get('/api/user/info', { withCredentials: true })
+    const { id, name, fetchedUserId, email, role = 'USER' } = userInfo.data;
+    console.log("1111 -> " + id)
+    // const role = userInfo.data.role || 'USER'
 
     auth.login({
+      id,
       role,
       username: name,
       userId: fetchedUserId,
@@ -85,7 +89,12 @@ const handleLogin = async () => {
       localStorage.setItem('savedUserId', fetchedUserId)
     }
 
-    router.push(role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
+    // role에 따라 이동
+    if (role === 'ADMIN') {
+      router.push('/admin/dashboard')
+    } else {
+      router.push('/mypage')
+    }
 
   } catch (err) {
     console.error(err)
