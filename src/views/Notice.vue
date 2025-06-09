@@ -43,6 +43,24 @@
       </ul>
     </div>
 
+    <!-- 첨부파일 다운로드 섹션 -->
+    <div v-if="selectedNotice && selectedNotice.files && selectedNotice.files.length > 0" class="mt-4 p-4 bg-white shadow sm:rounded-md">
+      <h3 class="text-lg font-medium text-gray-900 mb-2">첨부파일</h3>
+      <ul class="space-y-2">
+        <li v-for="(file, index) in selectedNotice.files" :key="index" class="flex items-center">
+          <button
+            @click="downloadFile(file, index)"
+            class="flex items-center text-blue-600 hover:text-blue-800"
+          >
+            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+            {{ file.originalName || file.fileName || '첨부파일' }}
+          </button>
+        </li>
+      </ul>
+    </div>
+
     <!-- 페이지네이션 -->
     <div class="mt-6 flex justify-center">
       <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
@@ -65,13 +83,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
+import { useRoute } from 'vue-router'
 
 const notices = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const isAdmin = ref(false)
+const selectedNotice = ref(null)
+const route = useRoute()
 
 const fetchNotices = async (page = 1) => {
   try {
@@ -93,6 +114,30 @@ const checkAdminRole = async () => {
   }
 }
 
+const downloadFile = async (file, index) => {
+  try {
+    const noticeId = selectedNotice.value.id
+    let url = `https://localhost:8081/api/notices/${noticeId}/files/${index}`
+    
+    const response = await axios.get(url, {
+      responseType: 'blob'
+    })
+    
+    const blob = new Blob([response.data])
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = file.originalName || file.fileName || '첨부파일'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('파일 다운로드 실패:', error)
+    alert('파일 다운로드에 실패했습니다.')
+  }
+}
+
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('ko-KR', {
@@ -101,6 +146,25 @@ const formatDate = (dateString) => {
     day: 'numeric'
   }).format(date)
 }
+
+// 공지사항 상세 조회
+const fetchNoticeDetail = async (id) => {
+  try {
+    const response = await axios.get(`https://localhost:8081/api/notices/${id}`)
+    selectedNotice.value = response.data
+  } catch (error) {
+    console.error('공지사항 상세 조회 실패:', error)
+  }
+}
+
+// 라우터 변경 감지
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchNoticeDetail(newId)
+  } else {
+    selectedNotice.value = null
+  }
+}, { immediate: true })
 
 onMounted(() => {
   fetchNotices()

@@ -43,9 +43,18 @@
             type="file"
             class="form-control"
             @change="handleFileChange"
+            multiple
             :disabled="isSubmitting"
           />
           <small class="text-muted">* 파일은 선택사항입니다</small>
+          <div v-if="form.files.length > 0" class="mt-2">
+            <div v-for="(file, index) in form.files" :key="index" class="d-flex align-items-center mb-2">
+              <span class="me-2">{{ file.name }}</span>
+              <button type="button" class="btn btn-sm btn-danger" @click="removeFile(index)">
+                삭제
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="form-group mb-3">
@@ -112,7 +121,7 @@ export default {
     const form = ref({
       title: '',
       content: '',
-      file: null,
+      files: [],
       showPopup: false,
       popupStart: '',
       popupEnd: ''
@@ -124,7 +133,12 @@ export default {
     const { createNotice, updateNotice, getNoticeDetail } = useNoticeApi();
 
     const handleFileChange = (event) => {
-      form.value.file = event.target.files[0];
+      const newFiles = Array.from(event.target.files);
+      form.value.files = [...form.value.files, ...newFiles];
+    };
+
+    const removeFile = (index) => {
+      form.value.files.splice(index, 1);
     };
 
     const handleSubmit = async () => {
@@ -137,17 +151,90 @@ export default {
           return;
         }
 
-        if (isEdit.value) {
-          await updateNotice(route.params.id, form.value);
-          alert('공지사항이 수정되었습니다.');
-        } else {
-          await createNotice(form.value);
-          alert('공지사항이 등록되었습니다.');
+        const formData = new FormData();
+        
+        const noticeData = {
+          title: form.value.title.trim(),
+          content: form.value.content.trim(),
+          author: '관리자',
+          showPopup: form.value.showPopup,
+          popupStart: form.value.showPopup ? form.value.popupStart : null,
+          popupEnd: form.value.showPopup ? form.value.popupEnd : null
+        };
+
+        console.log('Submitting notice data:', noticeData);
+        
+        const noticeBlob = new Blob([JSON.stringify(noticeData)], {
+          type: 'application/json'
+        });
+        formData.append('notice', noticeBlob);
+
+        if (form.value.files.length > 0) {
+          console.log('Adding files to FormData:', form.value.files);
+          form.value.files.forEach((file, index) => {
+            console.log(`File ${index}:`, file.name, file.size, file.type);
+            formData.append('files', file);
+          });
         }
-        router.push('/admin/notices');
+
+        console.log('FormData entries:');
+        for (let [key, value] of formData.entries()) {
+          if (key === 'notice') {
+            console.log('notice: [Blob]');
+          } else {
+            console.log(`${key}: ${value instanceof File ? value.name : value}`);
+          }
+        }
+
+        let response;
+        try {
+          if (isEdit.value) {
+            console.log('Updating notice ID:', route.params.id);
+            response = await updateNotice(route.params.id, formData);
+          } else {
+            console.log('Creating new notice');
+            response = await createNotice(formData);
+          }
+          
+          console.log('Server response:', response);
+          alert(isEdit.value ? '공지사항이 수정되었습니다.' : '공지사항이 등록되었습니다.');
+          router.push('/admin/notices');
+        } catch (apiError) {
+          console.error('API 호출 오류:', apiError);
+          
+          if (apiError.response) {
+            console.error('Status:', apiError.response.status);
+            console.error('Headers:', apiError.response.headers);
+            console.error('Data:', apiError.response.data);
+            
+            if (apiError.response.data) {
+              if (typeof apiError.response.data === 'string') {
+                errorMessage.value = apiError.response.data;
+              } else if (apiError.response.data.message) {
+                errorMessage.value = apiError.response.data.message;
+              } else if (apiError.response.data.error) {
+                errorMessage.value = apiError.response.data.error;
+              } else {
+                errorMessage.value = `서버 오류 (${apiError.response.status}): 관리자에게 문의하세요.`;
+              }
+            } else {
+              errorMessage.value = `서버 오류 (${apiError.response.status}): 관리자에게 문의하세요.`;
+            }
+          } else if (apiError.request) {
+            console.error('Request was made but no response was received');
+            errorMessage.value = '서버 응답이 없습니다. 네트워크 연결을 확인하세요.';
+          } else {
+            console.error('Error config:', apiError.config);
+            errorMessage.value = '요청 처리 중 오류가 발생했습니다: ' + apiError.message;
+          }
+          
+          throw apiError;
+        }
       } catch (error) {
         console.error('공지사항 저장 실패:', error);
-        errorMessage.value = error.response?.data?.message || '공지사항 저장에 실패했습니다. 다시 시도해주세요.';
+        if (!errorMessage.value) {
+          errorMessage.value = '공지사항 저장에 실패했습니다. 다시 시도해주세요.';
+        }
       } finally {
         isSubmitting.value = false;
       }
@@ -162,7 +249,7 @@ export default {
         form.value = {
           title: notice.title,
           content: notice.content,
-          file: null,
+          files: [],
           showPopup: notice.showPopup || false,
           popupStart: notice.popupStart || '',
           popupEnd: notice.popupEnd || ''
@@ -183,6 +270,7 @@ export default {
       isSubmitting,
       isEdit,
       handleFileChange,
+      removeFile,
       handleSubmit
     };
   }
