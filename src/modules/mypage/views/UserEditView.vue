@@ -48,10 +48,11 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import { useAuthStore } from '@/stores/auth'
 
 const { user } = useUserInfo()
-console.log(user)
 const router = useRouter()
+const auth = useAuthStore()
 
 const form = ref({
   name: '',
@@ -85,28 +86,39 @@ const formattedSignupDate = computed(() => {
 
 const submit = async () => {
   try {
+    // ✅ 1. 회원 정보 수정
     await axios.post('/api/mypage/modify', {
       name: form.value.name,
       email: form.value.email,
       phoneNumber: form.value.phoneNumber
     })
 
+    // ✅ 2. 비밀번호 변경 (입력했을 경우에만 시도)
     if (form.value.newPassword) {
       await axios.post('/api/mypage/password', {
         currentPassword: form.value.currentPassword,
-        newPassword: form.value.newPassword,
-        confirmPassword: form.value.confirmPassword
+        modifyPassword: form.value.newPassword,
+        modifyPasswordCheck: form.value.confirmPassword
       })
+
+      // ✅ 로그아웃 + 메시지 노출 후 이동
+      auth.logout()
+      alert('🔐 비밀번호가 변경되었습니다.\n다시 로그인해주세요.')
+      setTimeout(() => {
+        router.push('/login')
+      }, 100) // 약간의 딜레이 후 리디렉션
+      return
     }
 
     alert('수정이 완료되었습니다.')
     router.push('/mypage')
   } catch (err) {
     console.error(err)
-    alert('수정 중 오류가 발생했습니다.')
+    alert(err.response?.data?.message || '수정 중 오류가 발생했습니다.')
   }
 }
 </script>
+
 
 <style scoped>
 .edit-form {

@@ -1,34 +1,41 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
-// 각 모듈별 라우트 가져오기
 import busSearchRoutes from '@/modules/busSearch/router'
 import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
-import { adminRoutes } from "@/modules/adminpage/router";
-
+import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
 
+// 📌 Pinia에서 인증 상태 가져오기
+import { useAuthStore } from '@/stores/auth'
 
 const routes = [
     { path: '/', component: HomeView },
     adminRoutes,
-    // {
-    //     path: "/:pathMatch(.*)*",
-    //     name: "NotFound",
-    //     // component: NotFound
-    // },
-
-    // 도메인 모듈별 라우트 병합np
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes,
-    ...lostFoundRoutes ,
+    ...lostFoundRoutes,
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-});
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes
+})
 
-export default router;
+// ✅ 전역 가드 설정 (최소한으로만 추가)
+router.beforeEach((to, from, next) => {
+    const auth = useAuthStore()
+    const isLoggedIn = auth.isAuthenticated // ✅ getter로 로그인 상태 확인
+
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!isLoggedIn) {
+            return next({ path: '/login', query: { redirect: to.fullPath } })
+        }
+    }
+
+    next()
+})
+
+export default router

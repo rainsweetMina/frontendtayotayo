@@ -1,35 +1,35 @@
 <template>
-  <DefaultLayout v-if="layout !== 'none'">
-    <router-view />
-  </DefaultLayout>
-  <router-view v-else />
+  <component :is="layoutComponent" />
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import DefaultLayout from './layouts/DefaultLayout.vue'
-
 import { useAuthStore } from '@/stores/auth'
+import api from '@/api/axiosInstance'
 
 const route = useRoute()
-const layout = computed(() => route.meta.layout || 'default')
+const authStore = useAuthStore()
 
-// ✅ 로그인 상태 복원
-const auth = useAuthStore()
+// ✅ setup() 실행 즉시 로그인 상태 확인
+;(async () => {
+  console.log('✅ App.vue setup 진입')
+  try {
+    const res = await api.get('/api/user/info', { withCredentials: true })
 
-onMounted(async () => {
-})
+    if (res.data?.userId) {
+      authStore.login(res.data)
+    } else {
+      authStore.logout()
+    }
+  } catch (err) {
+    console.error('❌ 유저 정보 가져오기 실패:', err)
+    authStore.logout()
+  }
+})()
+
+const layoutComponent = computed(() =>
+    route.meta.layout === 'none' ? 'router-view' : DefaultLayout
+)
 </script>
-
-<style>
-html, body, #app {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  max-width: 100vw;
-  height: 100vh;
-  overflow-x: hidden;
-  box-sizing: border-box;
-}
-</style>

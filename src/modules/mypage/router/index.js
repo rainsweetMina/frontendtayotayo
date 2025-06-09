@@ -3,7 +3,8 @@ export default [
     {
         path: '/mypage',
         name: 'MyPageHome',
-        component: () => import('../views/MyPageHome.vue')
+        component: () => import('../views/MyPageHome.vue'),
+        meta: { requiresAuth: true } // ✅ 인증 필요
     },
 
     {
@@ -27,7 +28,8 @@ export default [
     {
         path: '/mypage/apikey-request',
         name: 'ApiKey',
-        component: () => import('@/modules/mypage/views/ApiKeyView.vue')
+        component: () => import('@/modules/mypage/views/ApiKeyView.vue'),
+        meta: { requiresAuth: true } // ✅ 인증 필요
     },
 
     {
@@ -49,7 +51,7 @@ export default [
                 } finally {
                     window.location.href = '/login'
                 }
-                return () => null // 아무 것도 렌더링하지 않음
+                return () => null
             }
         },
         meta: { layout: 'none' }
@@ -63,7 +65,8 @@ export default [
 
     {
         path: '/mypage/notifications',
-        component: () => import('@/modules/mypage/views/NotificationListView.vue')
+        component: () => import('@/modules/mypage/views/NotificationListView.vue'),
+        meta: { requiresAuth: true } // ✅ 인증 필요
     },
 
     {

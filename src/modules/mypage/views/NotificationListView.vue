@@ -43,7 +43,7 @@
       <button @click="goPage(currentPage + 1)" :disabled="currentPage === totalPages">다음</button>
     </div>
 
-    <router-link to="/mypage" class="back-button">← 마이페이지로</router-link>
+    <router-link to="/mypage" class="back-button">← 마이페이지로 돌아가기</router-link>
   </div>
 </template>
 
