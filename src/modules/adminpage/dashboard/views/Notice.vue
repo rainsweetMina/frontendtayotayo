@@ -98,7 +98,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import noticeApi from '@/api/notice'
+import noticeApi from '@/api/notice.js'
 
 const router = useRouter()
 const notices = ref([])

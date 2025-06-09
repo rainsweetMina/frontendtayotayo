@@ -411,7 +411,7 @@
 </template>
 
 <script setup>
-import { useTableData } from '../hooks/useTableData'
+import { useTableData } from '../../../../../hooks/useTableData.js'
 const { simpleTableData, paginatedTableData, wideTableData } = useTableData()
-import Breadcrumb from '../partials/AppBreadcrumb.vue'
+import Breadcrumb from '../../../../../partials/AppBreadcrumb.vue'
 </script>

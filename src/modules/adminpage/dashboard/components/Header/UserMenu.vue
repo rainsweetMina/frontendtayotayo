@@ -23,7 +23,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import { useUserInfo } from '@/modules/mypage/composables/useUserInfo.js'
 
 const router = useRouter()
 const { user, isLoggedIn } = useUserInfo()

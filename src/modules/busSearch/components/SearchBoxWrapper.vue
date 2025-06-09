@@ -27,7 +27,7 @@ import { ref, watch } from 'vue'
 import {useSearchStore} from "@/stores/searchStore.js";
 import BasicSearchBox from './SearchBox.vue'
 import RouteSearchBox from './RouteSearchBox.vue'
-import Logo from "@/layouts/components/Header/Logo.vue";
+import Logo from "@/modules/adminpage/dashboard/components/Header/Logo.vue";
 
 const emit = defineEmits(['search'])
 const store = useSearchStore()

@@ -26,17 +26,41 @@
         </div>
 
         <div class="content-area">
-          <pre>{{ notice.content }}</pre>
+          <!-- HTML 콘텐츠 렌더링 -->
+          <div v-html="notice.content"></div>
         </div>
 
         <div v-if="notice.files && notice.files.length > 0" class="attachment mt-4">
           <h5>첨부파일</h5>
-          <div v-for="(file, index) in notice.files" :key="index" class="mb-2">
-            <button @click="downloadFile(file, index)" 
-                    class="btn btn-sm btn-outline-primary me-2">
-              <i class="bi bi-download"></i> {{ file.originalName }}
-              <small class="text-muted">({{ formatFileSize(file.fileSize) }})</small>
-            </button>
+          <div v-for="(file, index) in notice.files" :key="index" class="mb-3">
+            <!-- 이미지 파일인 경우 직접 표시 -->
+            <div v-if="isImageFile(file)" class="mb-2">
+              <div class="image-preview mb-2">
+                <img 
+                  :src="getImageUrl(file, index)" 
+                  :alt="file.originalName"
+                  class="img-fluid rounded"
+                  style="max-height: 300px;"
+                />
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="me-2">{{ file.originalName }}</span>
+                <small class="text-muted me-2">({{ formatFileSize(file.fileSize) }})</small>
+                <button @click="downloadFile(file, index)" 
+                        class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-download"></i> 다운로드
+                </button>
+              </div>
+            </div>
+            
+            <!-- 이미지 파일이 아닌 경우 다운로드 버튼만 표시 -->
+            <div v-else class="d-flex align-items-center">
+              <button @click="downloadFile(file, index)" 
+                      class="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-download"></i> {{ file.originalName }}
+                <small class="text-muted">({{ formatFileSize(file.fileSize) }})</small>
+              </button>
+            </div>
           </div>
         </div>
         
@@ -82,6 +106,17 @@ export default {
     const error = ref('');
 
     const { getNoticeDetail, deleteNotice } = useNoticeApi();
+
+    // 이미지 파일인지 확인하는 함수
+    const isImageFile = (file) => {
+      if (!file || !file.fileType) return false;
+      return file.fileType.startsWith('image/');
+    };
+
+    // 이미지 URL 생성
+    const getImageUrl = (file, index) => {
+      return `/api/admin/notices/${notice.value.id}/images/${index}`;
+    };
 
     const fetchNotice = async () => {
       try {
@@ -290,7 +325,9 @@ export default {
       getSingleFileUrl,
       downloadFile,
       downloadSingleFile,
-      downloadByFileName
+      downloadByFileName,
+      isImageFile,
+      getImageUrl
     };
   }
 };
@@ -344,5 +381,13 @@ export default {
   padding: 15px;
   background-color: #f8f9fa;
   border-radius: 4px;
+}
+
+.image-preview {
+  display: flex;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  padding: 10px;
 }
 </style> 

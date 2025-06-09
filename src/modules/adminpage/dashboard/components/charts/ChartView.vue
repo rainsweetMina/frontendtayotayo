@@ -29,9 +29,9 @@
 </template>
 
 <script setup>
-import Breadcrumb from "../partials/AppBreadcrumb.vue";
-import DonutChart from "@/components/charts/DonutChart.vue";
-import LineChart from "@/components/charts/LineChart.vue";
-import BarChart from "../components/charts/BarChart.vue";
-import AreaChart from "../components/charts/AreaChart.vue";
+import Breadcrumb from "../../../../../partials/AppBreadcrumb.vue";
+import DonutChart from "@/modules/adminpage/dashboard/components/charts/DonutChart.vue";
+import LineChart from "@/modules/adminpage/dashboard/components/charts/LineChart.vue";
+import BarChart from "@/modules/adminpage/dashboard/components/charts/BarChart.vue";
+import AreaChart from "@/modules/adminpage/dashboard/components/charts/AreaChart.vue";
 </script>

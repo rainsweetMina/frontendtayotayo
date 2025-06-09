@@ -114,7 +114,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import Breadcrumb from '../partials/AppBreadcrumb.vue';
+import Breadcrumb from '../../../../partials/AppBreadcrumb.vue';
 import Chart from 'chart.js/auto';
 
 const stats = ref({
