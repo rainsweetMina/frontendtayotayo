@@ -33,10 +33,9 @@
         <div class="d-none d-lg-block">
             <WeatherDisplay />
           </div>
-          <UserMenu :role="role" />
         </div>
-
       </div>
+      <UserMenu :role="auth.role" />
     </div>
   </nav>
 </template>
@@ -47,10 +46,12 @@ import NavbarDropdown from './NavbarDropdown.vue'
 import WeatherDisplay from './WeatherDisplay.vue'
 import UserMenu from './UserMenu.vue'
 
-import {useAuthStore} from '@/stores/auth.js'
-import {computed} from 'vue'
+import { useAuthStore } from '@/stores/auth.js'
+import { computed } from 'vue'
 
 const auth = useAuthStore()
+
+const role = computed(() => auth.role)
 
 // ✅ computed로 역할 체크
 const isUser = computed(() => auth.role === 'USER')
@@ -71,15 +72,15 @@ const busMenu = [
 ]
 
 const lostMenu = [
-  {label: '분실물 조회', to: '/lost-found'}
+  {label: '분실물 조회', to: '/lost'}
 ]
 
 const noticeMenu = [
   {label: '공지사항', to: '/notice'},
   {label: 'Q&A', to: '/qna/list'}
 ]
-
 </script>
+
 
 <style scoped lang="scss">
 @use "@/assets/web-user";
