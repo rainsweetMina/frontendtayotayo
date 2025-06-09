@@ -26,16 +26,41 @@
         </div>
 
         <div class="content-area">
-          <pre>{{ notice.content }}</pre>
+          <!-- HTML 콘텐츠 렌더링 -->
+          <div v-html="notice.content"></div>
         </div>
 
         <div v-if="notice.files && notice.files.length > 0" class="attachment mt-4">
           <h5>첨부파일</h5>
-          <div v-for="(file, index) in notice.files" :key="index" class="mb-2">
-            <button @click="downloadFile(file, index)" 
-                    class="btn btn-sm btn-outline-primary me-2">
-              <i class="bi bi-download"></i> {{ getFileName(file) }}
-            </button>
+          <div v-for="(file, index) in notice.files" :key="index" class="mb-3">
+            <!-- 이미지 파일인 경우 직접 표시 -->
+            <div v-if="isImageFile(file)" class="mb-2">
+              <div class="image-preview mb-2">
+                <img 
+                  :src="getImageUrl(file, index)" 
+                  :alt="file.originalName"
+                  class="img-fluid rounded"
+                  style="max-height: 300px;"
+                />
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="me-2">{{ file.originalName }}</span>
+                <small class="text-muted me-2">({{ formatFileSize(file.fileSize) }})</small>
+                <button @click="downloadFile(file, index)" 
+                        class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-download"></i> 다운로드
+                </button>
+              </div>
+            </div>
+            
+            <!-- 이미지 파일이 아닌 경우 다운로드 버튼만 표시 -->
+            <div v-else class="d-flex align-items-center">
+              <button @click="downloadFile(file, index)" 
+                      class="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-download"></i> {{ file.originalName }}
+                <small class="text-muted">({{ formatFileSize(file.fileSize) }})</small>
+              </button>
+            </div>
           </div>
         </div>
         
@@ -82,48 +107,50 @@ export default {
 
     const { getNoticeDetail, deleteNotice } = useNoticeApi();
 
+    // 이미지 파일인지 확인하는 함수
+    const isImageFile = (file) => {
+      if (!file || !file.fileType) return false;
+      return file.fileType.startsWith('image/');
+    };
+
+    // 이미지 URL 생성
+    const getImageUrl = (file, index) => {
+      return `/api/admin/notices/${notice.value.id}/images/${index}`;
+    };
+
     const fetchNotice = async () => {
       try {
         isLoading.value = true;
         error.value = '';
+        
+        console.log('Fetching notice detail for id:', route.params.id);
         const response = await getNoticeDetail(route.params.id);
         notice.value = response.data;
+        
         console.log('Notice data:', notice.value);
         
-        if (notice.value) {
-          console.log('File related fields:', {
-            fileUrl: notice.value.fileUrl,
-            files: notice.value.files,
-            fileName: notice.value.fileName,
-            fileUrls: notice.value.fileUrls,
-            attachments: notice.value.attachments,
-            filePath: notice.value.filePath,
-            fileId: notice.value.fileId
-          });
-          
-          // files 배열 상세 정보
-          if (notice.value.files && Array.isArray(notice.value.files)) {
-            console.log('Files array detail:', notice.value.files);
-            notice.value.files.forEach((file, index) => {
-              console.log(`File ${index}:`, file);
-              console.log(`File ${index} keys:`, Object.keys(file));
-              
-              // NoticeFile 엔티티 구조 확인
-              if (file && typeof file === 'object') {
-                console.log(`File ${index} details:`, {
-                  id: file.id,
-                  originalName: file.originalName,
-                  storedName: file.storedName,
-                  fileType: file.fileType,
-                  fileSize: file.fileSize
-                });
-              }
-            });
+        // 파일 정보 디버깅
+        const fileFields = {
+          fileUrl: notice.value.fileUrl,
+          files: notice.value.files,
+          fileName: notice.value.fileName,
+          fileUrls: notice.value.fileUrls,
+          attachments: notice.value.attachments,
+          filePath: notice.value.filePath,
+          fileId: notice.value.fileId
+        };
+        console.log('File related fields:', fileFields);
+        
+        if (notice.value.files) {
+          console.log('Files array detail:', notice.value.files);
+          if (notice.value.files.length > 0) {
+            console.log('First file:', notice.value.files[0]);
           }
-          
-          // 전체 notice 객체의 키 확인
-          console.log('All notice keys:', Object.keys(notice.value));
         }
+        
+        // 모든 키 출력
+        console.log('All notice keys:', Object.keys(notice.value));
+        
       } catch (err) {
         console.error('공지사항 조회 실패:', err);
         error.value = '공지사항을 불러오는데 실패했습니다.';
@@ -154,6 +181,14 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       });
+    };
+
+    const formatFileSize = (bytes) => {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     // 파일 다운로드 URL 생성
@@ -207,33 +242,34 @@ export default {
     // 파일 다운로드 처리
     const downloadFile = async (file, index) => {
       try {
-        const url = getFileDownloadUrl(file, index);
+        console.log('Downloading file:', file, 'index:', index);
         
-        // axios로 파일 다운로드 시도
+        const url = `/api/admin/notices/${notice.value.id}/files/${index}`;
+        console.log('Download URL:', url);
+        
         const response = await axios.get(url, {
           responseType: 'blob'
         });
         
-        // Blob을 다운로드
+        // 파일 다운로드 처리
         const blob = new Blob([response.data]);
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = getFileName(file);
+        link.download = file.originalName || '첨부파일';
+        
+        // 링크 클릭
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // 리소스 해제
         window.URL.revokeObjectURL(downloadUrl);
+        
+        console.log('File download successful');
       } catch (error) {
         console.error('파일 다운로드 실패:', error);
-        
-        if (error.response?.status === 404) {
-          alert('파일을 찾을 수 없습니다. 백엔드에 파일 다운로드 API가 구현되지 않았거나 파일이 삭제되었을 수 있습니다.');
-        } else if (error.response?.status === 405) {
-          alert('파일 다운로드 기능이 아직 구현되지 않았습니다. 백엔드 개발자에게 문의해주세요.');
-        } else {
-          alert('파일 다운로드 중 오류가 발생했습니다.');
-        }
+        alert('파일 다운로드에 실패했습니다.');
       }
     };
     
@@ -283,12 +319,15 @@ export default {
       error,
       handleDelete,
       formatDate,
+      formatFileSize,
       getFileDownloadUrl,
       getFileName,
       getSingleFileUrl,
       downloadFile,
       downloadSingleFile,
-      downloadByFileName
+      downloadByFileName,
+      isImageFile,
+      getImageUrl
     };
   }
 };
@@ -342,5 +381,13 @@ export default {
   padding: 15px;
   background-color: #f8f9fa;
   border-radius: 4px;
+}
+
+.image-preview {
+  display: flex;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  padding: 10px;
 }
 </style> 

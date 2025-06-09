@@ -1,0 +1,240 @@
+
+<!--공지사항 예전 버전 일단 놔둠-->
+
+<!--<template>-->
+<!--  <div class="container mx-auto px-4 py-8">-->
+<!--    <div class="flex justify-between items-center mb-6">-->
+<!--      <h1 class="text-2xl font-bold text-gray-900">공지사항</h1>-->
+<!--      <router-link-->
+<!--        v-if="isAdmin"-->
+<!--        to="/notice/write"-->
+<!--        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"-->
+<!--      >-->
+<!--        글쓰기-->
+<!--      </router-link>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; 공지사항 목록 &ndash;&gt;-->
+<!--    <div class="bg-white shadow overflow-hidden sm:rounded-md">-->
+<!--      <ul class="divide-y divide-gray-200">-->
+<!--        <li v-for="notice in notices" :key="notice.id">-->
+<!--          <router-link-->
+<!--            :to="'/notice/' + notice.id"-->
+<!--            class="block hover:bg-gray-50"-->
+<!--          >-->
+<!--            <div class="px-4 py-4 sm:px-6">-->
+<!--              <div class="flex items-center justify-between">-->
+<!--                <div class="flex-1">-->
+<!--                  <p class="text-lg font-medium text-gray-900 truncate">-->
+<!--                    {{ notice.title }}-->
+<!--                  </p>-->
+<!--                  <div class="mt-2 flex items-center text-sm text-gray-500">-->
+<!--                    <span>{{ formatDate(notice.createdAt) }}</span>-->
+<!--                    <span class="mx-2">•</span>-->
+<!--                    <span>조회 {{ notice.viewCount }}</span>-->
+<!--                    <span v-if="notice.hasAttachment" class="ml-2">-->
+<!--                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />-->
+<!--                      </svg>-->
+<!--                    </span>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </router-link>-->
+<!--        </li>-->
+<!--      </ul>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; 첨부파일 다운로드 섹션 &ndash;&gt;-->
+<!--    <div v-if="selectedNotice && selectedNotice.files && selectedNotice.files.length > 0" class="mt-4 p-4 bg-white shadow sm:rounded-md">-->
+<!--      <h3 class="text-lg font-medium text-gray-900 mb-2">첨부파일</h3>-->
+<!--      -->
+<!--      <div v-for="(file, index) in selectedNotice.files" :key="index" class="mb-3">-->
+<!--        &lt;!&ndash; 이미지 파일인 경우 직접 표시 &ndash;&gt;-->
+<!--        <div v-if="isImageFile(file)" class="mb-3">-->
+<!--          <div class="flex justify-center bg-gray-100 rounded-md p-3 mb-2">-->
+<!--            <img -->
+<!--              :src="getImageUrl(file, index)" -->
+<!--              :alt="file.originalName"-->
+<!--              class="max-h-64 rounded-md"-->
+<!--            />-->
+<!--          </div>-->
+<!--          <div class="flex items-center">-->
+<!--            <span class="mr-2">{{ file.originalName }}</span>-->
+<!--            <span class="text-sm text-gray-500 mr-2">({{ formatFileSize(file.fileSize) }})</span>-->
+<!--            <button-->
+<!--              @click="downloadFile(file, index)"-->
+<!--              class="flex items-center text-blue-600 hover:text-blue-800"-->
+<!--            >-->
+<!--              <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />-->
+<!--              </svg>-->
+<!--              다운로드-->
+<!--            </button>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        -->
+<!--        &lt;!&ndash; 이미지 파일이 아닌 경우 다운로드 버튼만 표시 &ndash;&gt;-->
+<!--        <div v-else class="flex items-center mb-2">-->
+<!--          <button-->
+<!--            @click="downloadFile(file, index)"-->
+<!--            class="flex items-center text-blue-600 hover:text-blue-800"-->
+<!--          >-->
+<!--            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />-->
+<!--            </svg>-->
+<!--            {{ file.originalName }}-->
+<!--            <span class="text-sm text-gray-500 ml-2">({{ formatFileSize(file.fileSize) }})</span>-->
+<!--          </button>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; 페이지네이션 &ndash;&gt;-->
+<!--    <div class="mt-6 flex justify-center">-->
+<!--      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">-->
+<!--        <button-->
+<!--          v-for="page in totalPages"-->
+<!--          :key="page"-->
+<!--          @click="fetchNotices(page)"-->
+<!--          :class="[-->
+<!--            page === currentPage-->
+<!--              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'-->
+<!--              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',-->
+<!--            'relative inline-flex items-center px-4 py-2 border text-sm font-medium'-->
+<!--          ]"-->
+<!--        >-->
+<!--          {{ page }}-->
+<!--        </button>-->
+<!--      </nav>-->
+<!--    </div>-->
+
+<!--    <div class="notice-content">-->
+<!--      &lt;!&ndash; HTML 콘텐츠 렌더링 &ndash;&gt;-->
+<!--      <div v-html="selectedNotice.content" class="html-content"></div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</template>-->
+
+<!--<script setup>-->
+<!--import { ref, onMounted, watch } from 'vue'-->
+<!--import axios from 'axios'-->
+<!--import { useRoute } from 'vue-router'-->
+
+<!--const notices = ref([])-->
+<!--const currentPage = ref(1)-->
+<!--const totalPages = ref(1)-->
+<!--const isAdmin = ref(false)-->
+<!--const selectedNotice = ref(null)-->
+<!--const route = useRoute()-->
+
+<!--const fetchNotices = async (page = 1) => {-->
+<!--  try {-->
+<!--    const response = await axios.get(`/api/notices?page=${page}`)-->
+<!--    notices.value = response.data.content-->
+<!--    totalPages.value = response.data.totalPages-->
+<!--    currentPage.value = page-->
+<!--  } catch (error) {-->
+<!--    console.error('공지사항 로딩 실패:', error)-->
+<!--  }-->
+<!--}-->
+
+<!--const checkAdminRole = async () => {-->
+<!--  try {-->
+<!--    const response = await axios.get('/api/auth/check-role')-->
+<!--    isAdmin.value = response.data.hasRole === 'ROLE_ADMIN'-->
+<!--  } catch (error) {-->
+<!--    isAdmin.value = false-->
+<!--  }-->
+<!--}-->
+
+<!--const downloadFile = async (file, index) => {-->
+<!--  try {-->
+<!--    const noticeId = selectedNotice.value.id-->
+<!--    let url = `https://localhost:8081/api/notices/${noticeId}/files/${index}`-->
+<!--    -->
+<!--    const response = await axios.get(url, {-->
+<!--      responseType: 'blob'-->
+<!--    })-->
+<!--    -->
+<!--    const blob = new Blob([response.data])-->
+<!--    const downloadUrl = window.URL.createObjectURL(blob)-->
+<!--    const link = document.createElement('a')-->
+<!--    link.href = downloadUrl-->
+<!--    link.download = file.originalName || file.fileName || '첨부파일'-->
+<!--    document.body.appendChild(link)-->
+<!--    link.click()-->
+<!--    document.body.removeChild(link)-->
+<!--    window.URL.revokeObjectURL(downloadUrl)-->
+<!--  } catch (error) {-->
+<!--    console.error('파일 다운로드 실패:', error)-->
+<!--    alert('파일 다운로드에 실패했습니다.')-->
+<!--  }-->
+<!--}-->
+
+<!--const formatDate = (dateString) => {-->
+<!--  const date = new Date(dateString)-->
+<!--  return new Intl.DateTimeFormat('ko-KR', {-->
+<!--    year: 'numeric',-->
+<!--    month: 'long',-->
+<!--    day: 'numeric'-->
+<!--  }).format(date)-->
+<!--}-->
+
+<!--// 공지사항 상세 조회-->
+<!--const fetchNoticeDetail = async (id) => {-->
+<!--  try {-->
+<!--    const response = await axios.get(`https://localhost:8081/api/notices/${id}`)-->
+<!--    selectedNotice.value = response.data-->
+<!--  } catch (error) {-->
+<!--    console.error('공지사항 상세 조회 실패:', error)-->
+<!--  }-->
+<!--}-->
+
+<!--// 라우터 변경 감지-->
+<!--watch(() => route.params.id, (newId) => {-->
+<!--  if (newId) {-->
+<!--    fetchNoticeDetail(newId)-->
+<!--  } else {-->
+<!--    selectedNotice.value = null-->
+<!--  }-->
+<!--}, { immediate: true })-->
+
+<!--onMounted(() => {-->
+<!--  fetchNotices()-->
+<!--  checkAdminRole()-->
+<!--})-->
+
+<!--// 이미지 파일인지 확인하는 함수-->
+<!--const isImageFile = (file) => {-->
+<!--  if (!file || !file.fileType) return false;-->
+<!--  return file.fileType.startsWith('image/');-->
+<!--};-->
+
+<!--// 이미지 URL 생성-->
+<!--const getImageUrl = (file, index) => {-->
+<!--  return `https://localhost:8081/api/notices/${selectedNotice.value.id}/images/${index}`;-->
+<!--};-->
+
+<!--// 파일 크기 포맷팅-->
+<!--const formatFileSize = (bytes) => {-->
+<!--  if (bytes === 0) return '0 Bytes';-->
+<!--  const k = 1024;-->
+<!--  const sizes = ['Bytes', 'KB', 'MB', 'GB'];-->
+<!--  const i = Math.floor(Math.log(bytes) / Math.log(k));-->
+<!--  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];-->
+<!--};-->
+<!--</script>-->
+
+<!--<style>-->
+<!--.html-content img {-->
+<!--  max-width: 100%;-->
+<!--  height: auto;-->
+<!--}-->
+
+<!--.html-content {-->
+<!--  font-size: 16px;-->
+<!--  line-height: 1.6;-->
+<!--}-->
+<!--</style>-->

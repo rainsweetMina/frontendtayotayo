@@ -146,7 +146,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Breadcrumb from '../partials/AppBreadcrumb.vue'
+import Breadcrumb from '../../../../../partials/AppBreadcrumb.vue'
 
 const user = ref({
   username: '',

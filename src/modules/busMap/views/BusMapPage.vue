@@ -28,7 +28,7 @@ import {clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map
 
 import MapView from '../components/MapView.vue'
 import SearchBox from '../../busSearch/components/SearchBox.vue'
-import Logo from "@/layouts/components/Header/Logo.vue";
+import Logo from "@/modules/adminpage/dashboard/components/Header/Logo.vue";
 
 // 상태 및 스토어
 const store = useSearchStore()

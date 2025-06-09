@@ -280,5 +280,5 @@
   </div>
 </template>
 <script setup>
-import Breadcrumb from '../partials/AppBreadcrumb.vue'
+import Breadcrumb from '../../../../../partials/AppBreadcrumb.vue'
 </script>
