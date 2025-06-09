@@ -1,38 +1,39 @@
 <template>
   <div class="container-fluid p-0">
+    <!-- /bus/map 경로가 아닐 때만 헤더 보이기 -->
     <HeaderComponent v-if="route.path !== '/bus/map'" />
 
-    <!--사이드바 맵 주소가 바뀐다면 수정필요-->
+    <!-- /bus/map 경로일 때만 사이드바, 토글 버튼 보이기 -->
     <div v-if="route.path === '/bus/map'">
       <div
           class="sidebar-wrapper d-flex flex-column border-end searchBox"
           :class="{ 'sidebar-hidden': !store.sidebarOpen }"
       >
-        <BusSearchPage/>
+        <BusSearchPage />
       </div>
 
-      <!-- 토글 버튼 -->
       <button
           class="sidebar-toggle-btn searchBox"
           :class="{ 'with-sidebar': store.sidebarOpen }"
           @click="store.toggleSidebar(!store.sidebarOpen)"
+          aria-label="Toggle sidebar"
       >
         {{ store.sidebarOpen ? '<' : '>' }}
       </button>
     </div>
 
     <!-- 본문 -->
-    <div class="main-content p-0">
+    <div class="main-content p-0" :style="{ marginLeft: route.path === '/bus/map' && store.sidebarOpen ? '400px' : '0' }">
       <main>
-        <slot/>
+        <slot />
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import {useRoute} from 'vue-router'
-import {useSearchStore} from '@/stores/searchStore'
+import { useRoute } from 'vue-router'
+import { useSearchStore } from '@/stores/searchStore'
 import HeaderComponent from '/src/layouts/components/Header/HeaderComponent.vue'
 import BusSearchPage from '/src/modules/busSearch/views/BusSearchPage.vue'
 
@@ -46,13 +47,13 @@ const store = useSearchStore()
   z-index: 2050;
 }
 
-/*시이드 바 하단부*/
+/* 사이드바 */
 .sidebar-wrapper {
   width: 400px;
   background-color: #fafaff;
   color: black;
   overflow-y: auto;
-  height: calc(100vh); /* 헤더 높이만큼 제한 */
+  height: 100vh; /* 헤더 높이만큼 제한 (없으면 100vh) */
   scrollbar-width: none;
   transition: transform 0.3s ease;
 }
@@ -65,14 +66,14 @@ const store = useSearchStore()
   transform: translateX(-100%);
 }
 
-/* 토글 버튼: 위치가 사이드바에 따라 같이 이동 */
+/* 토글 버튼 */
 .sidebar-toggle-btn {
   position: fixed;
   top: 50%;
   left: 0;
-  transform: none;
+  transform: translateY(-50%);
   z-index: 1050;
-  background-color: #4889cd; /*토큰버튼 색상*/
+  background-color: #4889cd;
   color: white;
   border: none;
   padding: 0.5rem 0.75rem;
@@ -82,14 +83,13 @@ const store = useSearchStore()
   transition: left 0.3s ease;
 }
 
-/* 사이드바 열려 있을 때 버튼 위치 오른쪽으로 이동 */
 .sidebar-toggle-btn.with-sidebar {
   left: 400px;
 }
 
+/* 본문 영역 */
 .main-content {
-  margin-left: 0;
   padding: 1rem;
+  transition: margin-left 0.3s ease;
 }
-
 </style>
