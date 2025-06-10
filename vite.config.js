@@ -59,11 +59,25 @@ export default defineConfig({
         fs: {
             strict: false
         },
+        // configureServer: ({ middlewares }) => {
+        //     middlewares.use(
+        //         history({
+        //             rewrites: [
+        //                 { from: /^\/api\/.*$/, to: context => context.parsedUrl.pathname },
+        //                 { from: /^\/login$/, to: '/index.html' },
+        //                 { from: /^\/mypage.*$/, to: '/index.html' },
+        //                 { from: /./, to: '/index.html' }
+        //             ]
+        //         })
+        //     );
+        // }
         configureServer: ({ middlewares }) => {
             middlewares.use(
                 history({
+                    disableDotRule: true,
+                    htmlAcceptHeaders: ['text/html'],
+                    // ❌ rewrites 제거: /api 요청을 HTML로 넘기지 않도록!
                     rewrites: [
-                        { from: /^\/api\/.*$/, to: context => context.parsedUrl.pathname },
                         { from: /^\/login$/, to: '/index.html' },
                         { from: /^\/mypage.*$/, to: '/index.html' },
                         { from: /./, to: '/index.html' }

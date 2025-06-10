@@ -3,6 +3,8 @@ import Dashboard from '../views/Dashboard.vue'
 import NoticeManagement from '../views/NoticeManagement.vue'
 import NoticeDetail from '../views/NoticeDetail.vue'
 import NoticeWrite from '../views/NoticeWrite.vue'
+import FoundAdminList from '@/modules/lostFound/views/admin/FoundAdminList.vue'
+
 
 const routes = [
   {
@@ -45,6 +47,15 @@ const routes = [
     path: '/admin/notices/:id/edit',
     name: 'NoticeEdit',
     component: NoticeWrite,
+    meta: {
+      requiresAuth: true,
+      layout: 'admin'
+    }
+  },
+  {
+    path: '/admin/found',
+    name: 'FoundAdminList',
+    component: FoundAdminList,
     meta: {
       requiresAuth: true,
       layout: 'admin'

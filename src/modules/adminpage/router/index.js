@@ -20,6 +20,7 @@ import NoticeManagement from '@/modules/adminpage/dashboard/views/NoticeManageme
 import NoticeDetail from '@/modules/adminpage/dashboard/views/NoticeDetail.vue'
 import NoticeWrite from '@/modules/adminpage/dashboard/views/NoticeWrite.vue'
 import Dashboard from "@/modules/adminpage/dashboard/views/Dashboard.vue";
+import FoundAdminList from "@/modules/lostFound/views/admin/FoundAdminList.vue";
 
 export const adminRoutes = {
   path: "/admin",
@@ -133,6 +134,11 @@ export const adminRoutes = {
       path: "bus-stops/search",
       name: "AdminBusStopSearch",
       component: AdminBusStopSearch
+    },
+    {
+      path: "found",
+      name : "FoundAdminList",
+      component: FoundAdminList
     }
   ],
   meta: { requiresAuth: true }
