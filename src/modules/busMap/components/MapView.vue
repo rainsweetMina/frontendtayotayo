@@ -11,12 +11,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import startIcon from '@/assets/icons/start_icon.png'
+import arrivalIcon from '@/assets/icons/arrival_icon.png'
+import transferIcon from '@/assets/icons/transfer_icon.png'
+import startMarkerIcon from '@/assets/icons/start_marker_icon.png'
+import arrivalMarkerIcon from '@/assets/icons/arrival_marker_icon.png'
+
+import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
 import ContextMenu from './ContextMenu.vue'
-import { useSearchStore } from '@/stores/searchStore'
-import { drawBusRouteMapORS } from '@/composables/map-utils'
+import {useSearchStore} from '@/stores/searchStore'
+import {drawBusRouteMapORS} from '@/composables/map-utils'
+import {useMapInit} from "@/modules/busMap/composables/useMapInit.js";
+import {useContextMenu} from '@/modules/busMap/composables/useContextMenu'
+import { useMapMarkers } from '@/modules/busMap/composables/useMapMarkers'
+import { useAutoRoute } from '@/modules/busMap/composables/useAutoRoute'
+
 
 const props = defineProps({
   routeId: String,
@@ -36,28 +47,42 @@ const transferMarker = ref(null)
 const routePolyline = ref(null)
 const busMarkers = ref([])
 const intervalId = ref(null)
-let longPressTimer = null
 
-const contextMenu = ref({
-  visible: false,
-  position: { x: 0, y: 0 },
-  coords: { lat: 0, lng: 0 }
-})
+let manualStartMarker = null
+let manualEndMarker = null
+
+const { tryAutoRouteFromCoords } = useAutoRoute(store)
+
+const {
+  drawManualStartMarker,
+  drawManualEndMarker,
+  drawStartMarker,
+  drawEndMarker,
+  clearManualStartMarkers,
+  clearManualEndMarkers,
+  clearStartMarker,
+  clearEndMarker,
+  removeAllMarkersAtCoord,
+  clearAllStartMarkers
+} = useMapMarkers(map)
+
+const {
+  contextMenu,
+  handleRightClick,
+  handleTouchStart,
+  handleTouchEnd,
+  hideContextMenu
+} = useContextMenu(mapRef, map)
 
 function selectAsStart(coords) {
+  clearManualStartMarkers()
   clearStartMarker()
   clearTransferMarker()
   clearRoutePolylines()
   store.routeResults = []
 
   startCoord.value = coords
-  startMarker.value = L.marker(coords, {
-    icon: L.icon({
-      iconUrl: '/images/start_icon.png',
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
-    })
-  }).addTo(map.value)
+  drawManualStartMarker(coords)
 
   if (store.setStartCoordText) {
     store.setStartCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
@@ -65,23 +90,19 @@ function selectAsStart(coords) {
   }
 
   contextMenu.value.visible = false
-  tryAutoRouteFromCoords();
+  tryAutoRouteFromCoords(coords, endCoord.value)
 }
 
 function selectAsEnd(coords) {
+  clearManualEndMarkers()
   clearEndMarker()
   clearTransferMarker()
   clearRoutePolylines()
   store.routeResults = []
 
   endCoord.value = coords
-  endMarker.value = L.marker(coords, {
-    icon: L.icon({
-      iconUrl: '/images/arrival_icon.png',
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
-    })
-  }).addTo(map.value)
+  drawManualEndMarker(coords)
+
 
   if (store.setEndCoordText) {
     store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
@@ -89,41 +110,10 @@ function selectAsEnd(coords) {
   }
 
   contextMenu.value.visible = false
-  tryAutoRouteFromCoords();
+  tryAutoRouteFromCoords(startCoord.value, coords)
 }
 
-function clearStartMarker() {
-  if (startMarker.value && map.value.hasLayer(startMarker.value)) {
-    map.value.removeLayer(startMarker.value)
-  }
 
-  if (window.lastStartMarker && map.value.hasLayer(window.lastStartMarker)) {
-    map.value.removeLayer(window.lastStartMarker)
-    window.lastStartMarker = null
-  }
-
-  // ✅ 이 부분 추가 (경로 마커까지 제거)
-  if (window.routePointMarkers?.length) {
-    window.routePointMarkers.forEach(m => {
-      if (map.value.hasLayer(m)) map.value.removeLayer(m)
-    })
-    window.routePointMarkers = []
-  }
-
-  startMarker.value = null
-  window.lastStartMarker = null
-}
-
-function clearEndMarker() {
-  if (endMarker.value && map.value.hasLayer(endMarker.value)) {
-    map.value.removeLayer(endMarker.value)
-  }
-  if (window.lastEndMarker && map.value.hasLayer(window.lastEndMarker)) {
-    map.value.removeLayer(window.lastEndMarker)
-    window.lastEndMarker = null
-  }
-  endMarker.value = null
-}
 
 function clearTransferMarker() {
   if (window.transferMarker) {
@@ -153,6 +143,8 @@ function clearMapElementsForSearch() {
   clearEndMarker()
   clearTransferMarker()
   clearRoutePolylines()
+  clearManualStartMarkers()
+  clearManualEndMarkers()
 }
 
 defineExpose({
@@ -160,146 +152,10 @@ defineExpose({
   clearEndMarker,
   clearTransferMarker,
   clearRoutePolylines,
+  clearManualStartMarkers,
+  clearManualEndMarkers,
   clearMapElementsForSearch
 })
-
-function handleRightClick(e) {
-  e.preventDefault()
-  const rect = mapRef.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-  const latlng = map.value.containerPointToLatLng([x, y])
-
-  contextMenu.value = {
-    visible: true,
-    position: { x: e.clientX, y: e.clientY },
-    coords: latlng
-  }
-}
-
-function handleTouchStart(e) {
-  if (e.touches.length === 1) {
-    const touch = e.touches[0]
-    const rect = mapRef.value.getBoundingClientRect()
-    const x = touch.clientX - rect.left
-    const y = touch.clientY - rect.top
-
-    longPressTimer = setTimeout(() => {
-      const latlng = map.value.containerPointToLatLng([x, y])
-      contextMenu.value = {
-        visible: true,
-        position: { x: touch.clientX, y: touch.clientY },
-        coords: latlng
-      }
-    }, 800)
-  }
-}
-
-function handleTouchEnd() {
-  clearTimeout(longPressTimer)
-}
-
-async function tryAutoRouteFromCoords() {
-  const start = startCoord.value
-  const end = endCoord.value
-
-  if (!start && !end) return // 아무것도 없으면 종료
-
-  try {
-    let startStop = null
-    let endStop = null
-
-    // 출발지 좌표 → 인근 정류장
-    if (start) {
-      const res = await axios.get('/api/bus/nearby-stops', {
-        params: {
-          startX: start.lng,
-          startY: start.lat,
-          endX: start.lng,
-          endY: start.lat,
-          radius: 300
-        }
-      })
-      startStop = res.data.startCandidates?.[0]
-      if (startStop) store.setStartStop(startStop)
-    }
-
-    // 도착지 좌표 → 인근 정류장
-    if (end) {
-      const res = await axios.get('/api/bus/nearby-stops', {
-        params: {
-          startX: end.lng,
-          startY: end.lat,
-          endX: end.lng,
-          endY: end.lat,
-          radius: 300
-        }
-      })
-      endStop = res.data.endCandidates?.[0]
-      if (endStop) store.setEndStop(endStop)
-    }
-
-    // 🚦 경로 탐색 (둘 다 있을 때만)
-    if (startStop && endStop) {
-      const dist = Math.sqrt(
-          Math.pow(startStop.xPos - endStop.xPos, 2) +
-          Math.pow(startStop.yPos - endStop.yPos, 2)
-      )
-
-      if (dist < 0.001) {
-        console.warn('🛑 출발지와 도착지가 너무 가까워 경로 탐색 생략')
-        store.setRouteResults([{
-          type: '직통',
-          routeNo: null,
-          estimatedMinutes: 0,
-          stationIds: [startStop.bsId],
-          transferCount: 0,
-          startBsId: startStop.bsId,
-          endBsId: endStop.bsId,
-          busStops: [startStop, endStop]
-        }])
-      } else {
-        const { data: routeData } = await axios.get('/api/bus/findRoutes', {
-          params: {
-            startBsId: startStop.bsId,
-            endBsId: endStop.bsId
-          }
-        })
-
-        const deduplicated = []
-        routeData.forEach(route => {
-          const exists = deduplicated.some(r =>
-              r.routeNo === route.routeNo && r.startBsId === route.startBsId
-          )
-          if (!exists) deduplicated.push(route)
-        })
-
-        const sorted = deduplicated
-            .sort((a, b) => {
-              const lenA = a.stationIds?.length || 0
-              const lenB = b.stationIds?.length || 0
-              if (lenA !== lenB) return lenA - lenB
-              if (a.type === '직통' && b.type !== '직통') return -1
-              if (a.type !== '직통' && b.type === '직통') return 1
-              return 0
-            })
-            .slice(0, 5)
-
-        store.setRouteResults(sorted)
-      }
-    }
-
-    // ✅ 하나라도 있으면 sidebar 열고 경로모드 전환
-    if (startStop || endStop) {
-      store.toggleSidebar(true)
-      await nextTick()
-      store.forceRouteMode = true
-    }
-
-  } catch (err) {
-    console.error('🚨 경로 탐색 실패:', err)
-  }
-}
 
 async function fetchBusLocations() {
   if (!props.routeId) return
@@ -323,66 +179,11 @@ async function fetchBusLocations() {
   }
 }
 
-function drawStartMarker(coord) {
-  clearAllStartMarkers()
-
-  const marker = L.marker([coord.lat, coord.lng], {
-    icon: L.icon({ iconUrl: '/images/start_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
-  }).addTo(map.value)
-
-  startMarker.value = marker
-  window.lastStartMarker = marker
-}
-
-function drawEndMarker(coord) {
-  clearEndMarker()
-
-  // ✅ 동일 위치 마커 전부 제거
-  removeAllMarkersAtCoord(coord)
-
-  const marker = L.marker([coord.lat, coord.lng], {
-    icon: L.icon({ iconUrl: '/images/arrival_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
-  }).addTo(map.value)
-
-  endMarker.value = marker
-  window.lastEndMarker = marker
-}
-
-function removeAllMarkersAtCoord(coord) {
-  const lat = coord.lat
-  const lng = coord.lng
-
-  map.value.eachLayer(layer => {
-    if (layer instanceof L.Marker) {
-      const pos = layer.getLatLng()
-      if (pos.lat === lat && pos.lng === lng) {
-        map.value.removeLayer(layer)
-      }
-    }
-  })
-}
-
-function clearAllStartMarkers() {
-  const candidates = [
-    startMarker.value,
-    window.lastStartMarker,
-    ...(window.routePointMarkers || [])
-  ]
-
-  candidates.forEach(m => {
-    if (m && map.value.hasLayer(m)) {
-      map.value.removeLayer(m)
-    }
-  })
-
-  startMarker.value = null
-  window.lastStartMarker = null
-  window.routePointMarkers = []
-}
-
 function handleSelectedRoute(route) {
   clearStartMarker()
   clearEndMarker()
+  clearManualStartMarkers()
+  clearManualEndMarkers()
   clearTransferMarker()
   clearRoutePolylines()
 
@@ -404,7 +205,7 @@ function handleSelectedRoute(route) {
 
   const marker = L.marker([lat, lng], {
     icon: L.icon({
-      iconUrl: '/images/transfer_icon.png',
+      iconUrl: transferIcon,
       iconSize: [36, 36],
       iconAnchor: [15, 30]
     }),
@@ -428,7 +229,7 @@ function handleSelectedRoute(route) {
 
   marker.on('click', async () => {
     try {
-      const res = await axios.get(`/api/bus/bus-arrival`, { params: { bsId: transferStop.bsId } })
+      const res = await axios.get(`/api/bus/bus-arrival`, {params: {bsId: transferStop.bsId}})
       const body = res.data.body
       let content = `<div class="popup-wrapper"><div class="popup-title"><b>${transferStop.bsNm}</b> (🔁 환승지점)</div>`
 
@@ -446,7 +247,7 @@ function handleSelectedRoute(route) {
         arrList.forEach(arr => {
           const existing = routeMap.get(item.routeNo)
           if (!existing || arr.arrTime < existing.arrTime) {
-            routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn })
+            routeMap.set(item.routeNo, {...arr, routeNo: item.routeNo, updn: item.updn})
           }
         })
       })
@@ -466,37 +267,12 @@ function handleSelectedRoute(route) {
 }
 
 onMounted(() => {
-  map.value = L.map(mapRef.value, {
-    zoomControl: false,
-    zoomAnimation: false
-  }).setView([35.865, 128.593], 16)
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map.value)
-
-  L.control.zoom({ position: 'bottomright' }).addTo(map.value)
-  window.leafletMap = map.value
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const { latitude: lat, longitude: lng } = pos.coords
-      if (map.value && map.value._loaded) {
-        map.value.flyTo([lat, lng], 16)
-      }
-    })
-  }
-
-  setTimeout(() => {
-    map.value.invalidateSize()
-  }, 300)
+  map.value = useMapInit(mapRef)
 
   mapRef.value.addEventListener('contextmenu', handleRightClick)
   mapRef.value.addEventListener('touchstart', handleTouchStart)
   mapRef.value.addEventListener('touchend', handleTouchEnd)
-  mapRef.value.addEventListener('click', () => {
-    contextMenu.value.visible = false
-  })
+  mapRef.value.addEventListener('click', hideContextMenu)
 })
 
 onBeforeUnmount(() => {
@@ -517,27 +293,45 @@ onBeforeUnmount(() => {
 
   clearStartMarker()
   clearEndMarker()
+  clearManualStartMarkers()
+  clearManualEndMarkers()
 })
 
-watch(() => store.startCoord, (coord) => {
+watch(() => store.startCoord, (coord, _, onCleanup) => {
   if (!coord) return;
 
-  clearStartMarker()
-  removeAllMarkersAtCoord(coord) // ← 중복 마커 제거
+  // 👉 자동 탐색 상황인지 확인하는 플래그 추가
+  if (store.autoTriggered) {
+    clearManualStartMarkers()
+    clearStartMarker()
+    removeAllMarkersAtCoord(coord)
+    drawStartMarker(coord)
+  }
 
-  drawStartMarker(coord)
+  onCleanup(() => {
+    store.autoTriggered = false
+  })
 })
 
-watch(() => store.endCoord, (coord) => {
-  clearEndMarker()
-  if (coord) drawEndMarker(coord)
+watch(() => store.endCoord, (coord, _, onCleanup) => {
+  if (!coord) return;
+
+  if (store.autoTriggered) {
+    clearManualEndMarkers()
+    clearEndMarker()
+    drawEndMarker(coord)
+  }
+
+  onCleanup(() => {
+    store.autoTriggered = false
+  })
 })
 
 watch(
     () => [store.startCoord, store.endCoord],
     async ([start, end]) => {
       if (!start || !end) return
-      await tryAutoRouteFromCoords(start, end)  // ORS 경로 조회
+      await tryAutoRouteFromCoords(start, end)
     },
     { deep: true }
 )

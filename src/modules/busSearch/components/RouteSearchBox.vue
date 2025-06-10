@@ -14,7 +14,7 @@
           style="flex: 5;"
       />
       <button @click="swapInputs" class="btn btn-primary" style="flex: 1;">
-        <img src="/images/swap_icon.png" alt="전환" style="width: 20px; height: 20px;" />
+        <img :src=swapIcon alt="전환" style="width: 20px; height: 20px;" />
       </button>
 
       <ul v-if="showStartDropdown && startSuggestions.length" class="autocomplete-list">
@@ -59,6 +59,8 @@
 </template>
 
 <script setup>
+import swapIcon from '@/assets/icons/swap_icon.png'
+
 import { debounce } from 'lodash'
 import { useSearchStore } from '@/stores/searchStore'
 import { ref, watch } from 'vue'

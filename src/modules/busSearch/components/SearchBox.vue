@@ -21,7 +21,11 @@ const emit = defineEmits(['search'])
 
 function onSearch() {
   if (!store.keyword.trim()) return
-  emit('search', store.keyword)
+  emit('search', {
+    keyword: store.keyword,
+    newStart: store.startCoord,
+    newEnd: store.endCoord
+  })
   store.commitSearch()
   store.toggleSidebar(true)
 }

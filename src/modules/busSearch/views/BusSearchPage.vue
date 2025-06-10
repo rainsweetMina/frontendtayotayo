@@ -25,6 +25,10 @@
 </template>
 
 <script setup>
+import startIcon from '@/assets/icons/start_icon.png'
+import arrivalIcon from '@/assets/icons/arrival_icon.png'
+import transferIcon from '@/assets/icons/transfer_icon.png'
+
 import {ref, watch} from 'vue'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
@@ -158,7 +162,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     // 🔁 환승 마커
     const marker = L.marker([transferY, transferX], {
       icon: L.icon({
-        iconUrl: '/images/transfer_icon.png',
+        iconUrl: transferIcon,
         iconSize: [36, 36],
         iconAnchor: [15, 30]
       }),
@@ -179,7 +183,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
   if (start?.yPos && start?.xPos) {
     lastStartMarker = L.marker([start.yPos, start.xPos], {
       icon: L.icon({
-        iconUrl: '/images/start_icon.png',
+        iconUrl: startIcon,
         iconSize: [36, 36],
         iconAnchor: [18, 36]
       })
@@ -190,7 +194,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
   if (end?.yPos && end?.xPos) {
     lastEndMarker = L.marker([end.yPos, end.xPos], {
       icon: L.icon({
-        iconUrl: '/images/arrival_icon.png',
+        iconUrl: arrivalIcon,
         iconSize: [36, 36],
         iconAnchor: [18, 36]
       })

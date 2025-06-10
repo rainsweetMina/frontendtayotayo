@@ -42,6 +42,18 @@ export function clearMapElements(map) {
         window.routePointMarkers = []
     }
 
+    // ✅ 수동 출발지 마커 제거
+    if (window.manualStartMarker && map.hasLayer(window.manualStartMarker)) {
+        map.removeLayer(window.manualStartMarker);
+        window.manualStartMarker = null;
+    }
+
+// ✅ 수동 도착지 마커 제거
+    if (window.manualEndMarker && map.hasLayer(window.manualEndMarker)) {
+        map.removeLayer(window.manualEndMarker);
+        window.manualEndMarker = null;
+    }
+
     // ✅ 정류장 마커 제거
     if (window.busStopMarkers) {
         window.busStopMarkers.forEach(marker => {
@@ -64,14 +76,6 @@ export function clearMapElements(map) {
             if (map.hasLayer(marker)) map.removeLayer(marker);
         });
         window.busLocationMarkers = [];
-    }
-
-    // ✅ 노선 라인 제거 (복수개)
-    if (window.routePolylines) {
-        window.routePolylines.forEach(line => {
-            if (map.hasLayer(line)) map.removeLayer(line);
-        });
-        window.routePolylines = [];
     }
 
     // ✅ 기타 라인 제거

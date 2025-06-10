@@ -33,8 +33,8 @@ export default defineConfig({
         host: '0.0.0.0',
         open: false,
         https: {
-            key: fs.readFileSync('./cert/localhost+2-key.pem'),
-            cert: fs.readFileSync('./cert/localhost+2.pem')
+            key: fs.readFileSync('./localhost+2-key.pem'),
+            cert: fs.readFileSync('./localhost+2.pem')
         },
 
         proxy: {

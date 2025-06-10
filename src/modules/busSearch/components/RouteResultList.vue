@@ -20,7 +20,7 @@
 
       <div class="duration">
          <span>
-            {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length || 0 }}개 정류장
+            {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length - 1 || 0 }}개 정류장
           </span>
         <span
             class="dropdown-icon"
@@ -31,7 +31,7 @@
       </div>
 
       <div class="summary" v-if="openedIndex === idx && route.stationIds?.length">
-        🚏 총 {{ route.stationIds.length }}개 정류장
+        🚏 총 {{ route.stationIds.length - 1 }}개 정류장
         <ul class="station-list mt-2">
           <li
               v-for="(station, sIdx) in route.stationIds"

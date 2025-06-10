@@ -44,7 +44,7 @@ window.routeLineLayers = []
 window.routePointMarkers = []
 
 // 검색 실행
-function handleSearch(keyword) {
+function handleSearch({ keyword, newStart, newEnd }) {
   if (!keyword.trim()) return
 
   clearMapElements(window.leafletMap)
@@ -52,11 +52,14 @@ function handleSearch(keyword) {
   // ✅ 지도 클리어
   mapRef.value?.clearMapElementsForSearch?.()
   mapRef.value?.clearStartMarker?.()
+  mapRef.value?.clearManualStartMarkers?.()
+  mapRef.value?.clearManualEndMarkers?.()
   mapRef.value?.clearEndMarker?.()
   mapRef.value?.clearTransferMarker?.()
   mapRef.value?.clearRoutePolylines?.()
-  store.setStartCoord(newStart)
-  store.setEndCoord(newEnd)
+
+  if (newStart) store.setStartCoord(newStart)
+  if (newEnd) store.setEndCoord(newEnd)
 
   // ✅ 검색 수행
   store.setKeyword(keyword)

@@ -23,7 +23,7 @@
     </div>
 
     <!-- 본문 -->
-    <div class="main-content p-0" :style="{ marginLeft: route.path === '/bus/map' && store.sidebarOpen ? '400px' : '0' }">
+    <div class="main-content p-0" >
       <main>
         <slot />
       </main>

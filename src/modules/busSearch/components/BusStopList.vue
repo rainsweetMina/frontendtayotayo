@@ -11,10 +11,10 @@
         <strong class="stop-name" :title="stop.bsNm">{{ stop.bsNm }}</strong>
         <div class="buttons">
           <button @click.stop="$emit('selectAsStart', stop)" class="icon-button" title="출발지 선택">
-            <img src="/images/start_icon.png" alt="출발" />
+            <img :src="startIcon" alt="출발" />
           </button>
           <button @click.stop="$emit('selectAsEnd', stop)" class="icon-button" title="도착지 선택">
-            <img src="/images/arrival_icon.png" alt="도착" />
+            <img :src="arrivalIcon" alt="도착" />
           </button>
         </div>
       </div>
@@ -42,6 +42,9 @@
 </template>
 
 <script setup>
+import startIcon from '@/assets/icons/start_icon.png'
+import arrivalIcon from '@/assets/icons/arrival_icon.png'
+
 defineProps({
   stops: Array,
   openedStopId: String,
