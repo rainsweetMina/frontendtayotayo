@@ -32,6 +32,16 @@ export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
 export function clearMapElements(map) {
     if (!map) return;
 
+    if (window.routePolylines) {
+        window.routePolylines.forEach(l => map.removeLayer(l))
+        window.routePolylines = []
+    }
+
+    if (window.routePointMarkers) {
+        window.routePointMarkers.forEach(m => map.removeLayer(m))
+        window.routePointMarkers = []
+    }
+
     // ✅ 정류장 마커 제거
     if (window.busStopMarkers) {
         window.busStopMarkers.forEach(marker => {

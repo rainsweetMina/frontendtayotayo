@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
 import ContextMenu from './ContextMenu.vue'
@@ -48,6 +48,7 @@ function selectAsStart(coords) {
   clearStartMarker()
   clearTransferMarker()
   clearRoutePolylines()
+  store.routeResults = []
 
   startCoord.value = coords
   startMarker.value = L.marker(coords, {
@@ -71,6 +72,7 @@ function selectAsEnd(coords) {
   clearEndMarker()
   clearTransferMarker()
   clearRoutePolylines()
+  store.routeResults = []
 
   endCoord.value = coords
   endMarker.value = L.marker(coords, {
@@ -91,20 +93,21 @@ function selectAsEnd(coords) {
 }
 
 function clearStartMarker() {
-  if (startMarker.value) {
-    console.log('🧹 clearStartMarker - startMarker:', startMarker.value)
-    if (map.value.hasLayer(startMarker.value)) {
-      map.value.removeLayer(startMarker.value)
-      console.log('🧹 removed startMarker')
-    }
+  if (startMarker.value && map.value.hasLayer(startMarker.value)) {
+    map.value.removeLayer(startMarker.value)
   }
 
-  if (window.lastStartMarker) {
-    console.log('🧹 clearStartMarker - lastStartMarker:', window.lastStartMarker)
-    if (map.value.hasLayer(window.lastStartMarker)) {
-      map.value.removeLayer(window.lastStartMarker)
-      console.log('🧹 removed lastStartMarker')
-    }
+  if (window.lastStartMarker && map.value.hasLayer(window.lastStartMarker)) {
+    map.value.removeLayer(window.lastStartMarker)
+    window.lastStartMarker = null
+  }
+
+  // ✅ 이 부분 추가 (경로 마커까지 제거)
+  if (window.routePointMarkers?.length) {
+    window.routePointMarkers.forEach(m => {
+      if (map.value.hasLayer(m)) map.value.removeLayer(m)
+    })
+    window.routePointMarkers = []
   }
 
   startMarker.value = null
@@ -197,75 +200,104 @@ function handleTouchEnd() {
 }
 
 async function tryAutoRouteFromCoords() {
-  if (!startCoord.value || !endCoord.value) return;
+  const start = startCoord.value
+  const end = endCoord.value
+
+  if (!start && !end) return // 아무것도 없으면 종료
 
   try {
-    const { data: nearbyData } = await axios.get('/api/bus/nearby-stops', {
-      params: {
-        startX: startCoord.value.lng,
-        startY: startCoord.value.lat,
-        endX: endCoord.value.lng,
-        endY: endCoord.value.lat,
-        radius: 300
-      }
-    });
+    let startStop = null
+    let endStop = null
 
-    const { startCandidates, endCandidates } = nearbyData;
-    if (!startCandidates.length || !endCandidates.length) {
-      console.warn('❌ 인근 정류장 없음');
-      return;
+    // 출발지 좌표 → 인근 정류장
+    if (start) {
+      const res = await axios.get('/api/bus/nearby-stops', {
+        params: {
+          startX: start.lng,
+          startY: start.lat,
+          endX: start.lng,
+          endY: start.lat,
+          radius: 300
+        }
+      })
+      startStop = res.data.startCandidates?.[0]
+      if (startStop) store.setStartStop(startStop)
     }
 
-    const startStop = startCandidates[0];
-    const endStop = endCandidates[0];
-
-    // 너무 가까운 경우 직통으로 가정
-    const dist = Math.sqrt(
-        Math.pow(startStop.xPos - endStop.xPos, 2) +
-        Math.pow(startStop.yPos - endStop.yPos, 2)
-    );
-    if (dist < 0.001) {
-      console.warn('🛑 출발지와 도착지가 너무 가까워 경로 탐색 생략');
-      store.routeResults = [{
-        type: '직통',
-        routeNo: null,
-        estimatedMinutes: 0,
-        stationIds: [startStop.bsId],
-        transferCount: 0,
-        startBsId: startStop.bsId,
-        endBsId: endStop.bsId,
-        busStops: [startStop, endStop]
-      }];
-      return;
+    // 도착지 좌표 → 인근 정류장
+    if (end) {
+      const res = await axios.get('/api/bus/nearby-stops', {
+        params: {
+          startX: end.lng,
+          startY: end.lat,
+          endX: end.lng,
+          endY: end.lat,
+          radius: 300
+        }
+      })
+      endStop = res.data.endCandidates?.[0]
+      if (endStop) store.setEndStop(endStop)
     }
 
-    const { data: routeData } = await axios.get('/api/bus/findRoutes', {
-      params: {
-        startBsId: startStop.bsId,
-        endBsId: endStop.bsId
-      }
-    });
+    // 🚦 경로 탐색 (둘 다 있을 때만)
+    if (startStop && endStop) {
+      const dist = Math.sqrt(
+          Math.pow(startStop.xPos - endStop.xPos, 2) +
+          Math.pow(startStop.yPos - endStop.yPos, 2)
+      )
 
-    const deduplicated = [];
-    routeData.forEach(route => {
-      const exists = deduplicated.some(r =>
-          r.routeNo === route.routeNo && r.startBsId === route.startBsId
-      );
-      if (!exists) deduplicated.push(route);
-    });
-
-    store.routeResults = deduplicated
-        .sort((a, b) => {
-          const lenA = a.stationIds?.length || 0;
-          const lenB = b.stationIds?.length || 0;
-          if (lenA !== lenB) return lenA - lenB;
-          if (a.type === '직통' && b.type !== '직통') return -1;
-          if (a.type !== '직통' && b.type === '직통') return 1;
-          return 0;
+      if (dist < 0.001) {
+        console.warn('🛑 출발지와 도착지가 너무 가까워 경로 탐색 생략')
+        store.setRouteResults([{
+          type: '직통',
+          routeNo: null,
+          estimatedMinutes: 0,
+          stationIds: [startStop.bsId],
+          transferCount: 0,
+          startBsId: startStop.bsId,
+          endBsId: endStop.bsId,
+          busStops: [startStop, endStop]
+        }])
+      } else {
+        const { data: routeData } = await axios.get('/api/bus/findRoutes', {
+          params: {
+            startBsId: startStop.bsId,
+            endBsId: endStop.bsId
+          }
         })
-        .slice(0, 5);
+
+        const deduplicated = []
+        routeData.forEach(route => {
+          const exists = deduplicated.some(r =>
+              r.routeNo === route.routeNo && r.startBsId === route.startBsId
+          )
+          if (!exists) deduplicated.push(route)
+        })
+
+        const sorted = deduplicated
+            .sort((a, b) => {
+              const lenA = a.stationIds?.length || 0
+              const lenB = b.stationIds?.length || 0
+              if (lenA !== lenB) return lenA - lenB
+              if (a.type === '직통' && b.type !== '직통') return -1
+              if (a.type !== '직통' && b.type === '직통') return 1
+              return 0
+            })
+            .slice(0, 5)
+
+        store.setRouteResults(sorted)
+      }
+    }
+
+    // ✅ 하나라도 있으면 sidebar 열고 경로모드 전환
+    if (startStop || endStop) {
+      store.toggleSidebar(true)
+      await nextTick()
+      store.forceRouteMode = true
+    }
+
   } catch (err) {
-    console.error('🚨 경로 탐색 실패:', err);
+    console.error('🚨 경로 탐색 실패:', err)
   }
 }
 
@@ -298,27 +330,22 @@ function drawStartMarker(coord) {
     icon: L.icon({ iconUrl: '/images/start_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
   }).addTo(map.value)
 
-  console.log('📍 새로 추가된 marker 객체:', marker)
-  console.log('💾 기존 startMarker.value:', startMarker.value)
-  console.log('💾 기존 window.lastStartMarker:', window.lastStartMarker)
-
   startMarker.value = marker
   window.lastStartMarker = marker
 }
 
 function drawEndMarker(coord) {
-  console.log('🖊️ drawStartMarker 실행:', coord)
-  clearStartMarker()
+  clearEndMarker()
 
   // ✅ 동일 위치 마커 전부 제거
   removeAllMarkersAtCoord(coord)
 
   const marker = L.marker([coord.lat, coord.lng], {
-    icon: L.icon({ iconUrl: '/images/start_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
+    icon: L.icon({ iconUrl: '/images/arrival_icon.png', iconSize: [36, 36], iconAnchor: [18, 36] })
   }).addTo(map.value)
 
-  startMarker.value = marker
-  window.lastStartMarker = marker
+  endMarker.value = marker
+  window.lastEndMarker = marker
 }
 
 function removeAllMarkersAtCoord(coord) {
@@ -493,19 +520,15 @@ onBeforeUnmount(() => {
 })
 
 watch(() => store.startCoord, (coord) => {
-  console.log('🎯 startCoord 변경됨:', coord)
+  if (!coord) return;
+
   clearStartMarker()
-  if (window.routePointMarkers?.length) {
-    window.routePointMarkers.forEach(m => {
-      if (map.value.hasLayer(m)) map.value.removeLayer(m)
-    })
-    window.routePointMarkers = []
-  }
-  if (coord) drawStartMarker(coord)
+  removeAllMarkersAtCoord(coord) // ← 중복 마커 제거
+
+  drawStartMarker(coord)
 })
 
 watch(() => store.endCoord, (coord) => {
-  console.log('🎯 endCoord 변경됨:', coord)
   clearEndMarker()
   if (coord) drawEndMarker(coord)
 })
@@ -518,6 +541,9 @@ watch(
     },
     { deep: true }
 )
+
+watch(() => store.sidebarOpen, (val) => {
+})
 
 watch(
     () => props.routeId,

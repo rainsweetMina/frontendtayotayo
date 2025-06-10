@@ -22,6 +22,10 @@ export const useSearchStore = defineStore('searchStore', {
         busStops: [],
         busRoutes: [],
 
+        // ✅ 텍스트 입력값
+        departure: '',
+        arrival: '',
+
         // ✅ 좌표 텍스트용 필드 추가
         startCoordText: '',
         endCoordText: '',
