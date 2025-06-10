@@ -8,10 +8,12 @@ axios.defaults.withCredentials = true;
 axios.interceptors.request.use(
   config => {
     // 여기에 토큰 등을 추가할 수 있습니다
-    // console.log('Making request to:', config.url);
+    console.log('요청 URL:', config.url);
+    console.log('요청 메소드:', config.method);
     return config;
   },
   error => {
+    console.error('요청 인터셉터 오류:', error);
     return Promise.reject(error);
   }
 );
@@ -36,7 +38,17 @@ axios.interceptors.response.use(
     return response;
   },
   error => {
-    console.error('Axios error:', error);
+    console.error('Axios 오류:', error.message);
+    
+    if (error.response) {
+      console.error('오류 상태:', error.response.status);
+      console.error('오류 데이터:', error.response.data);
+      console.error('오류 헤더:', error.response.headers);
+    } else if (error.request) {
+      console.error('요청은 만들어졌으나 응답을 받지 못했습니다:', error.request);
+    } else {
+      console.error('오류 설정:', error.config);
+    }
     
     if (error.response?.status === 401) {
       // 인증 에러 처리

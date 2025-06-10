@@ -235,10 +235,23 @@ const connectWebSocket = () => {
     stompClient.subscribe('/topic/redis-memory', message => {
       console.log('Received Redis memory info:', message.body)
       try {
-        const memoryInfo = JSON.parse(message.body)
-        updateRedisChart(memoryInfo)
+        // 메시지 파싱
+        const memoryInfo = typeof message.body === 'string' ? JSON.parse(message.body) : message.body;
+        
+        // 유효성 검사
+        if (!memoryInfo || typeof memoryInfo.usedMemory !== 'number') {
+          console.error('유효하지 않은 Redis 메모리 정보:', memoryInfo);
+          return;
+        }
+        
+        console.log('처리된 Redis 메모리 정보:', 
+          `메모리 사용량=${memoryInfo.usedMemory.toFixed(2)}MB, ` +
+          `클라이언트=${memoryInfo.connectedClients}`);
+        
+        // 차트 업데이트
+        updateRedisChart(memoryInfo);
       } catch (error) {
-        console.error('Failed to parse Redis memory info:', error, message.body)
+        console.error('Redis 메모리 정보 처리 오류:', error, message.body);
       }
     })
 
@@ -258,6 +271,8 @@ const connectWebSocket = () => {
 }
 
 const updateRedisChart = (memoryInfo) => {
+  console.log('updateRedisChart 호출됨:', memoryInfo);
+  
   // 게이지 텍스트 플러그인 정의
   const gaugeText = {
     id: 'gaugeText',
@@ -268,25 +283,33 @@ const updateRedisChart = (memoryInfo) => {
       const xCenter = width / 2 + left;
       const yCenter = (height / 2 + top) * 0.9;  // 반원이므로 약간 위로 조정
 
+      // 메모리 사용량 및 클라이언트 수 가져오기
+      let usedMemory = 0;
+      let clients = 0;
+      
+      if (chart.config && chart.config._config && chart.config._config.customData) {
+        usedMemory = chart.config._config.customData.usedMemory;
+        clients = chart.config._config.customData.clients;
+      }
+
       // 사용량 텍스트
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       ctx.font = 'bold 24px Arial';
       ctx.fillStyle = '#333';
-      const usageText = `${memoryInfo.usedMemory.toFixed(2)} MB`;
-      ctx.fillText(usageText, xCenter, yCenter);
-
+      ctx.fillText(`${usedMemory.toFixed(2)} MB`, xCenter, yCenter);
+      
       // 연결된 클라이언트 수
       ctx.font = '12px Arial';
       ctx.fillStyle = '#888';
-      const clientText = `연결된 클라이언트: ${memoryInfo.connectedClients || 0}`;
-      ctx.fillText(clientText, xCenter, yCenter + 15);
+      ctx.fillText(`연결된 클라이언트: ${clients}`, xCenter, yCenter + 15);
 
       ctx.restore();
     }
   };
 
   if (!redisChart) {
+    // 차트 초기 생성
     redisChart = new Chart(redisMemoryChart.value, {
       type: 'doughnut',
       data: {
@@ -320,25 +343,62 @@ const updateRedisChart = (memoryInfo) => {
               top: 10,
               bottom: 0
             }
-          },
-          gaugeText: {}
+          }
         },
         layout: {
           padding: {
             top: 20
           }
+        },
+        customData: {
+          usedMemory: 0,
+          clients: 0
         }
       },
       plugins: [gaugeText]
-    })
+    });
   }
 
   // 차트 데이터 업데이트
-  const usedMemory = memoryInfo.usedMemory || 0;
-  const maxValue = Math.max(1, usedMemory);  // 최소 1MB 설정
+  if (memoryInfo && typeof memoryInfo.usedMemory === 'number') {
+    const usedMemory = memoryInfo.usedMemory;
+    const clients = memoryInfo.connectedClients || 0;
+    const maxValue = Math.max(1, usedMemory * 2);  // 최소 1MB 설정하고 여유 공간이 보이도록 조정
+    
+    console.log('차트 업데이트 - 사용 메모리:', usedMemory, 'MB, 최대값:', maxValue, 'MB');
+    
+    // 커스텀 데이터 저장
+    if (redisChart.config && redisChart.config._config) {
+      redisChart.config._config.customData = {
+        usedMemory: usedMemory,
+        clients: clients
+      };
+    }
+    
+    // 차트 데이터 업데이트
+    redisChart.data.datasets[0].data = [usedMemory, maxValue - usedMemory];
+    redisChart.data.datasets[0].backgroundColor = [
+      'rgba(54, 162, 235, 0.8)',
+      'rgba(211, 211, 211, 0.3)'
+    ];
+  } else {
+    // 데이터가 없을 때는 회색으로만 표시
+    redisChart.data.datasets[0].data = [0, 100];
+    redisChart.data.datasets[0].backgroundColor = [
+      'rgba(211, 211, 211, 0.3)',
+      'rgba(211, 211, 211, 0.3)'
+    ];
+    
+    if (redisChart.config && redisChart.config._config) {
+      redisChart.config._config.customData = {
+        usedMemory: 0,
+        clients: 0
+      };
+    }
+  }
   
-  redisChart.data.datasets[0].data = [usedMemory, maxValue - usedMemory];
-  redisChart.update();
+  // 차트 강제 업데이트
+  redisChart.update('none'); // 애니메이션 없이 즉시 업데이트
 }
 
 // 활동 로그 처리 함수
@@ -511,6 +571,9 @@ onMounted(() => {
   loadDashboardData()
   loadInitialLogs()
   connectWebSocket()
+  
+  // Redis 차트 초기화 (데이터 없이)
+  updateRedisChart(null)
 })
 
 onUnmounted(() => {

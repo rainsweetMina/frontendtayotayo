@@ -6,17 +6,21 @@ import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
 import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
+import mainPageRoutes from '@/modules/mainpage/router'
+import noticeRoutes from '@/modules/board/notice/router'
 
 // 📌 Pinia에서 인증 상태 가져오기
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
-    { path: '/', component: HomeView },
+    // { path: '/', component: HomeView }, // 메인 페이지로 교체
+    ...mainPageRoutes, // 메인 페이지 라우트 추가
     adminRoutes,
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes,
     ...lostFoundRoutes,
+    ...noticeRoutes, // 공지사항 라우트 추가
 ]
 
 const router = createRouter({
