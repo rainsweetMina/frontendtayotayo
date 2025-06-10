@@ -25,6 +25,21 @@
         
         <div class="form-group mb-3">
           <label for="content" class="form-label">내용</label>
+          
+          <!-- 이미지 업로드 버튼 추가 -->
+          <div class="image-upload-wrapper mb-2">
+            <button type="button" class="btn btn-outline-primary btn-sm" @click="openImageUpload">
+              <i class="bi bi-image"></i> 이미지 추가
+            </button>
+            <input
+              ref="imageUploadInput"
+              type="file"
+              accept="image/*"
+              class="d-none"
+              @change="handleImageUpload"
+            />
+          </div>
+          
           <QuillEditor
             v-model:content="form.content"
             contentType="html"
@@ -168,19 +183,27 @@ class QuillPasteHandler {
 
   imageHandler(blob) {
     if (!blob) return;
+    
+    // 이미지 압축 추가
+    compressImage(blob, 800, 800, 0.6).then(compressedFile => {
+      console.log(`붙여넣기 - 원본: ${blob.size}바이트, 압축 후: ${compressedFile.size}바이트`);
+      
+      const formData = new FormData();
+      formData.append('file', compressedFile);
 
-    const formData = new FormData();
-    formData.append('file', blob);
-
-    axios.post('/api/admin/upload/image', formData)
-      .then(response => {
-        const url = response.data.url;
-        this.insertToEditor(url);
-      })
-      .catch(err => {
-        console.error('이미지 업로드 실패:', err);
-        alert('이미지 업로드에 실패했습니다.');
-      });
+      axios.post('/api/admin/upload/image', formData)
+        .then(response => {
+          const url = response.data.url;
+          this.insertToEditor(url);
+        })
+        .catch(err => {
+          console.error('이미지 업로드 실패:', err);
+          alert('이미지 업로드에 실패했습니다.');
+        });
+    }).catch(err => {
+      console.error('이미지 압축 실패:', err);
+      alert('이미지 처리에 실패했습니다.');
+    });
   }
 
   insertToEditor(url) {
@@ -216,18 +239,26 @@ class QuillDragDropHandler {
   imageHandler(file) {
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
+    // 이미지 압축 추가
+    compressImage(file, 800, 800, 0.6).then(compressedFile => {
+      console.log(`드래그앤드롭 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
+      
+      const formData = new FormData();
+      formData.append('file', compressedFile);
 
-    axios.post('/api/admin/upload/image', formData)
-      .then(response => {
-        const url = response.data.url;
-        this.insertToEditor(url);
-      })
-      .catch(err => {
-        console.error('이미지 업로드 실패:', err);
-        alert('이미지 업로드에 실패했습니다.');
-      });
+      axios.post('/api/admin/upload/image', formData)
+        .then(response => {
+          const url = response.data.url;
+          this.insertToEditor(url);
+        })
+        .catch(err => {
+          console.error('이미지 업로드 실패:', err);
+          alert('이미지 업로드에 실패했습니다.');
+        });
+    }).catch(err => {
+      console.error('이미지 압축 실패:', err);
+      alert('이미지 처리에 실패했습니다.');
+    });
   }
 
   insertToEditor(url) {
@@ -240,6 +271,42 @@ class QuillDragDropHandler {
 Quill.register('modules/imageUploader', ImageUploader);
 Quill.register('modules/pasteHandler', QuillPasteHandler);
 Quill.register('modules/dragDropHandler', QuillDragDropHandler);
+
+// 이미지 압축 함수
+const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // 크기 비율 유지하면서 축소
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width *= ratio;
+          height *= ratio;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 압축된 이미지를 Blob으로 변환
+        canvas.toBlob((blob) => {
+          resolve(new File([blob], file.name, { type: file.type }));
+        }, file.type, quality);
+      };
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 export default {
   name: 'NoticeWrite',
@@ -268,41 +335,28 @@ export default {
     const editorOptions = {
       theme: 'snow',
       modules: {
-        toolbar: [
-          ['bold', 'italic', 'underline', 'strike'],
-          ['blockquote', 'code-block'],
-          [{ 'header': 1 }, { 'header': 2 }],
-          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-          [{ 'script': 'sub' }, { 'script': 'super' }],
-          [{ 'indent': '-1' }, { 'indent': '+1' }],
-          [{ 'direction': 'rtl' }],
-          [{ 'size': ['small', false, 'large', 'huge'] }],
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          [{ 'color': [] }, { 'background': [] }],
-          [{ 'font': [] }],
-          [{ 'align': [] }],
-          ['clean'],
-          ['link', 'image', 'video']
-        ],
-        imageUploader: {
-          upload: (file) => {
-            return new Promise((resolve, reject) => {
-              const formData = new FormData();
-              formData.append('file', file);
-
-              axios.post('/api/admin/upload/image', formData)
-                .then(response => {
-                  resolve(response.data.url);
-                })
-                .catch(err => {
-                  console.error('이미지 업로드 실패:', err);
-                  reject('이미지 업로드에 실패했습니다.');
-                });
-            });
+        toolbar: {
+          container: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'header': 1 }, { 'header': 2 }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'script': 'sub' }, { 'script': 'super' }],
+            [{ 'indent': '-1' }, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+            ['clean'],
+            ['link', 'video'] // 'image' 제거 - 우리의 커스텀 이미지 업로드 버튼 사용
+          ],
+          handlers: {
+            // 기본 이미지 핸들러 비활성화
+            image: function() {}
           }
-        },
-        pasteHandler: {},
-        dragDropHandler: {}
+        }
       },
       placeholder: '내용을 입력하세요...'
     };
@@ -313,40 +367,10 @@ export default {
       
       const quill = quillEditor.value.getQuill();
       
-      // 붙여넣은 이미지의 Base64 데이터를 URL로 변환
+      // 이미지 붙여넣기 비활성화 (별도의 이미지 업로드 버튼 사용)
       quill.clipboard.addMatcher('img', (node, delta) => {
-        const Delta = Quill.import('delta');
-        if (node.src && node.src.startsWith('data:image/')) {
-          try {
-            // 이미지 데이터를 서버에 업로드
-            const blob = dataURLtoBlob(node.src);
-            const formData = new FormData();
-            formData.append('file', blob, 'pasted-image.png');
-            
-            // 비동기 처리를 위한 임시 로딩 이미지 삽입
-            const loadingPlaceholder = '/loading-placeholder.gif';
-            const newDelta = new Delta().insert({ image: loadingPlaceholder });
-            
-            axios.post('/api/admin/upload/image', formData)
-              .then(response => {
-                // 이미지 URL을 받아와서 에디터에 삽입
-                const imageUrl = response.data.url;
-                
-                // 로딩 이미지를 실제 이미지로 교체
-                const imgElements = quill.root.querySelectorAll(`img[src="${loadingPlaceholder}"]`);
-                if (imgElements.length > 0) {
-                  imgElements[imgElements.length - 1].src = imageUrl;
-                }
-              })
-              .catch(err => {
-                console.error('이미지 업로드 실패:', err);
-              });
-              
-            return newDelta;
-          } catch (error) {
-            console.error('Base64 이미지 처리 오류:', error);
-          }
-        }
+        // 이미지 노드를 제거하고 텍스트만 유지
+        console.log('이미지 붙여넣기 시도가 감지되었습니다. 별도 이미지 업로드 버튼을 사용해주세요.');
         return delta;
       });
     };
@@ -363,8 +387,52 @@ export default {
     // 이미지를 에디터에 삽입하는 함수
     const insertImage = (url) => {
       const quill = quillEditor.value.getQuill();
-      const range = quill.getSelection();
+      const range = quill.getSelection() || { index: quill.getLength() - 1, length: 1 };
       quill.insertEmbed(range.index, 'image', url);
+      quill.setSelection(range.index + 1);
+    };
+
+    // 이미지 업로드 인풋 열기
+    const imageUploadInput = ref(null);
+    const openImageUpload = () => {
+      imageUploadInput.value.click();
+    };
+
+    // 이미지 업로드 처리
+    const handleImageUpload = async (event) => {
+      try {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // 파일 크기 제한 (5MB)
+        const maxSizeInBytes = 5 * 1024 * 1024;
+        if (file.size > maxSizeInBytes) {
+          alert('이미지 크기가 5MB를 초과합니다. 더 작은 이미지를 선택해주세요.');
+          return;
+        }
+        
+        // 이미지 압축
+        const compressedFile = await compressImage(file, 800, 800, 0.6);
+        console.log(`이미지 업로드 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
+        
+        const formData = new FormData();
+        formData.append('file', compressedFile);
+        
+        // 업로드 중 UI 표시
+        // TODO: 로딩 인디케이터 추가
+        
+        const response = await axios.post('/api/admin/upload/image', formData);
+        const imageUrl = response.data.url;
+        
+        // 에디터에 이미지 삽입
+        insertImage(imageUrl);
+        
+        // 파일 인풋 초기화
+        event.target.value = null;
+      } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        alert('이미지 업로드에 실패했습니다.');
+      }
     };
 
     const handleSubmit = async () => {
@@ -420,14 +488,67 @@ export default {
         try {
           if (isEdit.value) {
             console.log('Updating notice ID:', route.params.id);
-            response = await updateNotice(route.params.id, formData);
+            
+            // 이미지 URL을 로컬 서버 URL로 변환하여 서버에서 처리할 수 있도록 수정
+            let processedContent = form.value.content;
+            const regex = /<img[^>]+src="([^">]+)"/g;
+            let match;
+            
+            // content에서 이미지 URL을 추출하여 서버에서 인식할 수 있는 형태로 변환
+            while ((match = regex.exec(processedContent)) !== null) {
+              const imageUrl = match[1];
+              // 이미 서버 URL인 경우에는 변환하지 않음
+              if (imageUrl.startsWith('https://localhost:8081/api/admin/upload/')) {
+                continue;
+              }
+              
+              if (imageUrl.startsWith('data:image/')) {
+                try {
+                  // Base64 이미지를 서버에 업로드하고 URL로 변환
+                  const blob = dataURLtoBlob(imageUrl);
+                  const imgFormData = new FormData();
+                  imgFormData.append('file', blob, 'embedded-image.png');
+                  
+                  const uploadResponse = await axios.post('/api/admin/upload/image', imgFormData);
+                  const newUrl = uploadResponse.data.url;
+                  
+                  // 원본 URL을 새 URL로 교체
+                  processedContent = processedContent.replace(imageUrl, newUrl);
+                } catch (imgError) {
+                  console.error('이미지 업로드 실패:', imgError);
+                }
+              }
+            }
+            
+            // 처리된 content로 noticeData 업데이트
+            const updatedNoticeData = {
+              ...noticeData,
+              content: processedContent
+            };
+            
+            // 업데이트된 noticeData로 Blob 재생성
+            const updatedNoticeBlob = new Blob([JSON.stringify(updatedNoticeData)], {
+              type: 'application/json'
+            });
+            
+            // FormData 재생성
+            const updatedFormData = new FormData();
+            updatedFormData.append('notice', updatedNoticeBlob);
+            
+            // 파일 재추가
+            if (form.value.files.length > 0) {
+              form.value.files.forEach(file => {
+                updatedFormData.append('files', file);
+              });
+            }
+            
+            response = await updateNotice(route.params.id, updatedFormData);
           } else {
             console.log('Creating new notice');
             response = await createNotice(formData);
           }
           
           console.log('Server response:', response);
-          alert(isEdit.value ? '공지사항이 수정되었습니다.' : '공지사항이 등록되었습니다.');
           router.push('/admin/notices');
         } catch (apiError) {
           console.error('API 호출 오류:', apiError);
@@ -505,6 +626,9 @@ export default {
       isSubmitting,
       isEdit,
       quillEditor,
+      imageUploadInput,
+      openImageUpload,
+      handleImageUpload,
       editorOptions,
       handleFileChange,
       removeFile,
