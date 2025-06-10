@@ -69,6 +69,12 @@
           >
             등록된 습득물
           </router-link>
+          <router-link
+              to="/admin/found"
+              class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+          >
+            등록된 습득물 관리 (신규)
+          </router-link>
         </div>
       </div>
 

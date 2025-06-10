@@ -1,195 +1,188 @@
 <template>
-  <div class="container py-4">
-    <h2 class="text-center mb-4">습득물 관리자 목록</h2>
-
-    <!-- 🔍 검색 필터 -->
-    <div class="card p-3 mb-4">
-      <div class="row mb-2">
-        <label class="col-sm-2 col-form-label fw-bold">습득일</label>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" value="1" v-model="dateRange" />
-            <label class="form-check-label">당일</label>
-            <input class="form-check-input ms-2" type="radio" value="3" v-model="dateRange" />
-            <label class="form-check-label">3일</label>
-            <input class="form-check-input ms-2" type="radio" value="7" v-model="dateRange" />
-            <label class="form-check-label">일주일</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="row mb-2">
-        <label class="col-sm-2 col-form-label fw-bold">내용물</label>
-        <div class="col-sm-10">
-          <input class="form-control" v-model="searchKeyword" placeholder="예: 지갑, 카드" />
-        </div>
-      </div>
-
-      <div class="text-end">
-        <button class="btn btn-secondary me-2" @click="resetFilters">초기화</button>
-        <button class="btn btn-primary" @click="fetchFoundItems">검색</button>
-      </div>
+  <div>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900">등록된 습득물 관리</h1>
+      <button
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          @click="toggleForm"
+      >
+        {{ showForm ? '닫기' : '습득물 등록' }}
+      </button>
     </div>
 
-    <!-- 📋 목록 테이블 -->
-    <table class="table table-bordered text-center align-middle">
-      <thead class="table-light">
-      <tr>
-        <th>ID</th>
-        <th>사진</th>
-        <th>물품명</th>
-        <th>습득일</th>
-        <th>상태</th>
-        <th>매칭</th>
-        <th>수정</th>
-        <th>삭제</th>
-        <th>숨김</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="item in items" :key="item.id" :class="{ 'table-secondary': item.visible === false}">
-        <td>
-             <span v-if="item.visible === false" class="text-muted" title="숨김 항목">
-              <i class="bi bi-eye-slash-fill me-1"></i>
-            </span>
-          {{ item.id }}</td>
-        <td><img :src="getPhotoUrl(item.photoUrl)" width="50" height="50" /></td>
-        <td>{{ item.itemName }}</td>
-        <td>{{ formatDate(item.foundTime) }}</td>
-        <td>{{ formatStatus(item) }}</td>
-        <td>
-          <input v-model="item.matchId" placeholder="분실물 ID" class="form-control mb-1" />
-          <button class="btn btn-sm btn-outline-success" @click="matchItem(item)">매칭</button>
-        </td>
-        <td><button class="btn btn-sm btn-outline-primary" @click="editItem(item)">수정</button></td>
-        <td><button class="btn btn-sm btn-outline-danger" @click="deleteItem(item)">삭제</button></td>
-        <td><button class="btn btn-sm btn-outline-warning" @click="hideItem(item)">숨김</button></td>
-      </tr>
-      </tbody>
-    </table>
-
-    <!-- ➕ 등록 버튼 -->
-    <div class="text-end">
-      <button class="btn btn-success" @click="openRegisterModal">등록</button>
-    </div>
-
-    <!-- 모달 (등록 or 수정) -->
-    <Modal v-if="showModal" @close="showModal = false">
-      <FoundItemForm :item="selectedItem" @submitted="onItemSubmitted" />
+    <!-- 등록 모달 -->
+    <Modal v-if="showForm" @close="toggleForm">
+      <FoundItemForm @submitted="onFormSubmitted" @close="toggleForm" />
     </Modal>
+
+    <!-- 상세보기 모달 -->
+    <FoundAdminDetail
+        v-if="showDetail"
+        :item="selectedItem"
+        @close="closeDetail"
+        @edit="startEdit"
+    />
+
+    <!-- 수정 모달 -->
+    <Modal v-if="showEdit" @close="closeEdit">
+      <FoundAdminEdit :item="selectedItem" @updated="onEditSubmitted" />
+    </Modal>
+
+    <!-- 추후: 매칭 모달도 비슷한 방식으로 연결 가능 -->
+    <!-- <Modal v-if="showMatch" @close="closeMatch">
+      <FoundAdminMatch :item="selectedItem" @matched="onMatched" />
+    </Modal> -->
+
+    <!-- ✅ 목록 테이블 -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사진</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">물품명</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">습득일</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+        </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+            v-for="item in foundItems"
+            :key="item.id"
+            class="hover:bg-gray-50 cursor-pointer"
+            @click="viewDetails(item)"
+        >
+          <td class="px-4 py-3 text-sm text-gray-500">{{ item.id }}</td>
+          <td class="px-4 py-3">
+            <img v-if="item.photoUrl" :src="item.photoUrl" alt="사진" class="w-12 h-12 object-cover rounded" />
+            <span v-else class="text-gray-400 text-sm">-</span>
+          </td>
+          <td class="px-4 py-3">{{ item.itemName }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ formatDate(item.foundTime) }}</td>
+          <td class="px-4 py-3">
+              <span :class="getStatusClass(item.status)">
+                {{ getStatusText(item.status) }}
+              </span>
+          </td>
+          <td class="px-4 py-3 text-sm">
+            <div class="flex space-x-2" @click.stop>
+              <button class="text-blue-600 hover:underline" @click="viewDetails(item)">상세</button>
+              <button class="text-green-600 hover:underline" @click="editItem(item)">수정</button>
+              <button class="text-yellow-600 hover:underline" @click="matchItem(item)">매칭</button>
+              <button class="text-gray-600 hover:underline" @click="hideItem(item)">숨김</button>
+              <button class="text-red-600 hover:underline" @click="deleteItem(item)">삭제</button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import Modal from '@/modules/lostFound/components/Modal.vue';
-import FoundItemForm from '@/modules/lostFound/components/FoundItemForm.vue';
-import { getFoundItemsForAdmin } from '@/modules/lostFound/api/foundAdmin';
-import {
-  matchFoundItem,
-  deleteFoundItem,
-  hideFoundItem
-} from '@/modules/lostFound/api/foundAdmin';
+import { ref, onMounted } from 'vue'
+import FoundItemForm from '@/modules/lostFound/components/FoundItemForm.vue'
+import Modal from '@/modules/lostFound/components/Modal.vue'
+import FoundAdminDetail from '@/modules/lostFound/views/admin/FoundAdminDetail.vue'
+import FoundAdminEdit from '@/modules/lostFound/views/admin/FoundAdminEdit.vue'
+// 추후에 매칭도 추가 가능
+// import FoundAdminMatch from '@/modules/lostFound/views/admin/FoundAdminMatch.vue'
 
+import { getFoundItemsForAdmin } from '@/modules/lostFound/api/foundAdmin'
 
-const dateRange = ref('7');
-const searchKeyword = ref('');
-const items = ref([]);
-const showModal = ref(false);
-const selectedItem = ref(null);
+const foundItems = ref([])
+const showForm = ref(false)
+const showDetail = ref(false)
+const showEdit = ref(false)
+// const showMatch = ref(false)
 
-// 날짜 포맷
-const getStartDate = (daysAgo) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (daysAgo - 1));
-  return date.toISOString().split('T')[0];
-};
-
-const formatDate = (dateStr) => {
-  return dateStr ? new Date(dateStr).toISOString().split('T')[0] : '-';
-};
-
-const formatStatus = (item) => {
-  if (item.isDeleted) return '삭제됨';
-  if (item.status === 'RETURNED') return '수령완료';
-  return '보관중';
-};
+const selectedItem = ref(null)
 
 const fetchFoundItems = async () => {
-  const params = {
-    keyword: searchKeyword.value,
-    startDate: getStartDate(Number(dateRange.value)),
-    endDate: new Date().toISOString().split('T')[0],
-  };
-  const res = await getFoundItemsForAdmin(params);
-  items.value = res.data.map(i => ({ ...i, matchId: '' }));
-};
+  try {
+    const { data } = await getFoundItemsForAdmin()
+    foundItems.value = data
+  } catch (error) {
+    console.error('습득물 목록 조회 실패:', error)
+  }
+}
 
-const resetFilters = () => {
-  dateRange.value = '7';
-  searchKeyword.value = '';
-  fetchFoundItems();
-};
+const toggleForm = () => {
+  showForm.value = !showForm.value
+}
 
-const openRegisterModal = () => {
-  selectedItem.value = null;
-  showModal.value = true;
-};
+const onFormSubmitted = () => {
+  showForm.value = false
+  fetchFoundItems()
+}
+
+const viewDetails = (item) => {
+  selectedItem.value = item
+  showDetail.value = true
+}
+
+const closeDetail = () => {
+  showDetail.value = false
+  selectedItem.value = null
+}
+
+const startEdit = () => {
+  showDetail.value = false
+  showEdit.value = true
+}
 
 const editItem = (item) => {
-  selectedItem.value = item;
-  showModal.value = true;
-};
+  selectedItem.value = item
+  showEdit.value = true
+}
 
-const onItemSubmitted = () => {
-  showModal.value = false;
-  fetchFoundItems();
-};
+const closeEdit = () => {
+  showEdit.value = false
+  selectedItem.value = null
+}
 
-// matchItem: 목록에서 분실물 ID를 입력해 매칭
-const matchItem = async (item) => {
-  if (!item.matchId) {
-    alert('분실물 ID를 입력하세요.');
-    return;
-  }
-  try {
-    await matchFoundItem(item.id, item.matchId);
-    alert('매칭 완료');
-    fetchFoundItems();
-  } catch (e) {
-    alert('매칭 실패');
-  }
-};
+const onEditSubmitted = () => {
+  showEdit.value = false
+  selectedItem.value = null
+  fetchFoundItems()
+}
 
-// deleteItem: 삭제 처리
-const deleteItem = async (item) => {
-  if (!confirm('삭제하시겠습니까?')) return;
-  try {
-    await deleteFoundItem(item.id);
-    alert('삭제 완료');
-    fetchFoundItems();
-  } catch (e) {
-    alert('삭제 실패');
-  }
-};
+const matchItem = (item) => {
+  selectedItem.value = item
+  // showMatch.value = true
+}
 
-// hideItem: 숨김 처리
 const hideItem = async (item) => {
-  try {
-    await hideFoundItem(item.id);
-    alert('숨김 처리 완료');
-    fetchFoundItems();
-  } catch (e) {
-    alert('숨김 실패');
+  // TODO: 숨김 API 연동
+}
+
+const deleteItem = async (item) => {
+  // TODO: 삭제 API 연동
+}
+
+const getStatusText = (status) => {
+  const map = {
+    IN_STORAGE: '보관중',
+    RETURNED: '수령완료'
   }
-};
-const getPhotoUrl = (photoUrl) => {
-  return photoUrl ? `/uploads/found/${photoUrl}` : '/img/no-image.png';
-};
+  return map[status] || status
+}
+
+const getStatusClass = (status) => {
+  const map = {
+    IN_STORAGE: 'bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium rounded-full',
+    RETURNED: 'bg-green-100 text-green-800 px-2 py-1 text-xs font-medium rounded-full'
+  }
+  return map[status] || 'bg-gray-100 text-gray-800 px-2 py-1 text-xs font-medium rounded-full'
+}
+
+const formatDate = (dateStr) => {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
+}
 
 onMounted(() => {
-  fetchFoundItems();
-});
-
-// TODO: matchItem, deleteItem, hideItem 추가 필요
+  fetchFoundItems()
+})
 </script>

@@ -40,11 +40,12 @@ export default defineConfig({
             '/api': {
                 target: 'https://localhost:8081',
                 changeOrigin: true,
-                secure: false,
+                secure: false, // ⚠️ 개발 중이므로 false
                 configure: (proxy) => {
                     proxy.on('proxyReq', (proxyReq, req, res) => {
-                        proxyReq.setHeader('origin', 'https://localhost:5173')
-                    })
+                        // ✅ 인증 쿠키를 프록시 요청에 포함
+                        proxyReq.setHeader('origin', 'https://localhost:5173');
+                    });
                 }
             },
             '/auth': {
@@ -62,17 +63,17 @@ export default defineConfig({
             middlewares.use(
                 history({
                     disableDotRule: true,
-                    htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
+                    htmlAcceptHeaders: ['text/html','application/xhtml+xml'],
+                    // ❌ rewrites 제거: /api 요청을 HTML로 넘기지 않도록!
                     rewrites: [
-                        // 백엔드가 직접 처리하는 API/정적 경로 제외
+                        { from: /^\/login$/, to: '/index.html' },
+                        { from: /^\/mypage.*$/, to: '/index.html' },
                         { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
                         { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
-
-                        // 나머지는 모두 Vue로 넘김
                         { from: /./, to: '/index.html' }
                     ]
                 })
-            )
+            );
         }
     }
-})
+});
