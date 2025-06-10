@@ -1,30 +1,61 @@
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import api from '@/api/axiosInstance'
+
+const user = ref(null)
+const isLoading = ref(true)
+const isLoggedIn = ref(false)
 
 export function useUserInfo() {
-    const user = ref({
-        name: '',
-        email: ''
-    })
     const router = useRouter()
+    const route = useRoute()
+    const auth = useAuthStore()
 
-    onMounted(async () => {
+    async function fetchUserInfo() {
         try {
-            const res = await axios.get('/api/user/info', { withCredentials: true })
-            user.value = {
-                name: res.data.username,
-                email: res.data.email
-            }
-        } catch (err) {
-            console.error('유저 정보를 불러오는 중 오류 발생:', err)
+            const res = await api.get('/api/user/info', { withCredentials: true })
 
-            // ✅ 로그인 안되어 있으면 로그인 페이지로 이동
-            if (err.response && err.response.status === 401) {
+            user.value = {
+                ...auth.user,
+                ...res.data
+            }
+
+            auth.login(user.value)
+            isLoggedIn.value = true
+
+        } catch (err) {
+            isLoggedIn.value = false
+            user.value = null
+
+            if (err.response?.status === 401 && !['/login', '/register'].includes(route.path)) {
                 router.push('/login')
             }
         }
+    }
+
+    onMounted(async () => {
+        const publicPaths = ['/', '/login', '/register']
+        const isPublic = publicPaths.includes(route.path)
+
+        if (auth.user) {
+            user.value = { ...auth.user }
+            isLoggedIn.value = true
+        }
+
+        if (!isPublic) {
+            isLoading.value = true
+            await fetchUserInfo()
+            isLoading.value = false
+        } else {
+            isLoading.value = false
+        }
     })
 
-    return { user }
+    return {
+        user,
+        isLoggedIn,
+        isLoading,
+        fetchUserInfo
+    }
 }

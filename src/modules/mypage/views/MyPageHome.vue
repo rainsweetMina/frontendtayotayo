@@ -1,88 +1,226 @@
 <template>
-  <div class="mypage">
-    <h1>마이페이지</h1>
-
-    <!-- 메뉴 -->
-    <nav class="menu">
-      <strong>메뉴</strong><br />
-      <router-link to="/mypage/favorites">즐겨찾기</router-link> |
-
-      <div class="dropdown">
-        <span class="dropdown-label">분실물 센터 ▾</span>
-        <div class="dropdown-content">
-          <router-link to="/mypage/lost">📝 분실물 신고</router-link>
-          <router-link to="/mypage/found">📋 습득물 목록</router-link>
-        </div>
-      </div> |
-
-      <router-link to="/mypage/qna">질문/답변</router-link> |
-      <router-link to="/mypage/apikey-request">API 키 발급</router-link>
-    </nav>
-
+  <div class="mypage-main">
     <!-- 사용자 정보 -->
-    <div v-if="user.name">
-      <p>안녕하세요, <strong>{{ user.name }}</strong>님!</p>
-      <p><strong>이메일:</strong> {{ user.email }}</p>
-    </div>
+    <section class="user-info">
+      <h4>👤 {{ user?.username }}님, 환영합니다!</h4>
+      <p>최근 접속일: {{ user?.lastLoginAt ? formatDate(user.lastLoginAt) : '정보 없음' }}</p>
+    </section>
 
-    <hr />
+    <!-- 새 알림 요약 영역 -->
+    <section class="alert-summary">
+      <template v-if="notificationCount === 0">
+        🔔 새로운 알림이 없습니다.
+      </template>
+      <template v-else>
+        🔔 새로운 알림 {{ notificationCount }}건이 있습니다.
+      </template>
+      <router-link to="/mypage/notifications">알림 확인하기</router-link>
+    </section>
 
-    <router-link to="/mypage/modify">정보 수정</router-link><br />
-    <router-link to="/mypage/password">비밀번호 변경</router-link><br />
-    <a href="/logout">로그아웃</a><br />
-    <router-link to="/mypage/withdraw" style="color: red; margin-top: 10px; display: inline-block;">회원 탈퇴</router-link>
+    <!-- 카드 요약 보기 -->
+    <section class="summary-cards">
+      <div class="card" @click="$router.push('/mypage/favorites')">
+        <h3>⭐ 즐겨찾기</h3>
+        <p>버스 {{ favorites.busCount }}개, 정류장 {{ favorites.stopCount }}개</p>
+      </div>
+      <div class="card" @click="$router.push('/mypage/lost')">
+        <h3>📦 분실물</h3>
+        <p>최근 신고 {{ lostItems }}건</p>
+      </div>
+      <div class="card" @click="$router.push('/mypage/qna')">
+        <h3>💬 Q&A</h3>
+        <p>답변 대기 {{ qnaCount }}건</p>
+      </div>
+      <div class="card" @click="$router.push('/mypage/apikey-request')">
+        <h3>🔑 API 키</h3>
+        <p>{{ apiKeyStatusText }}</p>
+      </div>
+    </section>
 
-    <router-view />
+    <!-- 설정 및 관리 -->
+    <section class="settings">
+      <button @click="handleLogout" class="logout-button">🚪 로그아웃</button>
+      <router-link to="/mypage/modify">⚙️ 회원정보 수정</router-link>
+      <router-link to="/mypage/withdraw">🗑️ 회원 탈퇴</router-link>
+    </section>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
-const { user } = useUserInfo()
+function formatDate(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const router = useRouter()
+const { user, isLoading, isLoggedIn } = useUserInfo()
+
+const favorites = ref({ busCount: 0, stopCount: 0 })
+const lostItems = ref(0)
+const qnaCount = ref(0)
+const apiKeyStatusText = ref('정보 없음')
+const notificationCount = ref(0)
+
+const handleLogout = async () => {
+  try {
+    await axios.post('/auth/logout', null, { withCredentials: true })
+    router.push('/login')
+  } catch (error) {
+    alert('로그아웃에 실패했습니다.')
+    console.error(error)
+  }
+}
+
+const fetchFavoriteSummary = async () => {
+  try {
+    const res = await axios.get('/api/mypage/favorites/summary', { withCredentials: true })
+    favorites.value = res.data
+  } catch (err) {
+    console.error('❌ 즐겨찾기 요약 정보 실패:', err)
+  }
+}
+
+const fetchApiKeySummary = async () => {
+  try {
+    const res = await axios.get('/api/user/apikey/summary', { withCredentials: true })
+    const status = res.data.status
+    apiKeyStatusText.value =
+        status === 'APPROVED' ? '승인됨' :
+            status === 'PENDING' ? '승인 대기 중' :
+                '없음'
+  } catch (e) {
+    console.error('❌ API 키 상태 로딩 실패:', e)
+  }
+}
+
+const fetchNotificationCount = async () => {
+  try {
+    const res = await axios.get('/api/mypage/notifications/count', { withCredentials: true })
+    notificationCount.value = res.data.count
+  } catch (err) {
+    console.error('❌ 알림 수 로딩 실패:', err)
+  }
+}
+
+const fetchQnaCount = async () => {
+  try {
+    const res = await axios.get('/api/qna/count', { withCredentials: true })
+    qnaCount.value = res.data.count
+  } catch (err) {
+    console.error('❌ Q&A 개수 로드 실패:', err)
+  }
+}
+
+const waitUntilUserLoaded = async () => {
+  while (isLoading.value) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  if (!isLoggedIn.value) {
+    router.push('/login')
+    return
+  }
+
+  // 로그인 상태 유지되었을 경우
+  fetchFavoriteSummary()
+  fetchApiKeySummary()
+  fetchNotificationCount()
+  fetchQnaCount()
+}
+
+onMounted(async () => {
+  await waitUntilUserLoaded()
+})
+
+const formattedLastLogin = computed(() => {
+  console.log("🔥 user.value:", user.value)
+  if (!user.value?.lastLoginAt) return '정보 없음'
+  try {
+    const date = new Date(user.value.lastLoginAt)
+    return date.toLocaleString('ko-KR', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    })
+  } catch {
+    return '정보 없음'
+  }
+})
 </script>
 
 <style scoped>
-.mypage {
-  padding: 20px;
-  font-family: sans-serif;
+.mypage-main {
+  max-width: 800px;
+  margin: auto;
+  padding: 2rem;
+}
+.user-info {
+  background: #f0f4ff;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.menu {
+/* 새 알림 요약 스타일 */
+.alert-summary {
+  background-color: #e0f7fa;
+  padding: 12px 20px;
   margin-bottom: 20px;
-}
-
-.dropdown {
-  display: inline-block;
-  position: relative;
-}
-
-.dropdown-label {
-  cursor: pointer;
+  border-radius: 8px;
   font-weight: bold;
+  color: #00796b;
+}
+.alert-summary a {
+  margin-left: 10px;
+  color: #004d40;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.card {
   background: white;
-  border: 1px solid #ccc;
-  z-index: 1;
-  padding: 5px;
-  white-space: nowrap;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
-
-.dropdown:hover .dropdown-content {
-  display: block;
+.card:hover {
+  transform: translateY(-4px);
 }
-
-.dropdown-content a {
-  display: block;
+.settings {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.settings a {
+  background: #eee;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
   text-decoration: none;
-  color: black;
+  color: #333;
+  transition: background 0.2s ease;
 }
-
-.dropdown-content a:hover {
-  background-color: #f0f0f0;
+.settings a:hover {
+  background: #ccc;
 }
 </style>

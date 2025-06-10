@@ -7,11 +7,19 @@
 
 <script setup>
 import { useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import DefaultLayout from './layouts/DefaultLayout.vue'
 
+import { useAuthStore } from '@/stores/auth'
+
 const route = useRoute()
-const layout = computed(() => route.meta.layout || 'default') // 기본값은 'default'
+const layout = computed(() => route.meta.layout || 'default')
+
+// ✅ 로그인 상태 복원
+const auth = useAuthStore()
+
+onMounted(async () => {
+})
 </script>
 
 <style>
