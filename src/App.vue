@@ -14,7 +14,6 @@ const authStore = useAuthStore()
 
 // ✅ setup() 실행 즉시 로그인 상태 확인
 ;(async () => {
-  console.log('✅ App.vue setup 진입')
   try {
     const res = await api.get('/api/user/info', { withCredentials: true })
 

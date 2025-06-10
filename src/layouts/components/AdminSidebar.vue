@@ -174,6 +174,30 @@
           </router-link>
         </div>
       </div>
+
+      <!-- 사용자 관리 섹션 -->
+      <div class="mb-4">
+        <div class="px-3 py-2 text-sm font-medium text-gray-900 flex items-center">
+          <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          사용자 관리
+        </div>
+        <div class="space-y-1">
+          <router-link
+              to="/admin/user"
+              class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+          >
+            유저 정보 관리
+          </router-link>
+          <router-link
+              to="/admin/apikey"
+              class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+          >
+            API 키 관리
+          </router-link>
+        </div>
+      </div>
     </nav>
   </aside>
 </template>

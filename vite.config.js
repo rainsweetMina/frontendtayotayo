@@ -1,17 +1,17 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import vueDevTools from 'vite-plugin-vue-devtools';
-import basicSsl from '@vitejs/plugin-basic-ssl';
-import nodePolyfills from 'rollup-plugin-node-polyfills';
-import fs from 'fs';
-import history from 'connect-history-api-fallback';
-import { fileURLToPath, URL } from 'node:url';
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
+import basicSsl from '@vitejs/plugin-basic-ssl'
+import nodePolyfills from 'rollup-plugin-node-polyfills'
+import fs from 'fs'
+import history from 'connect-history-api-fallback'
+import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
     plugins: [
         vue(),
         vueDevTools(),
-        // basicSsl()  // ✅ HTTPS 인증서 적용
+        // basicSsl() // ✅ HTTPS 인증서 적용 (필요 시 사용)
     ],
     resolve: {
         alias: {
@@ -36,40 +36,43 @@ export default defineConfig({
             key: fs.readFileSync('./localhost+2-key.pem'),
             cert: fs.readFileSync('./localhost+2.pem')
         },
-
         proxy: {
             '/api': {
                 target: 'https://localhost:8081',
                 changeOrigin: true,
-                secure: false, // ⚠️ 개발 중이므로 false
+                secure: false,
                 configure: (proxy) => {
                     proxy.on('proxyReq', (proxyReq, req, res) => {
-                        // ✅ 인증 쿠키를 프록시 요청에 포함
-                        proxyReq.setHeader('origin', 'https://localhost:5173');
-                    });
+                        proxyReq.setHeader('origin', 'https://localhost:5173')
+                    })
                 }
             },
             '/auth': {
                 target: 'https://localhost:8081',
                 changeOrigin: true,
                 secure: false
-            }
+            },
         },
         cors: true,
         fs: {
             strict: false
         },
+        // ✅ 여기서 Vue Router fallback 적용!
         configureServer: ({ middlewares }) => {
             middlewares.use(
                 history({
+                    disableDotRule: true,
+                    htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
                     rewrites: [
-                        { from: /^\/api\/.*$/, to: context => context.parsedUrl.pathname },
-                        { from: /^\/login$/, to: '/index.html' },
-                        { from: /^\/mypage.*$/, to: '/index.html' },
+                        // 백엔드가 직접 처리하는 API/정적 경로 제외
+                        { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
+                        { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
+
+                        // 나머지는 모두 Vue로 넘김
                         { from: /./, to: '/index.html' }
                     ]
                 })
-            );
+            )
         }
     }
-});
+})

@@ -44,7 +44,7 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const userId = ref('user')
+const userId = ref('admin')
 const password = ref('!1aaaaaa')
 const rememberId = ref(false)
 const error = ref('')

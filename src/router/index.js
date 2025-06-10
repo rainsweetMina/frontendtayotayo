@@ -6,6 +6,8 @@ import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
 import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
+import userManagementRoutes from '@/modules/usermanagement/router'
+
 
 // 📌 Pinia에서 인증 상태 가져오기
 import { useAuthStore } from '@/stores/auth'
@@ -17,6 +19,7 @@ const routes = [
     ...busMapRoutes,
     ...myPageRoutes,
     ...lostFoundRoutes,
+    ...userManagementRoutes
 ]
 
 const router = createRouter({
