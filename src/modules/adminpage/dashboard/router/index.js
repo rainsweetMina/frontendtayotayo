@@ -1,8 +1,8 @@
 import { RouteRecordRaw } from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
-import NoticeManagement from '../views/NoticeManagement.vue'
-import NoticeDetail from '../views/NoticeDetail.vue'
-import NoticeWrite from '../views/NoticeWrite.vue'
+import NoticeManagement from '../views/notice/NoticeManagement.vue'
+import NoticeDetail from '../views/notice/NoticeDetail.vue'
+import NoticeWrite from '../views/notice/NoticeWrite.vue'
 import FoundAdminList from '@/modules/lostFound/views/admin/FoundAdminList.vue'
 
 

@@ -19,7 +19,7 @@
         />
         <div class="search-highlight-text">
           <span class="highlight-icon">🔍</span>
-          <span>대구 시내 모든 버스와 정류장을 검색할 수 있습니다</span>
+          <span>대구 시내 버스 번호 또는 정류장 이름을 입력하면 자동으로 검색됩니다</span>
         </div>
       </div>
     </section>
@@ -234,10 +234,11 @@ const formatDate = (dateString) => {
 };
 
 const handleSearch = (searchData) => {
-  const { keyword, type } = searchData;
+  const { keyword } = searchData;
   if (!keyword) return;
   
-  if (type === 'route' || /^\d+$/.test(keyword)) {
+  // 숫자로만 이루어져 있거나 숫자로 시작하는 경우 노선으로 간주
+  if (/^\d+/.test(keyword)) {
     // 노선 검색
     router.push({ 
       path: '/bus/routes', 

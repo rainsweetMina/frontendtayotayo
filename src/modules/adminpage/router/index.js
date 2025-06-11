@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import AdminDashboard from '@/modules/adminpage/dashboard/views/AdminDashboard.vue'
-import AdminNotice from '@/modules/adminpage/dashboard/views/Notice.vue'
+import AdminNotice from '@/modules/adminpage/dashboard/views/notice/Notice.vue'
 import AdminQna from '@/modules/adminpage/dashboard/views/Qna.vue'
 import AdminAdvertisement from '@/modules/adminpage/dashboard/views/Advertisement.vue'
 import AdminReportedLostItems from '@/modules/adminpage/dashboard/views/ReportedLostItems.vue'
@@ -16,9 +16,9 @@ import AdminBusRouteStops from '@/modules/adminpage/dashboard/views/BusRouteStop
 import AdminBusStops from '@/modules/adminpage/dashboard/views/BusStops.vue'
 import AdminBusStopAdd from '@/modules/adminpage/dashboard/views/BusStopAdd.vue'
 import AdminBusStopSearch from '@/modules/adminpage/dashboard/views/BusStopSearch.vue'
-import NoticeManagement from '@/modules/adminpage/dashboard/views/NoticeManagement.vue'
-import NoticeDetail from '@/modules/adminpage/dashboard/views/NoticeDetail.vue'
-import NoticeWrite from '@/modules/adminpage/dashboard/views/NoticeWrite.vue'
+import NoticeManagement from '@/modules/adminpage/dashboard/views/notice/NoticeManagement.vue'
+import NoticeDetail from '@/modules/adminpage/dashboard/views/notice/NoticeDetail.vue'
+import NoticeWrite from '@/modules/adminpage/dashboard/views/notice/NoticeWrite.vue'
 import Dashboard from "@/modules/adminpage/dashboard/views/Dashboard.vue";
 import FoundAdminList from "@/modules/lostFound/views/admin/FoundAdminList.vue";
 

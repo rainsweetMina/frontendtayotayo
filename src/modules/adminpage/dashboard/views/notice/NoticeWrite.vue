@@ -136,12 +136,12 @@
 <script>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useNoticeApi } from '../composables/useNoticeApi';
+import { useNoticeApi } from '../../composables/useNoticeApi.js';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import ImageUploader from 'quill-image-uploader';
 import Quill from 'quill';
-import axios from '@/config/axios';
+import axios from '@/config/axios.js';
 
 // Base64 형식의 이미지를 Blob으로 변환
 function dataURLtoBlob(dataURL) {

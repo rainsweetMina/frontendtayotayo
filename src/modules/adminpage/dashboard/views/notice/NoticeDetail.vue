@@ -93,8 +93,8 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useNoticeApi } from '../composables/useNoticeApi';
-import axios from '@/config/axios';
+import { useNoticeApi } from '../../composables/useNoticeApi.js';
+import axios from '@/config/axios.js';
 
 export default {
   name: 'NoticeDetail',
