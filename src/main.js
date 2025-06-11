@@ -13,6 +13,8 @@ import 'leaflet/dist/leaflet.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import 'bootstrap'
+import './assets/main.css'
+
 
 // ✅ 레이아웃 컴포넌트
 import EmptyLayout from "@/layouts/components/EmptyLayout.vue"
