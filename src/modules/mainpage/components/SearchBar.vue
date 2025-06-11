@@ -10,10 +10,6 @@
       v-model="searchText"
       @keyup.enter="handleSearch"
     />
-    <div class="search-options">
-      <button class="option-btn" :class="{ 'active': searchType === 'route' }" @click="searchType = 'route'">노선</button>
-      <button class="option-btn" :class="{ 'active': searchType === 'stop' }" @click="searchType = 'stop'">정류장</button>
-    </div>
     <button class="search-button" @click="handleSearch">
       검색
     </button>
@@ -32,13 +28,11 @@ const props = defineProps({
 
 const emit = defineEmits(['search']);
 const searchText = ref('');
-const searchType = ref('route'); // 기본값은 노선 검색
 
 const handleSearch = () => {
   if (searchText.value.trim()) {
     emit('search', { 
-      keyword: searchText.value,
-      type: searchType.value
+      keyword: searchText.value
     });
   }
 };
@@ -98,39 +92,6 @@ const handleSearch = () => {
   color: #aaa;
 }
 
-.search-options {
-  display: flex;
-  margin: 0 15px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #e0e0e0;
-  height: 42px;
-}
-
-.option-btn {
-  padding: 0 20px;
-  background-color: #f5f5f5;
-  border: none;
-  cursor: pointer;
-  font-size: 0.95rem;
-  color: #666;
-  transition: all 0.3s;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.option-btn.active {
-  background-color: #2a7dc0;
-  color: white;
-  font-weight: 500;
-}
-
-.option-btn:first-child {
-  border-right: 1px solid #e0e0e0;
-}
-
 .search-button {
   background-color: #2a7dc0;
   color: white;
@@ -170,22 +131,10 @@ const handleSearch = () => {
     padding: 15px 10px;
   }
   
-  .search-options {
-    order: 3;
-    margin: 10px;
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .option-btn {
-    flex: 1;
-    text-align: center;
-  }
-  
   .search-button {
-    order: 4;
-    width: 100%;
-    padding: 12px;
+    order: 3;
+    width: auto;
+    padding: 12px 20px;
   }
 }
 

@@ -9,7 +9,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="로그 검색 또는 ID..."
-            class="w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            class="w-96 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             @keyup.enter="searchLogs"
           />
           <button 
@@ -38,15 +38,6 @@
             @click="downloadLogs"
           >
             로그 다운로드
-          </button>
-          <button
-            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center"
-            @click="findBusLogs"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            버스회사 로그 찾기
           </button>
         </div>
       </div>
@@ -177,7 +168,7 @@
     </div>
 
     <!-- 페이지네이션 -->
-    <div class="flex justify-center mt-6">
+    <div class="flex justify-center mt-6" v-if="totalPages > 0">
       <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
         <button
           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
@@ -187,7 +178,7 @@
           이전
         </button>
         <button
-          v-for="page in totalPages"
+          v-for="page in availablePages"
           :key="page"
           :class="[
             'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium',
@@ -201,7 +192,7 @@
         </button>
         <button
           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          :disabled="currentPage === totalPages"
+          :disabled="currentPage === Math.max(...availablePages) || availablePages.length === 0"
           @click="changePage(currentPage + 1)"
         >
           다음
@@ -230,6 +221,11 @@ const filteredLogs = computed(() => {
     } else {
       // 텍스트 검색
       result = result.filter(log => {
+        // 'anonymousUser'와 'user'를 제외하고 admin만 검색
+        if (log.adminId && (log.adminId.toLowerCase() === 'anonymoususer' || log.adminId.toLowerCase() === 'user')) {
+          return false;
+        }
+        
         return (
           (log.action && log.action.toLowerCase().includes(query)) ||
           (log.target && log.target.toLowerCase().includes(query)) ||
@@ -305,6 +301,31 @@ const filteredLogs = computed(() => {
 const currentPage = ref(1)
 const totalPages = ref(1)
 const logLevel = ref('all')
+
+// 데이터가 있는 페이지 계산
+const availablePages = ref([])
+
+// 페이지 데이터 확인 함수
+const updateAvailablePages = () => {
+  console.log('데이터가 있는 페이지 계산 중...');
+  // 사용 가능한 페이지 초기화
+  availablePages.value = [];
+  
+  // 페이지 수가 1 이하면 첫 페이지만 추가
+  if (totalPages.value <= 1) {
+    availablePages.value.push(1);
+    return;
+  }
+  
+  // 모든 페이지 추가
+  for (let i = 1; i <= totalPages.value; i++) {
+    availablePages.value.push(i);
+  }
+  
+  // 정렬
+  availablePages.value.sort((a, b) => a - b);
+  console.log('사용 가능한 페이지:', availablePages.value);
+}
 
 // 검색 기능
 const searchLogs = () => {
@@ -517,9 +538,9 @@ const loadAllLogs = async () => {
 // 데이터 가져오기
 const fetchLogs = async (page) => {
   try {
-    // 원래 API 엔드포인트 사용
+    // 원래 API 엔드포인트 사용 (페이지 번호를 0부터 시작하도록 변경)
     const response = await fetch(
-      `/api/admin/logs?page=${page}&size=20`
+      `/api/admin/logs?page=${page-1}&size=20`
     )
     
     // HTTP 상태 코드 확인
@@ -587,10 +608,18 @@ const fetchLogs = async (page) => {
         totalPagesValue = parseInt(totalPagesElements[0].textContent) || 1;
       }
       
+      // 각 페이지에 데이터가 있는지 확인하기 위한 totalElements 추출
+      let totalElements = 0;
+      const totalElementsNodes = xmlDoc.getElementsByTagName('totalElements');
+      if (totalElementsNodes.length > 0) {
+        totalElements = parseInt(totalElementsNodes[0].textContent) || 0;
+      }
+      
       // 데이터 설정
       data = {
         content: parsedLogs,
-        totalPages: totalPagesValue
+        totalPages: totalPagesValue,
+        totalElements: totalElements
       };
       
       console.log('파싱된 XML 데이터:', data);
@@ -620,23 +649,45 @@ const fetchLogs = async (page) => {
     
     // 응답 형식 처리 (data.content에 실제 로그 데이터가 있음)
     if (data && Array.isArray(data.content)) {
-      logs.value = data.content.map(log => ({
+      // user와 anonymousUser 로그를 필터링하고, 버스 회사 조회 로그도 제외
+      const filteredContent = data.content.filter(log => {
+        // user와 anonymousUser 제외
+        if (log.adminId && 
+          (log.adminId.toLowerCase() === 'anonymoususer' || 
+           log.adminId.toLowerCase() === 'user')) {
+          return false;
+        }
+        
+        // 버스 회사 조회 로그 제외
+        if (log.action && log.target && 
+            (log.action.includes('조회') || log.action.includes('확인') || log.action.includes('검색')) && 
+            (log.target.includes('버스') || log.target.includes('Bus') || log.target.includes('bus') || 
+             log.target.includes('BusCompany') || log.target.includes('버스회사'))) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      logs.value = filteredContent.map(log => ({
         ...log,
         isExpanded: false,
       }))
-      totalPages.value = data.totalPages || 1;
       
-      // 로그에 버스 관련 항목이 있는지 확인하여 표시
-      const hasBusLogs = logs.value.some(log => 
-        log.action && (log.action.includes('버스') || log.target && log.target.includes('Bus'))
-      );
-      console.log('버스 관련 로그 존재 여부:', hasBusLogs);
+      // 필터링된 로그를 기준으로 페이지 수 다시 계산
+      const pageSize = 20; // 페이지당 로그 수
+      totalPages.value = Math.ceil(filteredContent.length / pageSize) || 1;
       
-      // 버스 관련 로그 목록 출력
-      const busLogs = logs.value.filter(log => 
-        log.action && (log.action.includes('버스') || log.target && log.target.includes('Bus'))
-      );
-      console.log('버스 관련 로그:', busLogs);
+      console.log('필터링 후 로그 수:', filteredContent.length);
+      console.log('다시 계산된 페이지 수:', totalPages.value);
+      
+      // 현재 페이지가 새로운 총 페이지 수보다 크면 첫 페이지로 이동
+      if (currentPage.value > totalPages.value) {
+        currentPage.value = 1;
+      }
+      
+      // 사용 가능한 페이지 업데이트
+      updateAvailablePages();
     } 
     else if (Array.isArray(data)) {
       // 데이터가 직접 배열로 오는 경우
@@ -720,6 +771,15 @@ const getLogSummary = (log) => {
 
 // 페이지 변경
 const changePage = (page) => {
+  // 유효한 페이지인지 확인
+  if (!availablePages.value.includes(page)) {
+    const closestPage = availablePages.value.reduce((prev, curr) => {
+      return Math.abs(curr - page) < Math.abs(prev - page) ? curr : prev;
+    }, availablePages.value[0] || 1);
+    
+    page = closestPage;
+  }
+  
   currentPage.value = page
   fetchLogs(page)
 }
@@ -762,7 +822,13 @@ const getActionLabel = (action) => {
 // 로그 다운로드
 const downloadLogs = async () => {
   try {
-    const response = await fetch('/api/admin/logs/download')
+    // 파일 다운로드 요청
+    const response = await fetch('/api/admin/logs/download', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    })
     
     // HTTP 상태 코드 확인
     if (!response.ok) {
@@ -771,11 +837,33 @@ const downloadLogs = async () => {
       throw new Error(`서버 응답 오류 ${response.status}: ${errorText}`);
     }
     
+    // 응답 헤더에서 콘텐츠 타입과 파일명 확인 (디버깅용)
+    const contentType = response.headers.get('Content-Type');
+    const contentDisposition = response.headers.get('Content-Disposition');
+    console.log('응답 콘텐츠 타입:', contentType);
+    console.log('응답 Content-Disposition:', contentDisposition);
+    
     const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
+    
+    // Blob의 타입을 Excel MIME 타입으로 설정
+    const excelBlob = new Blob([blob], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    
+    const url = window.URL.createObjectURL(excelBlob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `system-logs-${new Date().toISOString()}.txt`
+    
+    // 파일명 가져오기 또는 기본값 사용
+    let filename = 'system-logs.xlsx';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1];
+      }
+    }
+    
+    a.download = filename;
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -863,23 +951,8 @@ const findSpecificLog = (id) => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
   fetchLogs(1).then(() => {
-    // 첫 페이지 로드 후 버스 관련 로그 확인
-    const hasBusLogs = logs.value.some(log => 
-      (log.action && log.action.toLowerCase().includes('버스')) || 
-      (log.target && (log.target.toLowerCase().includes('bus') || log.target.toLowerCase().includes('버스')))
-    );
-    
-    console.log('초기 버스 관련 로그 존재 여부:', hasBusLogs);
-    
-    // 버스 관련 로그가 있으면 알림
-    if (hasBusLogs) {
-      setTimeout(() => {
-        const confirmBusLogs = window.confirm('버스 관련 로그가 발견되었습니다. 바로 확인하시겠습니까?');
-        if (confirmBusLogs) {
-          findBusLogs();
-        }
-      }, 1000);
-    }
+    // 사용 가능한 페이지 업데이트
+    updateAvailablePages();
   });
 })
 </script> 

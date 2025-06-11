@@ -76,7 +76,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useNoticeApi } from '../composables/useNoticeApi';
+import { useNoticeApi } from '../../composables/useNoticeApi.js';
 
 export default {
   name: 'NoticeManagement',
