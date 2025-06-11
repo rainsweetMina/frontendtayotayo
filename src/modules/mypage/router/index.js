@@ -4,32 +4,66 @@ export default [
         path: '/mypage',
         name: 'MyPageHome',
         component: () => import('../views/MyPageHome.vue'),
-        meta: { requiresAuth: true } // ✅ 인증 필요
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
     },
 
     {
         path: '/mypage/favorites',
         component: () => import('@/modules/mypage/views/FavoriteView.vue'),
-        meta: { requiresAuth: true }
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
     },
 
     {
         path: '/mypage/modify',
         component: () => import('@/modules/mypage/views/UserEditView.vue'),
-        meta: { requiresAuth: true }
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
     },
 
     {
         path: '/mypage/withdraw',
         component: () => import('@/modules/mypage/views/WithdrawView.vue'),
-        meta: { requiresAuth: true }
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
     },
 
     {
         path: '/mypage/apikey-request',
         name: 'ApiKey',
         component: () => import('@/modules/mypage/views/ApiKeyView.vue'),
-        meta: { requiresAuth: true } // ✅ 인증 필요
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
+    },
+
+    {
+        path: '/mypage/notifications',
+        component: () => import('@/modules/mypage/views/NotificationListView.vue'),
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
+    },
+
+    {
+        path: '/mypage/qna',
+        name: 'QnaList',
+        component: () => import('@/modules/mypage/views/QnaView.vue'),
+        meta: {
+            requiresAuth: true,
+            layout: 'default'
+        }
     },
 
     {
@@ -61,18 +95,5 @@ export default [
         path: '/register',
         name: 'Register',
         component: () => import('../views/RegisterView.vue')
-    },
-
-    {
-        path: '/mypage/notifications',
-        component: () => import('@/modules/mypage/views/NotificationListView.vue'),
-        meta: { requiresAuth: true } // ✅ 인증 필요
-    },
-
-    {
-        path: '/mypage/qna',
-        name: 'QnaList',
-        component: () => import('@/modules/mypage/views/QnaView.vue'),
-        meta: { requiresAuth: true }
     }
 ]

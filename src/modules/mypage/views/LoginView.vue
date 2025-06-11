@@ -93,6 +93,7 @@ const handleLogin = async () => {
       localStorage.setItem('savedUserId', fetchedUserId)
     }
 
+    // ✅ redirect 쿼리 파라미터 우선 사용
     const redirectPath = route.query.redirect || (role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
     router.push(redirectPath)
 
@@ -101,7 +102,6 @@ const handleLogin = async () => {
     console.error('에러 응답 전체:', err.response);
     console.log('에러 메시지 상태:', error.value);
 
-    // 서버 응답 메시지 우선 표시
     if (err.response && err.response.data && err.response.data.message) {
       error.value = err.response.data.message
     } else {

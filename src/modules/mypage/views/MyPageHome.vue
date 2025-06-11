@@ -65,7 +65,17 @@ function formatDate(dateString) {
 }
 
 const router = useRouter()
-const { user, isLoading, isLoggedIn } = useUserInfo()
+const { user, isLoading, isLoggedIn, fetchUserInfo } = useUserInfo()
+
+onMounted(async () => {
+  // 소셜 로그인 후 강제로 한번 더 사용자 정보 갱신
+  if (!user.value) {
+    await fetchUserInfo()
+  }
+
+  await waitUntilUserLoaded()
+})
+
 
 const favorites = ref({ busCount: 0, stopCount: 0 })
 const lostItems = ref(0)
@@ -130,12 +140,11 @@ const waitUntilUserLoaded = async () => {
     await new Promise(resolve => setTimeout(resolve, 100))
   }
 
-  if (!isLoggedIn.value) {
+  if (!user.value || !user.value.userId) {
     router.push('/login')
     return
   }
 
-  // 로그인 상태 유지되었을 경우
   fetchFavoriteSummary()
   fetchApiKeySummary()
   fetchNotificationCount()
