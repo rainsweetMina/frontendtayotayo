@@ -3,12 +3,21 @@
       class="context-menu"
       :style="{ left: `${position.x}px`, top: `${position.y}px` }"
   >
-    <button @click="$emit('selectAsStart', coords)">출발지 지정</button>
-    <button @click="$emit('selectAsEnd', coords)">도착지 지정</button>
+    <button class="menu-btn" @click="$emit('selectAsStart', coords)">
+      <img :src="startMarkerIcon" alt="출발지" style="width: 30px; height: 30px;"/>
+      <span>출발지 지정</span>
+    </button>
+    <button class="menu-btn" @click="$emit('selectAsEnd', coords)">
+      <img :src="arrivalMarkerIcon" alt="도착지" style="width: 30px; height: 30px;"/>
+      <span>도착지 지정</span>
+    </button>
   </div>
 </template>
 
 <script setup>
+import startMarkerIcon from '@/assets/icons/start_marker_icon.png'
+import arrivalMarkerIcon from '@/assets/icons/arrival_marker_icon.png'
+
 defineProps({
   position: Object,
   coords: Object
@@ -20,10 +29,42 @@ defineEmits(['selectAsStart', 'selectAsEnd'])
 .context-menu {
   position: absolute;
   z-index: 9999;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 5px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  padding: 4px 0;
+  border: 1px solid #e0e0e0;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 5px 10px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.menu-btn i {
+  margin-right: 8px;
+  color: #007bff;
+}
+
+.menu-btn:hover {
+  background: #f0f4ff;
+  color: #007bff;
+}
+
+img, span {
+  margin: 2px;
+}
+
+span {
+  color: #444;
 }
 </style>

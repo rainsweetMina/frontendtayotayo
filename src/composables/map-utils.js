@@ -30,7 +30,37 @@ export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
 }
 
 export function clearMapElements(map) {
+    console.log('🧹 [clearMapElements] called')
+    console.log('🧪 lastStartMarker exists?', !!window.lastStartMarker)
+    if (window.lastStartMarker) {
+        console.log('🧪 map.hasLayer(lastStartMarker)?', map.hasLayer(window.lastStartMarker))
+    } else {
+        console.log('🧪 lastStartMarker is undefined')
+    }
+
     if (!map) return;
+
+    if (window.routePolylines) {
+        window.routePolylines.forEach(l => map.removeLayer(l))
+        window.routePolylines = []
+    }
+
+    if (window.routePointMarkers) {
+        window.routePointMarkers.forEach(m => map.removeLayer(m))
+        window.routePointMarkers = []
+    }
+
+    // ✅ 수동 출발지 마커 제거
+    if (window.manualStartMarker && map.hasLayer(window.manualStartMarker)) {
+        map.removeLayer(window.manualStartMarker);
+        window.manualStartMarker = null;
+    }
+
+// ✅ 수동 도착지 마커 제거
+    if (window.manualEndMarker && map.hasLayer(window.manualEndMarker)) {
+        map.removeLayer(window.manualEndMarker);
+        window.manualEndMarker = null;
+    }
 
     // ✅ 정류장 마커 제거
     if (window.busStopMarkers) {
@@ -56,14 +86,6 @@ export function clearMapElements(map) {
         window.busLocationMarkers = [];
     }
 
-    // ✅ 노선 라인 제거 (복수개)
-    if (window.routePolylines) {
-        window.routePolylines.forEach(line => {
-            if (map.hasLayer(line)) map.removeLayer(line);
-        });
-        window.routePolylines = [];
-    }
-
     // ✅ 기타 라인 제거
     if (window.routeLineLayers) {
         window.routeLineLayers.forEach(layer => {
@@ -82,6 +104,7 @@ export function clearMapElements(map) {
 
     // ✅ 출발지 마커 제거
     if (window.lastStartMarker && map.hasLayer(window.lastStartMarker)) {
+        console.log('🧹 removing lastStartMarker')
         map.removeLayer(window.lastStartMarker);
         window.lastStartMarker = null;
     }

@@ -14,7 +14,7 @@
           style="flex: 5;"
       />
       <button @click="swapInputs" class="btn btn-primary" style="flex: 1;">
-        <img src="/images/swap_icon.png" alt="전환" style="width: 20px; height: 20px;" />
+        <img :src=swapIcon alt="전환" style="width: 20px; height: 20px;" />
       </button>
 
       <ul v-if="showStartDropdown && startSuggestions.length" class="autocomplete-list">
@@ -37,7 +37,7 @@
           @input="showEndDropdown = true"
           @focus="store.selectingField = 'end'; showEndDropdown = true"
           @blur="hideDropdownWithDelay('end')"
-          @keydown="onKeydown('end', $event)"
+          @keydown="onKeydown('end', $event)"r
           placeholder="도착지"
           class="form-control me-1 custom-input"
           style="flex: 5;"
@@ -59,6 +59,8 @@
 </template>
 
 <script setup>
+import swapIcon from '@/assets/icons/swap_icon.png'
+
 import { debounce } from 'lodash'
 import { useSearchStore } from '@/stores/searchStore'
 import { ref, watch } from 'vue'
@@ -98,6 +100,11 @@ function handleEndStopSelect(bs) {
   store.setEndBsId(bs.bsId)
 }
 
+function parseCoords(str) {
+  const match = str.match(/^([0-9.]+),\s*([0-9.]+)$/);
+  if (!match) return null;
+  return { x: parseFloat(match[2]), y: parseFloat(match[1]) }; // [lat, lng] → [y, x]
+}
 
 function selectStop(type, stop) {
   if (type === 'start') {
@@ -155,25 +162,71 @@ function swapInputs() {
 }
 
 async function searchRoutes() {
-  if (!store.startStop || !store.endStop) {
-    alert('출발지와 도착지를 모두 선택해주세요.')
-    return
-  }
-
-  store.busStops = []
-  store.busRoutes = []
+  const startCoord = parseCoords(store.departure)
+  const endCoord = parseCoords(store.arrival)
 
   try {
+    // 🟦 출발지가 좌표일 경우 → 주변 정류장 먼저 찾기
+    if (startCoord) {
+      const res = await axios.get('/api/bus/nearby-stops', {
+        params: {
+          startX: startCoord.x,
+          startY: startCoord.y,
+          endX: startCoord.x, // 임시 (필수 파라미터 대응용)
+          endY: startCoord.y,
+          radius: 200
+        }
+      })
+
+      const start = res.data.startCandidates?.[0]
+      if (!start) {
+        alert('출발지 좌표 근처에 정류장이 없습니다.')
+        return
+      }
+
+      store.setStartStop(start)
+      store.departure = start.bsNm
+    }
+
+    // 🟥 도착지가 좌표일 경우 → 주변 정류장 먼저 찾기
+    if (endCoord) {
+      const res = await axios.get('/api/bus/nearby-stops', {
+        params: {
+          startX: endCoord.x,
+          startY: endCoord.y,
+          endX: endCoord.x, // 임시 대응
+          endY: endCoord.y,
+          radius: 200
+        }
+      })
+
+      const end = res.data.endCandidates?.[0]
+      if (!end) {
+        alert('도착지 좌표 근처에 정류장이 없습니다.')
+        return
+      }
+
+      store.setEndStop(end)
+      store.arrival = end.bsNm
+    }
+
+    // ✅ 정류장 ID가 둘 다 있어야 길찾기 실행
+    if (!store.startStop || !store.endStop) {
+      alert('출발지와 도착지를 모두 지정해주세요.')
+      return
+    }
+
     const { data } = await axios.get('/api/bus/findRoutes', {
       params: {
         startBsId: store.startStop.bsId,
         endBsId: store.endStop.bsId
       }
     })
-    store.setRouteResults(data) // 👈 이게 있어야 RouteResultList가 반응함
-  } catch (e) {
-    console.error('길찾기 API 실패:', e)
-    alert('경로를 찾는 데 실패했습니다.')
+
+    store.setRouteResults(data)
+  } catch (err) {
+    console.error('길찾기 실패:', err)
+    alert('길찾기 도중 오류가 발생했습니다.')
   }
 }
 

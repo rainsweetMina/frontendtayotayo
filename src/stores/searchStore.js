@@ -10,6 +10,10 @@ export const useSearchStore = defineStore('searchStore', {
         // 🔽 길찾기 관련 상태
         startCoord: null,
         endCoord: null,
+        autoTriggered: {
+            startMarker: false,
+            endMarker: false
+        },
         startBsId: null,
         endBsId: null,
         startStop: null,         // 출발 정류장 객체 (bsId, bsNm 등)
@@ -21,6 +25,10 @@ export const useSearchStore = defineStore('searchStore', {
         // ✅ 자동완성 및 목록 관련 상태 추가
         busStops: [],
         busRoutes: [],
+
+        // ✅ 텍스트 입력값
+        departure: '',
+        arrival: '',
 
         // ✅ 좌표 텍스트용 필드 추가
         startCoordText: '',

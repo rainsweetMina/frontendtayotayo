@@ -20,7 +20,7 @@
 
       <div class="duration">
          <span>
-            {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length || 0 }}개 정류장
+            {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length - 1 || 0 }}개 정류장
           </span>
         <span
             class="dropdown-icon"
@@ -31,7 +31,7 @@
       </div>
 
       <div class="summary" v-if="openedIndex === idx && route.stationIds?.length">
-        🚏 총 {{ route.stationIds.length }}개 정류장
+        🚏 총 {{ route.stationIds.length - 1 }}개 정류장
         <ul class="station-list mt-2">
           <li
               v-for="(station, sIdx) in route.stationIds"
@@ -54,9 +54,11 @@
 </template>
 
 <script setup>
+import { useSearchStore } from '@/stores/searchStore'
 import {ref, computed} from 'vue'
 import axios from 'axios'
 
+const store = useSearchStore()
 const props = defineProps({routes: Array})
 const emit = defineEmits([
   'selectRoute',     // 👉 클릭 시 상위 컴포넌트에 선택된 경로 전달
@@ -107,6 +109,21 @@ async function toggleRoute(idx, route = null) {
     const transfer = route.transferStationId
         ? route.stationIds.find(s => s.bsId === route.transferStationId)
         : null
+
+    setTimeout(() => {
+      store.autoTriggered = {
+        startMarker: true,
+        endMarker: true
+      }
+      store.setStartCoord({
+        lat: firstStop.yPos ?? firstStop.ypos,
+        lng: firstStop.xPos ?? firstStop.xpos
+      })
+      store.setEndCoord({
+        lat: lastStop.yPos ?? lastStop.ypos,
+        lng: lastStop.xPos ?? lastStop.xpos
+      })
+    }, 0)
 
     emit('drawRoutePath', {
       polyline,

@@ -25,6 +25,10 @@
 </template>
 
 <script setup>
+import startIcon from '@/assets/icons/start_icon.png'
+import arrivalIcon from '@/assets/icons/arrival_icon.png'
+import transferIcon from '@/assets/icons/transfer_icon.png'
+
 import {ref, watch} from 'vue'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
@@ -44,27 +48,6 @@ const openedStopId = ref(null)
 let lastStartMarker = null
 let lastEndMarker = null
 let lastTransferMarker = null
-
-watch(() => store.lastSearchedKeyword, async (keyword) => {
-  if (!keyword.trim()) return
-  try {
-    const map = window.leafletMap
-    if (map) clearMapElements(map)
-
-    const {data} = await axios.get('/api/bus/searchBSorBN', {
-      params: {keyword}
-    })
-    store.busStops = data.busStops || []
-    store.busRoutes = data.busNumbers || []
-
-    store.routeResults = []
-    store.selectedRoute = null
-
-    drawBusStopMarkersWithArrival(map, store.busStops)
-  } catch (err) {
-    console.error('❌ 자동 검색 실패:', err)
-  }
-}, {immediate: true})
 
 async function handleStopClick(stop) {
   const bsId = stop.bsId
@@ -158,7 +141,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     // 🔁 환승 마커
     const marker = L.marker([transferY, transferX], {
       icon: L.icon({
-        iconUrl: '/images/transfer_icon.png',
+        iconUrl: transferIcon,
         iconSize: [36, 36],
         iconAnchor: [15, 30]
       }),
@@ -179,7 +162,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
   if (start?.yPos && start?.xPos) {
     lastStartMarker = L.marker([start.yPos, start.xPos], {
       icon: L.icon({
-        iconUrl: '/images/start_icon.png',
+        iconUrl: startIcon,
         iconSize: [36, 36],
         iconAnchor: [18, 36]
       })
@@ -190,7 +173,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
   if (end?.yPos && end?.xPos) {
     lastEndMarker = L.marker([end.yPos, end.xPos], {
       icon: L.icon({
-        iconUrl: '/images/arrival_icon.png',
+        iconUrl: arrivalIcon,
         iconSize: [36, 36],
         iconAnchor: [18, 36]
       })
@@ -333,4 +316,25 @@ async function bindArrivalPopup(marker, bsId, bsNm) {
     marker.bindPopup(`<b>${bsNm}</b><br>도착 정보 조회 실패`).openPopup()
   }
 }
+
+watch(() => store.lastSearchedKeyword, async (keyword) => {
+  if (!keyword.trim()) return
+  try {
+    const map = window.leafletMap
+    if (map) clearMapElements(map)
+
+    const {data} = await axios.get('/api/bus/searchBSorBN', {
+      params: {keyword}
+    })
+    store.busStops = data.busStops || []
+    store.busRoutes = data.busNumbers || []
+
+    store.routeResults = []
+    store.selectedRoute = null
+
+    drawBusStopMarkersWithArrival(map, store.busStops)
+  } catch (err) {
+    console.error('❌ 자동 검색 실패:', err)
+  }
+}, {immediate: true})
 </script>

@@ -44,15 +44,22 @@ window.routeLineLayers = []
 window.routePointMarkers = []
 
 // 검색 실행
-function handleSearch(keyword) {
+function handleSearch({ keyword, newStart, newEnd }) {
   if (!keyword.trim()) return
+
+  clearMapElements(window.leafletMap)
 
   // ✅ 지도 클리어
   mapRef.value?.clearMapElementsForSearch?.()
   mapRef.value?.clearStartMarker?.()
+  mapRef.value?.clearManualStartMarkers?.()
+  mapRef.value?.clearManualEndMarkers?.()
   mapRef.value?.clearEndMarker?.()
   mapRef.value?.clearTransferMarker?.()
   mapRef.value?.clearRoutePolylines?.()
+
+  if (newStart) store.setStartCoord(newStart)
+  if (newEnd) store.setEndCoord(newEnd)
 
   // ✅ 검색 수행
   store.setKeyword(keyword)
@@ -85,10 +92,33 @@ const selectRoute = (route) => {
 watch(() => store.selectedRoute, (route) => {
   if (!route?.stationIds?.length) return
 
-  const start = route.__startCoord
-  const end = route.__endCoord
-  if (start) store.setStartCoord(start)
-  if (end) store.setEndCoord(end)
+  const start = route.stationIds[0]
+  const end = route.stationIds.at(-1)
+
+  const startLat = parseFloat(start.ypos)
+  const startLng = parseFloat(start.xpos)
+  const endLat = parseFloat(end.ypos)
+  const endLng = parseFloat(end.xpos)
+
+  const newStart = { lat: startLat, lng: startLng }
+  const newEnd = { lat: endLat, lng: endLng }
+
+  // ✅ 현재 값과 비교해서 다를 때만 세팅
+  if (
+      !store.startCoord ||
+      store.startCoord.lat !== newStart.lat ||
+      store.startCoord.lng !== newStart.lng
+  ) {
+    store.setStartCoord(newStart)
+  }
+
+  if (
+      !store.endCoord ||
+      store.endCoord.lat !== newEnd.lat ||
+      store.endCoord.lng !== newEnd.lng
+  ) {
+    store.setEndCoord(newEnd)
+  }
 })
 
 </script>

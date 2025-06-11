@@ -9,18 +9,14 @@
         <button
             class="navbar-toggler"
             type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar"
-            aria-controls="mainNavbar"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
+            @click="toggleNavbar"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
       </div>
 
       <!-- ✅ 접히는 내비게이션 메뉴 / 나중에 수정이 필요-->
-      <div class="collapse navbar-collapse mt-2 mt-lg-0 text-nowrap ps-2" id="mainNavbar">
+      <div class="collapse navbar-collapse mt-2 mt-lg-0 text-nowrap ps-2" id="mainNavbar" ref="navbarCollapseRef">
         <!-- 드롭다운 메뉴 중앙 정렬 -->
         <ul class="navbar-nav d-flex justify-content-start w-100 flex-row flex-wrap gap-3 align-items-center">
           <NavbarDropdown id="menu1" title="버스 이용 안내" :items="busMenu"/>
@@ -34,8 +30,8 @@
             <WeatherDisplay />
           </div>
         </div>
-      </div>
       <UserMenu :role="auth.role" />
+      </div>
     </div>
   </nav>
 </template>
@@ -47,10 +43,10 @@ import WeatherDisplay from './WeatherDisplay.vue'
 import UserMenu from './UserMenu.vue'
 
 import { useAuthStore } from '@/stores/auth.js'
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { Collapse } from 'bootstrap'
 
 const auth = useAuthStore()
-
 const role = computed(() => auth.role)
 
 // ✅ computed로 역할 체크
@@ -61,6 +57,9 @@ const isAuthenticated = computed(() => !!auth.role)
 const logout = () => {
   auth.logout()
 }
+
+const navbarCollapseRef = ref(null)
+let collapseInstance = null
 
 // 드롭다운 메뉴들
 const busMenu = [
@@ -79,6 +78,18 @@ const noticeMenu = [
   {label: '공지사항', to: '/notice'},
   {label: 'Q&A', to: '/qna/list'}
 ]
+
+onMounted(() => {
+  if (navbarCollapseRef.value) {
+    collapseInstance = new Collapse(navbarCollapseRef.value, { toggle: false })
+  }
+})
+
+function toggleNavbar() {
+  if (collapseInstance) {
+    collapseInstance.toggle()
+  }
+}
 </script>
 
 
