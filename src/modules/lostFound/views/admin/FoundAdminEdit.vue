@@ -1,123 +1,132 @@
 <template>
-  <Modal @close="$emit('close')">
-    <div class="p-4">
-      <h2 class="text-xl font-semibold mb-4">정보 수정</h2>
-      <form @submit.prevent="submitForm">
-        <div class="grid grid-cols-1 gap-3 text-sm">
-          <div>
-            <label class="block font-medium">물품명:</label>
-            <input v-model="form.itemName" class="form-input w-full" required />
-          </div>
-
-          <div>
-            <label class="block font-medium">버스회사:</label>
-            <input v-model="form.busCompany" class="form-input w-full" required />
-          </div>
-
-          <div>
-            <label class="block font-medium">버스번호:</label>
-            <input v-model="form.busNumber" class="form-input w-full" required />
-          </div>
-
-          <div>
-            <label class="block font-medium">습득일:</label>
-            <input v-model="form.foundTime" type="date" class="form-input w-full" required />
-          </div>
-
-          <div>
-            <label class="block font-medium">습득 장소:</label>
-            <input v-model="form.foundPlace" class="form-input w-full" />
-          </div>
-
-          <div>
-            <label class="block font-medium">내용:</label>
-            <textarea v-model="form.content" class="form-textarea w-full" />
-          </div>
-
-          <div>
-            <label class="block font-medium">보관 위치:</label>
-            <input v-model="form.storageLocation" class="form-input w-full" />
-          </div>
-
-          <div>
-            <label class="block font-medium">연락처:</label>
-            <input v-model="form.handlerContact" class="form-input w-full" />
-          </div>
-
-          <div>
-            <label class="block font-medium">이메일:</label>
-            <input v-model="form.handlerEmail" type="email" class="form-input w-full" />
-          </div>
-
-          <div>
-            <label class="block font-medium">상태:</label>
-            <select v-model="form.status" class="form-select w-full">
-              <option value="IN_STORAGE">보관중</option>
-              <option value="RETURNED">수령완료</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-medium">분실물 ID (매칭용):</label>
-            <input v-model="matchLostId" class="form-input w-full" placeholder="예: 10 (선택)" />
+  <div class="container py-4">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">📝 습득물 정보 수정</h5>
+        <button 
+          @click="goBack" 
+          class="btn btn-outline-secondary btn-sm"
+        >
+          <i class="bi bi-x-circle me-1"></i> 취소
+        </button>
+      </div>
+      
+      <div v-if="item" class="mt-4">
+        <FoundItemForm :item="item" @submitted="handleSubmit" />
+        
+        <!-- 매칭 섹션 -->
+        <div class="card mt-4 bg-light">
+          <div class="card-body">
+            <h6 class="card-title mb-3">분실물 매칭</h6>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-8">
+                <label class="form-label">분실물 ID (매칭용)</label>
+                <input v-model="matchLostId" class="form-control" placeholder="예: 10 (선택)" />
+                <small class="text-muted">매칭할 분실물 ID를 입력하세요</small>
+              </div>
+              <div class="col-md-4 text-end">
+                <button
+                  type="button"
+                  class="btn btn-warning"
+                  @click="matchWithLostItem"
+                >
+                  <i class="bi bi-link me-1"></i> 매칭하기
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div class="mt-6 text-right space-x-2">
-          <button
-              type="button"
-              class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-              @click="matchWithLostItem"
-          >
-            매칭
-          </button>
-          <button
-              type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            수정 완료
-          </button>
+      </div>
+      
+      <div v-else class="py-5 text-center">
+        <div v-if="loading" class="d-flex justify-content-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
         </div>
-      </form>
+        <p v-else class="text-muted">정보를 찾을 수 없습니다.</p>
+      </div>
     </div>
-  </Modal>
+  </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, reactive, watch } from 'vue'
-import Modal from '@/modules/lostFound/components/Modal.vue'
-// import { updateFoundItem, matchFoundWithLost } from '@/modules/lostFound/api/foundAdmin'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
+import FoundItemForm from '@/modules/lostFound/components/FoundItemForm.vue'
+import { matchFoundItem, updateFoundItem } from '@/modules/lostFound/api/foundAdmin'
 
-const props = defineProps({
-  item: Object
-})
+const router = useRouter()
+const route = useRoute()
+const item = ref(null)
+const loading = ref(true)
+const matchLostId = ref('')
 
-const emit = defineEmits(['close', 'updated'])
+const goBack = () => {
+  router.push('/admin/found')
+}
 
-const form = reactive({ ...props.item })
-// const matchLostId = ref('')
-
-watch(() => props.item, (newVal) => {
-  Object.assign(form, newVal)
-})
-
-const submitForm = async () => {
+const fetchItem = async () => {
   try {
-    await updateFoundItem(form.id, form)
-    emit('updated')
-    emit('close')
-  } catch (e) {
-    console.error('수정 실패:', e)
+    loading.value = true
+    const { data } = await axios.get(`/api/admin/found/${route.params.id}`)
+    item.value = data
+  } catch (error) {
+    console.error('습득물 정보 조회 실패:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSubmit = async (formData) => {
+  try {
+    console.log('수정 완료 이벤트 수신됨')
+
+    // ✅ 서버에 수정 요청을 보냄 (이 줄이 중요!)
+    await updateFoundItem(route.params.id, formData)
+
+    // ✅ 성공 후 안내 및 페이지 이동
+    alert('수정되었습니다.')
+    router.push(`/admin/found/${route.params.id}`)
+  } catch (error) {
+    console.error('폼 제출 처리 실패:', error)
+    let errorMsg = '처리 중 오류가 발생했습니다';
+
+    if (error.response?.data?.message) {
+      errorMsg += ': ' + error.response.data.message;
+    } else if (error.message) {
+      errorMsg += ': ' + error.message;
+    }
+
+    alert(errorMsg)
   }
 }
 
 const matchWithLostItem = async () => {
   try {
-    await matchFoundWithLost(form.id, matchLostId.value)
-    emit('updated')
-    emit('close')
+    if (!matchLostId.value) {
+      alert('매칭할 분실물 ID를 입력해주세요.')
+      return
+    }
+    
+    console.log('🔄 매칭 시도:', item.value.id, matchLostId.value)
+    await matchFoundItem(item.value.id, matchLostId.value)
+    alert('매칭되었습니다.')
+    router.push('/admin/found')
   } catch (e) {
     console.error('매칭 실패:', e)
+    alert('매칭 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message))
   }
 }
+
+onMounted(() => {
+  fetchItem()
+})
 </script>
+
+<style scoped>
+.container {
+  max-width: 900px;
+}
+</style>

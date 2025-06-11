@@ -66,7 +66,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="item in pagedItems" :key="item.id" @click="openModal('detail', item)" style="cursor: pointer;">
+      <tr v-for="item in pagedItems" :key="item.id" @click="goToItemDetail(item.id)" style="cursor: pointer;">
         <td>{{ item.id }}</td>
         <td>{{ displayText(item.title) }}</td>
         <td>{{ trimText(item.content) }}</td>
@@ -78,7 +78,7 @@
 
     <div class="d-flex justify-content-end mb-3">
       <button class="btn btn-outline-secondary" @click="goToMyLostItems">내 글 모아보기</button>
-      <button class="btn btn-outline-primary" @click="openModal('create')">분실물 등록</button>
+      <button class="btn btn-outline-primary" @click="goToCreatePage">분실물 등록</button>
     </div>
 
     <div class="d-flex justify-content-center my-3">
@@ -86,13 +86,6 @@
       <span class="align-self-center">Page {{ page }} / {{ totalPages }}</span>
       <button class="btn btn-sm btn-outline-secondary ms-2" :disabled="page === totalPages" @click="page++">다음</button>
     </div>
-
-    <Modal v-if="modalType" @close="closeModal">
-      <template #default>
-        <LostItemForm v-if="modalType === 'create'" @submit="handleCreate" />
-        <LostPublicDetail v-else :item="selectedItem" @close="closeModal" />
-      </template>
-    </Modal>
   </div>
 </template>
 
@@ -100,17 +93,14 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import Modal from '@/modules/lostFound/components/Modal.vue';
-import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue';
-import LostPublicDetail from '@/modules/lostFound/views/user/LostPublicDetail.vue';
-import { getAllLostItems, getBusCompanies, getBusesByCompany, createLostItem } from '@/modules/lostFound/api/lostPublic.js';
+import { getAllLostItems, getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js';
 
 const router = useRouter();
 const goToMyLostItems = () => router.push('/mypage/lost');
+const goToItemDetail = (id) => router.push(`/lost/${id}`);
+const goToCreatePage = () => router.push('/lost/create');
 
 const lostItems = ref([]);
-const modalType = ref(null);
-const selectedItem = ref(null);
 
 const period = ref('7');
 const itemName = ref('');
@@ -194,23 +184,6 @@ const pagedItems = computed(() => {
 });
 
 const totalPages = computed(() => Math.ceil(lostItems.value.length / pageSize));
-
-const openModal = (type, item = null) => {
-  modalType.value = type;
-  selectedItem.value = item;
-};
-
-const closeModal = () => {
-  modalType.value = null;
-  selectedItem.value = null;
-};
-
-const handleCreate = async (formData) => {
-  await createLostItem(formData);
-  await fetchItems();
-  closeModal();
-  page.value = 1;
-};
 
 const trimText = (text, max = 50) => {
   if (!text || text === 'string') return '정보 없음';

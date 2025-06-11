@@ -21,6 +21,9 @@ import NoticeDetail from '@/modules/adminpage/dashboard/views/NoticeDetail.vue'
 import NoticeWrite from '@/modules/adminpage/dashboard/views/NoticeWrite.vue'
 import Dashboard from "@/modules/adminpage/dashboard/views/Dashboard.vue";
 import FoundAdminList from "@/modules/lostFound/views/admin/FoundAdminList.vue";
+import FoundAdminCreate from "@/modules/lostFound/views/admin/FoundAdminCreate.vue";
+import FoundAdminDetail from "@/modules/lostFound/views/admin/FoundAdminDetail.vue";
+import FoundAdminEdit from "@/modules/lostFound/views/admin/FoundAdminEdit.vue";
 
 export const adminRoutes = {
   path: "/admin",
@@ -139,6 +142,23 @@ export const adminRoutes = {
       path: "found",
       name : "FoundAdminList",
       component: FoundAdminList
+    },
+    {
+      path: "found/create",
+      name: "FoundAdminCreate",
+      component: FoundAdminCreate
+    },
+    {
+      path: "found/:id",
+      name: "FoundAdminDetail",
+      component: FoundAdminDetail,
+      props: true
+    },
+    {
+      path: "found/edit/:id",
+      name: "FoundAdminEdit",
+      component: FoundAdminEdit,
+      props: true
     }
   ],
   meta: { requiresAuth: true }
