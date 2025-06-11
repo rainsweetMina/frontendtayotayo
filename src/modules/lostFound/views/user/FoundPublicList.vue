@@ -51,7 +51,7 @@
 
       <div class="text-end">
         <button class="btn btn-secondary me-2" @click="resetFilters">초기화</button>
-        <button class="btn btn-primary" @click="fetchFoundItems">검색</button>
+        <button class="btn btn-primary" @click="handleSearch">검색</button>
       </div>
     </div>
 
@@ -68,9 +68,21 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="item in items" :key="item.id" @click="openDetail(item)" style="cursor: pointer;">
+      <tr v-for="item in items" :key="item.id" @click="goToItemDetail(item.id)" style="cursor: pointer;">
         <td>{{ item.id }}</td>
-        <td><img :src="item.photoUrl" alt="사진" width="60" height="60" /></td>
+        <td>
+          <img 
+            v-if="item.photoUrl" 
+            :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
+            alt="사진" 
+            width="60" 
+            height="60" 
+            class="rounded border"
+          />
+          <div v-else class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+            <span class="text-muted small">없음</span>
+          </div>
+        </td>
         <td>{{ item.itemName }}</td>
         <td>{{ item.content }}</td>
         <td>{{ formatDate(item.foundTime) }}</td>
@@ -78,20 +90,17 @@
       </tr>
       </tbody>
     </table>
-
-    <!-- 📦 상세 모달 -->
-    <Modal v-if="selectedItem" @close="selectedItem = null">
-      <FoundPublicDetail :item="selectedItem" />
-    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
-import Modal from '@/modules/lostFound/components/Modal.vue';
-import FoundPublicDetail from './FoundPublicDetail.vue';
 import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/foundPublic';
+
+const router = useRouter();
+const goToItemDetail = (id) => router.push(`/found/${id}`);
 
 const dateRange = ref('7');
 const searchKeyword = ref('');
@@ -99,9 +108,9 @@ const selectedCompanyId = ref('');
 const selectedRoute = ref('');
 const busCompanies = ref([]);
 const busRoutes = ref([]);
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
 const items = ref([]);
-const selectedItem = ref(null);
 
 // 🗓 날짜 계산
 const getStartDate = (daysAgo) => {
@@ -110,29 +119,36 @@ const getStartDate = (daysAgo) => {
   return date.toISOString().split('T')[0];
 };
 
+// 검색 버튼 클릭시
+const handleSearch = async () => {
+  console.log('검색 버튼 클릭');
+  fetchFoundItems();
+};
+
 // 🔍 검색 API 요청
 const fetchFoundItems = async () => {
-  const companyObj = busCompanies.value.find(c => c.id === selectedCompanyId.value);
-  const companyName = companyObj ? companyObj.companyName : '';
-
-  const params = {
-    keyword: searchKeyword.value,
-    busCompany: companyName,
-    busNumber: selectedRoute.value,
-    startDate: getStartDate(Number(dateRange.value)),
-    endDate: new Date().toISOString().split('T')[0],
-  };
-
-  // 빈 값 제거
-  Object.keys(params).forEach(key => {
-    if (!params[key]) delete params[key];
-  });
-
   try {
-    const res = await axios.get('/api/found/search', { params });
-    items.value = res.data;
+    console.log('🔍 검색 요청 시작');
+    
+    // 검색 파라미터 준비
+    const companyObj = busCompanies.value.find(c => c.id === selectedCompanyId.value);
+    const companyName = companyObj ? companyObj.companyName : '';
+
+    // 날짜 계산
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = getStartDate(Number(dateRange.value));
+    
+    console.log('날짜 범위:', { startDate, endDate });
+
+    // 목록 데이터 가져오기 (검색 대신 기본 목록 API 사용)
+    console.log('전체 목록 조회 요청');
+    const { data } = await axios.get('/api/found');
+    console.log('목록 응답:', data);
+    
+    items.value = data;
   } catch (e) {
-    console.error('❌ 검색 실패:', e);
+    console.error('❌ 목록 조회 실패:', e);
+    items.value = [];
   }
 };
 
@@ -155,11 +171,14 @@ const handleCompanyChange = async () => {
 
 // 초기화
 const resetFilters = () => {
+  console.log('필터 초기화');
   dateRange.value = '7';
   searchKeyword.value = '';
   selectedCompanyId.value = '';
   selectedRoute.value = '';
   busRoutes.value = [];
+  
+  // 초기화 후 목록 다시 로드
   fetchFoundItems();
 };
 
@@ -167,12 +186,9 @@ const formatDate = (dateStr) => {
   return dateStr ? new Date(dateStr).toISOString().split('T')[0] : '-';
 };
 
-const openDetail = (item) => {
-  selectedItem.value = item;
-};
-
 onMounted(() => {
   fetchBusCompanies();
+  // 초기 로딩시 검색 실행
   fetchFoundItems();
 });
 </script>
