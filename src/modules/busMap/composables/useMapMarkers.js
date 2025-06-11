@@ -136,9 +136,9 @@ export function useMapMarkers(map) {
         console.log('📌 drawTransferMarker 시도:', latlng);
 
         // ✅ 기존 마커 제거
-        if (window.transferMarker && map.value.hasLayer(window.transferMarker)) {
-            map.value.removeLayer(window.transferMarker);
-            window.transferMarker = null;
+        if (window.lastTransferMarker && map.value.hasLayer(window.lastTransferMarker)) {
+            map.value.removeLayer(window.lastTransferMarker);
+            window.lastTransferMarker = null;
         }
 
         const marker = L.marker([latlng.lat, latlng.lng], {
@@ -149,10 +149,9 @@ export function useMapMarkers(map) {
             })
         }).addTo(map.value).bindPopup(label);
 
-        window.transferMarker = marker;
+        window.lastTransferMarker = marker;  // ✅ 이 부분이 핵심
         return marker;
     }
-
 
     function clearTransferMarker() {
         if (window.lastTransferMarker && map.value.hasLayer(window.lastTransferMarker)) {
