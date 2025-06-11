@@ -10,6 +10,10 @@ export const useSearchStore = defineStore('searchStore', {
         // 🔽 길찾기 관련 상태
         startCoord: null,
         endCoord: null,
+        autoTriggered: {
+            startMarker: false,
+            endMarker: false
+        },
         startBsId: null,
         endBsId: null,
         startStop: null,         // 출발 정류장 객체 (bsId, bsNm 등)

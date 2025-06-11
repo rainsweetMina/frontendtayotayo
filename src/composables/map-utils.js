@@ -30,6 +30,14 @@ export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
 }
 
 export function clearMapElements(map) {
+    console.log('🧹 [clearMapElements] called')
+    console.log('🧪 lastStartMarker exists?', !!window.lastStartMarker)
+    if (window.lastStartMarker) {
+        console.log('🧪 map.hasLayer(lastStartMarker)?', map.hasLayer(window.lastStartMarker))
+    } else {
+        console.log('🧪 lastStartMarker is undefined')
+    }
+
     if (!map) return;
 
     if (window.routePolylines) {
@@ -96,6 +104,7 @@ export function clearMapElements(map) {
 
     // ✅ 출발지 마커 제거
     if (window.lastStartMarker && map.hasLayer(window.lastStartMarker)) {
+        console.log('🧹 removing lastStartMarker')
         map.removeLayer(window.lastStartMarker);
         window.lastStartMarker = null;
     }
