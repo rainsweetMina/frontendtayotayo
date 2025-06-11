@@ -49,27 +49,6 @@ let lastStartMarker = null
 let lastEndMarker = null
 let lastTransferMarker = null
 
-watch(() => store.lastSearchedKeyword, async (keyword) => {
-  if (!keyword.trim()) return
-  try {
-    const map = window.leafletMap
-    if (map) clearMapElements(map)
-
-    const {data} = await axios.get('/api/bus/searchBSorBN', {
-      params: {keyword}
-    })
-    store.busStops = data.busStops || []
-    store.busRoutes = data.busNumbers || []
-
-    store.routeResults = []
-    store.selectedRoute = null
-
-    drawBusStopMarkersWithArrival(map, store.busStops)
-  } catch (err) {
-    console.error('❌ 자동 검색 실패:', err)
-  }
-}, {immediate: true})
-
 async function handleStopClick(stop) {
   const bsId = stop.bsId
   openedStopId.value = bsId
@@ -337,4 +316,25 @@ async function bindArrivalPopup(marker, bsId, bsNm) {
     marker.bindPopup(`<b>${bsNm}</b><br>도착 정보 조회 실패`).openPopup()
   }
 }
+
+watch(() => store.lastSearchedKeyword, async (keyword) => {
+  if (!keyword.trim()) return
+  try {
+    const map = window.leafletMap
+    if (map) clearMapElements(map)
+
+    const {data} = await axios.get('/api/bus/searchBSorBN', {
+      params: {keyword}
+    })
+    store.busStops = data.busStops || []
+    store.busRoutes = data.busNumbers || []
+
+    store.routeResults = []
+    store.selectedRoute = null
+
+    drawBusStopMarkersWithArrival(map, store.busStops)
+  } catch (err) {
+    console.error('❌ 자동 검색 실패:', err)
+  }
+}, {immediate: true})
 </script>

@@ -8,7 +8,7 @@ axios.defaults.withCredentials = true;
 axios.interceptors.request.use(
   config => {
     // 여기에 토큰 등을 추가할 수 있습니다
-    console.log('Making request to:', config.url);
+    // console.log('Making request to:', config.url);
     return config;
   },
   error => {

@@ -11,11 +11,7 @@
 </template>
 
 <script setup>
-import startIcon from '@/assets/icons/start_icon.png'
-import arrivalIcon from '@/assets/icons/arrival_icon.png'
 import transferIcon from '@/assets/icons/transfer_icon.png'
-import startMarkerIcon from '@/assets/icons/start_marker_icon.png'
-import arrivalMarkerIcon from '@/assets/icons/arrival_marker_icon.png'
 
 import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue'
 import L from 'leaflet'
@@ -48,9 +44,6 @@ const routePolyline = ref(null)
 const busMarkers = ref([])
 const intervalId = ref(null)
 
-let manualStartMarker = null
-let manualEndMarker = null
-
 const { tryAutoRouteFromCoords } = useAutoRoute(store)
 
 const {
@@ -62,8 +55,12 @@ const {
   clearManualEndMarkers,
   clearStartMarker,
   clearEndMarker,
+  drawTransferMarker,
+  clearTransferMarker,
   removeAllMarkersAtCoord,
-  clearAllStartMarkers
+  clearAllStartMarkers,
+  clearManualMarkers,
+  clearAutoMarkers
 } = useMapMarkers(map)
 
 const {
@@ -75,10 +72,9 @@ const {
 } = useContextMenu(mapRef, map)
 
 function selectAsStart(coords) {
-  clearManualStartMarkers()
-  clearStartMarker()
-  clearTransferMarker()
+  clearAutoMarkers()
   clearRoutePolylines()
+  removeAllMarkersAtCoord(coords)
   store.routeResults = []
 
   startCoord.value = coords
@@ -94,15 +90,16 @@ function selectAsStart(coords) {
 }
 
 function selectAsEnd(coords) {
-  clearManualEndMarkers()
-  clearEndMarker()
-  clearTransferMarker()
+  console.log('🧭 selectAsEnd 실행됨, coords:', coords)
+
+  clearAutoMarkers()
   clearRoutePolylines()
   store.routeResults = []
 
   endCoord.value = coords
   drawManualEndMarker(coords)
 
+  console.log('📌 endCoord 저장됨:', endCoord.value)
 
   if (store.setEndCoordText) {
     store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
@@ -111,15 +108,6 @@ function selectAsEnd(coords) {
 
   contextMenu.value.visible = false
   tryAutoRouteFromCoords(startCoord.value, coords)
-}
-
-
-
-function clearTransferMarker() {
-  if (window.transferMarker) {
-    map.value.removeLayer(window.transferMarker)
-    window.transferMarker = null
-  }
 }
 
 function clearBusMarkers() {
@@ -139,22 +127,15 @@ function clearRoutePolylines() {
 }
 
 function clearMapElementsForSearch() {
-  clearStartMarker()
-  clearEndMarker()
-  clearTransferMarker()
+  clearManualMarkers()
+  clearAutoMarkers()
   clearRoutePolylines()
-  clearManualStartMarkers()
-  clearManualEndMarkers()
+  clearTransferMarker()
 }
 
 defineExpose({
-  clearStartMarker,
-  clearEndMarker,
-  clearTransferMarker,
-  clearRoutePolylines,
-  clearManualStartMarkers,
-  clearManualEndMarkers,
-  clearMapElementsForSearch
+  clearMapElementsForSearch,
+  clearTransferMarker
 })
 
 async function fetchBusLocations() {
@@ -180,11 +161,8 @@ async function fetchBusLocations() {
 }
 
 function handleSelectedRoute(route) {
-  clearStartMarker()
-  clearEndMarker()
-  clearManualStartMarkers()
-  clearManualEndMarkers()
-  clearTransferMarker()
+  clearManualMarkers()
+  clearAutoMarkers()
   clearRoutePolylines()
 
   if (
@@ -268,6 +246,7 @@ function handleSelectedRoute(route) {
 
 onMounted(() => {
   map.value = useMapInit(mapRef)
+  window.leafletMap = map.value
 
   mapRef.value.addEventListener('contextmenu', handleRightClick)
   mapRef.value.addEventListener('touchstart', handleTouchStart)
@@ -277,6 +256,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value)
+  clearAutoMarkers()
+  clearManualMarkers()
 
   if (window.transferMarker) {
     map.value.removeLayer(window.transferMarker)
@@ -290,41 +271,20 @@ onBeforeUnmount(() => {
 
   busMarkers.value.forEach(m => map.value.removeLayer(m))
   busMarkers.value = []
-
-  clearStartMarker()
-  clearEndMarker()
-  clearManualStartMarkers()
-  clearManualEndMarkers()
 })
 
-watch(() => store.startCoord, (coord, _, onCleanup) => {
-  if (!coord) return;
-
-  // 👉 자동 탐색 상황인지 확인하는 플래그 추가
-  if (store.autoTriggered) {
-    clearManualStartMarkers()
-    clearStartMarker()
-    removeAllMarkersAtCoord(coord)
+watch(() => store.startCoord, (coord) => {
+  if (store.autoTriggered?.startMarker) {
     drawStartMarker(coord)
+    store.autoTriggered.startMarker = false
   }
-
-  onCleanup(() => {
-    store.autoTriggered = false
-  })
 })
 
-watch(() => store.endCoord, (coord, _, onCleanup) => {
-  if (!coord) return;
-
-  if (store.autoTriggered) {
-    clearManualEndMarkers()
-    clearEndMarker()
+watch(() => store.endCoord, (coord) => {
+  if (store.autoTriggered?.endMarker) {
     drawEndMarker(coord)
+    store.autoTriggered.endMarker = false
   }
-
-  onCleanup(() => {
-    store.autoTriggered = false
-  })
 })
 
 watch(
