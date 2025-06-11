@@ -1,34 +1,21 @@
 <template>
-  <component :is="layoutComponent" />
+  <component :is="layout">
+    <router-view />
+  </component>
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
 import { computed } from 'vue'
-import DefaultLayout from './layouts/DefaultLayout.vue'
-import { useAuthStore } from '@/stores/auth'
-import api from '@/api/axiosInstance'
+import { useRoute } from 'vue-router'
+
+// 레이아웃 컴포넌트 불러오기
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import EmptyLayout from '@/layouts/components/EmptyLayout.vue' // 로그인 등 헤더 없는 레이아웃
 
 const route = useRoute()
-const authStore = useAuthStore()
 
-// ✅ setup() 실행 즉시 로그인 상태 확인
-;(async () => {
-  try {
-    const res = await api.get('/api/user/info', { withCredentials: true })
-
-    if (res.data?.userId) {
-      authStore.login(res.data)
-    } else {
-      authStore.logout()
-    }
-  } catch (err) {
-    console.error('❌ 유저 정보 가져오기 실패:', err)
-    authStore.logout()
-  }
-})()
-
-const layoutComponent = computed(() =>
-    route.meta.layout === 'none' ? 'router-view' : DefaultLayout
-)
+// ✅ meta.layout이 'none'이면 빈 레이아웃, 그 외는 기본 레이아웃
+const layout = computed(() => {
+  return route.meta?.layout === 'none' ? EmptyLayout : DefaultLayout
+})
 </script>

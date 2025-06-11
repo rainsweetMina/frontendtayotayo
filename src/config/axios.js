@@ -8,8 +8,8 @@ axios.defaults.withCredentials = true;
 axios.interceptors.request.use(
   config => {
     // 여기에 토큰 등을 추가할 수 있습니다
-    console.log('요청 URL:', config.url);
-    console.log('요청 메소드:', config.method);
+    // console.log('요청 URL:', config.url);
+    // console.log('요청 메소드:', config.method);
     return config;
   },
   error => {
