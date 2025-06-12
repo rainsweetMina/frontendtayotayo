@@ -27,7 +27,6 @@
 <script setup>
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
-import transferIcon from '@/assets/icons/transfer_icon.png'
 
 import {ref, watch, onMounted} from 'vue'
 import axios from 'axios'
@@ -35,29 +34,22 @@ import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
 import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
 import {renderPopupComponent} from '@/utils/popup-mount'
+import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
 
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
 import RouteResultList from '../components/RouteResultList.vue'
 import SearchBoxWrapper from "@/modules/busSearch/components/SearchBoxWrapper.vue";
-import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
 
 const store = useSearchStore()
 
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
+const map = ref(window.leafletMap)
+const markerFns = useMapMarkers(map)
 let lastStartMarker = null
 let lastEndMarker = null
 let lastTransferMarker = null
-
-const mapRef = ref(null)
-const map = ref(null)
-
-onMounted(() => {
-  map.value = window.leafletMap
-})
-
-const { drawTransferMarker, clearAutoMarkers } = useMapMarkers(map)
 
 async function handleStopClick(stop) {
   const bsId = stop.bsId
@@ -116,6 +108,9 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     map.removeLayer(lastTransferMarker)
     lastTransferMarker = null
   }
+  if (!markerFns.value) {
+    markerFns.value = useMapMarkers(ref(map))
+  }
 
   const transferX = parseFloat(transferStation?.xPos ?? transferStation?.xpos)
   const transferY = parseFloat(transferStation?.yPos ?? transferStation?.ypos)
@@ -149,11 +144,16 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     }
 
     // 🔁 환승 마커
-    const marker = drawTransferMarker({lat: transferY, lng: transferX}, `환승지점: ${transferStation.bsNm}`)
+    const marker = markerFns.value?.drawTransferMarker?.(
+        { lat: transferY, lng: transferX },
+        `환승지점: ${transferStation.bsNm}`
+    )
 
-    marker.on('click', () => {
-      bindArrivalPopup(marker, transferStation.bsId, transferStation.bsNm)
-    })
+    if (marker) {
+      marker.on('click', () => {
+        bindArrivalPopup(marker, transferStation.bsId, transferStation.bsNm)
+      })
+    }
   } else {
     // 환승 없을 경우 단일 경로
     drawBusRouteMapORS(map, polyline, 'yellowgreen')

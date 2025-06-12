@@ -14,7 +14,7 @@ export function useMapMarkers(map) {
 
         const keys = [
             'lastStartMarker', 'lastEndMarker', 'lastTransferMarker',
-            'manualStartMarker', 'manualEndMarker', 'transferMarker'
+            'manualStartMarker', 'manualEndMarker'
         ];
 
         keys.forEach(key => {
@@ -107,7 +107,6 @@ export function useMapMarkers(map) {
         }).addTo(map.value)
 
         window.lastEndMarker = marker
-        console.log('✅ drawEndMarker - 마커 생성됨:', marker.getLatLng(), 'ID:', marker._leaflet_id)
     }
 
     const clearStartMarker = () => {
@@ -133,8 +132,6 @@ export function useMapMarkers(map) {
     function drawTransferMarker(latlng, label) {
         if (!map.value) return null;
 
-        console.log('📌 drawTransferMarker 시도:', latlng);
-
         // ✅ 기존 마커 제거
         if (window.lastTransferMarker && map.value.hasLayer(window.lastTransferMarker)) {
             map.value.removeLayer(window.lastTransferMarker);
@@ -154,21 +151,17 @@ export function useMapMarkers(map) {
     }
 
     function clearTransferMarker() {
-        if (window.lastTransferMarker && map.value.hasLayer(window.lastTransferMarker)) {
-            map.value.removeLayer(window.lastTransferMarker)
-            console.log('🧹 lastTransferMarker 제거됨')
-            window.lastTransferMarker = null
+        if (window.transferMarker && map.value.hasLayer(window.transferMarker)) {
+            map.value.removeLayer(window.transferMarker)
+            window.transferMarker = null
         }
     }
 
     const removeAllMarkersAtCoord = (coord) => {
-        console.log('🗑️ removeAllMarkersAtCoord 실행:', coord)
-
         map.value.eachLayer(layer => {
             if (layer instanceof L.Marker) {
                 const pos = layer.getLatLng()
                 if (pos.lat === coord.lat && pos.lng === coord.lng) {
-                    console.warn('⚠️ 마커 제거됨 (같은 좌표):', pos)
                     map.value.removeLayer(layer)
                 }
             }
