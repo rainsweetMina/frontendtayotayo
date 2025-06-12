@@ -159,6 +159,17 @@ function swapInputs() {
   store.arrival = tempText
   store.startStop = store.endStop
   store.endStop = tempStop
+
+  if (window.leafletMap instanceof L.Map) {
+    if (window.manualStartMarker && window.leafletMap.hasLayer(window.manualStartMarker)) {
+      window.leafletMap.removeLayer(window.manualStartMarker)
+      window.manualStartMarker = null
+    }
+    if (window.manualEndMarker && window.leafletMap.hasLayer(window.manualEndMarker)) {
+      window.leafletMap.removeLayer(window.manualEndMarker)
+      window.manualEndMarker = null
+    }
+  }
 }
 
 async function searchRoutes() {

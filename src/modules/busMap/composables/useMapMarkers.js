@@ -14,7 +14,6 @@ export function useMapMarkers(map) {
 
         const keys = [
             'lastStartMarker', 'lastEndMarker', 'lastTransferMarker',
-            'manualStartMarker', 'manualEndMarker'
         ];
 
         keys.forEach(key => {
@@ -52,6 +51,8 @@ export function useMapMarkers(map) {
                 iconAnchor: [18, 36]
             })
         }).addTo(map.value)
+
+        window.manualStartMarker = manualStartMarker
     }
 
     const drawManualEndMarker = (coord) => {
@@ -65,6 +66,8 @@ export function useMapMarkers(map) {
                 iconAnchor: [18, 36]
             })
         }).addTo(map.value)
+
+        window.manualEndMarker = manualEndMarker
     }
 
     const clearManualStartMarkers = () => {

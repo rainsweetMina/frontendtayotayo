@@ -35,6 +35,7 @@ defineEmits(['selectAsStart', 'selectAsEnd'])
   padding: 4px 0;
   border: 1px solid #e0e0e0;
   font-family: 'Noto Sans KR', sans-serif;
+  width: 140px;
 }
 
 .menu-btn {
@@ -48,6 +49,7 @@ defineEmits(['selectAsStart', 'selectAsEnd'])
   color: #333;
   cursor: pointer;
   transition: background 0.2s ease;
+  /*justify-content: center;*/
 }
 
 .menu-btn i {
