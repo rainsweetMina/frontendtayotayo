@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import {nextTick, ref, watch} from 'vue'
 import {useSearchStore} from "@/stores/searchStore.js";
 import BasicSearchBox from './SearchBox.vue'
 import RouteSearchBox from './RouteSearchBox.vue'
@@ -34,6 +34,8 @@ const store = useSearchStore()
 const isRouteMode = ref(false)
 
 function handleSearch(keyword) {
+  store.forceRouteMode = false
+
   emit('search', keyword) // ❗그대로 상위로 전달만
 }
 
@@ -52,10 +54,15 @@ function toggleMode() {
   store.endStop = null
 }
 
-watch(() => store.forceRouteMode, (val) => {
-  if (val) {
+watch(() => store.forceRouteMode, async (val) => {
+  if (val === true) {
     isRouteMode.value = true
-    store.forceRouteMode = false  // ✅ 다시 false로 초기화
+
+    await nextTick()
+    store.forceRouteMode = null
+  } else if (val === false) {
+    isRouteMode.value = false
+    store.forceRouteMode = null
   }
 })
 </script>

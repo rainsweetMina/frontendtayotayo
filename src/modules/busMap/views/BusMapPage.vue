@@ -45,6 +45,7 @@ window.routePointMarkers = []
 
 // 검색 실행
 function handleSearch({ keyword, newStart, newEnd }) {
+  store.forceRouteMode = false
   if (!keyword.trim()) return
 
   clearMapElements(window.leafletMap)
