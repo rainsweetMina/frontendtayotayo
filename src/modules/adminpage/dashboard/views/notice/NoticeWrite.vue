@@ -26,20 +26,6 @@
         <div class="form-group mb-3">
           <label for="content" class="form-label">내용</label>
           
-          <!-- 이미지 업로드 버튼 추가 -->
-          <div class="image-upload-wrapper mb-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" @click="openImageUpload">
-              <i class="bi bi-image"></i> 이미지 추가
-            </button>
-            <input
-              ref="imageUploadInput"
-              type="file"
-              accept="image/*"
-              class="d-none"
-              @change="handleImageUpload"
-            />
-          </div>
-          
           <QuillEditor
             v-model:content="form.content"
             contentType="html"
@@ -163,6 +149,7 @@ class QuillPasteHandler {
     this.options = options;
     this.imageHandler = options.imageHandler || this.imageHandler.bind(this);
     this.quill.root.addEventListener('paste', this.pasteHandler.bind(this));
+    this.addFileToAttachments = options.addFileToAttachments;
   }
 
   pasteHandler(event) {
@@ -188,13 +175,24 @@ class QuillPasteHandler {
     compressImage(blob, 800, 800, 0.6).then(compressedFile => {
       console.log(`붙여넣기 - 원본: ${blob.size}바이트, 압축 후: ${compressedFile.size}바이트`);
       
+      // 이미지 파일 업로드 및 에디터에 삽입
+      const fileName = `pasted-image-${new Date().getTime()}.png`;
+      const imageFile = new File([compressedFile], fileName, { type: compressedFile.type });
+      
       const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      axios.post('/api/admin/upload/image', formData)
+      formData.append('file', imageFile);
+      
+      axios.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
+          
+          // 첨부파일에도 추가 (첨부파일 표시용)
+          if (typeof this.addFileToAttachments === 'function') {
+            this.addFileToAttachments(imageFile);
+          } else {
+            console.error('addFileToAttachments 함수를 찾을 수 없습니다.');
+          }
         })
         .catch(err => {
           console.error('이미지 업로드 실패:', err);
@@ -220,6 +218,7 @@ class QuillDragDropHandler {
     this.imageHandler = options.imageHandler || this.imageHandler.bind(this);
     this.quill.root.addEventListener('drop', this.dropHandler.bind(this));
     this.quill.root.addEventListener('dragover', e => e.preventDefault());
+    this.addFileToAttachments = options.addFileToAttachments;
   }
 
   dropHandler(event) {
@@ -243,13 +242,24 @@ class QuillDragDropHandler {
     compressImage(file, 800, 800, 0.6).then(compressedFile => {
       console.log(`드래그앤드롭 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
       
+      // 이미지 파일 업로드 및 에디터에 삽입
+      const fileName = file.name || `dropped-image-${new Date().getTime()}.png`;
+      const imageFile = new File([compressedFile], fileName, { type: compressedFile.type });
+      
       const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      axios.post('/api/admin/upload/image', formData)
+      formData.append('file', imageFile);
+      
+      axios.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
+          
+          // 첨부파일에도 추가 (첨부파일 표시용)
+          if (typeof this.addFileToAttachments === 'function') {
+            this.addFileToAttachments(imageFile);
+          } else {
+            console.error('addFileToAttachments 함수를 찾을 수 없습니다.');
+          }
         })
         .catch(err => {
           console.error('이미지 업로드 실패:', err);
@@ -356,7 +366,9 @@ export default {
             // 기본 이미지 핸들러 비활성화
             image: function() {}
           }
-        }
+        },
+        pasteHandler: true,
+        dragDropHandler: true
       },
       placeholder: '내용을 입력하세요...'
     };
@@ -373,6 +385,18 @@ export default {
         console.log('이미지 붙여넣기 시도가 감지되었습니다. 별도 이미지 업로드 버튼을 사용해주세요.');
         return delta;
       });
+
+      // 붙여넣기 및 드래그앤드롭 핸들러에 addFileToAttachments 함수 전달
+      const pasteHandler = quill.getModule('pasteHandler');
+      const dragDropHandler = quill.getModule('dragDropHandler');
+      
+      if (pasteHandler) {
+        pasteHandler.addFileToAttachments = addFileToAttachments;
+      }
+      
+      if (dragDropHandler) {
+        dragDropHandler.addFileToAttachments = addFileToAttachments;
+      }
     };
 
     const handleFileChange = (event) => {
@@ -415,17 +439,19 @@ export default {
         const compressedFile = await compressImage(file, 800, 800, 0.6);
         console.log(`이미지 업로드 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
         
+        // 이미지 파일 업로드 후 에디터에 삽입 (본문에 표시)
         const formData = new FormData();
         formData.append('file', compressedFile);
         
-        // 업로드 중 UI 표시
-        // TODO: 로딩 인디케이터 추가
-        
-        const response = await axios.post('/api/admin/upload/image', formData);
+        const response = await axios.post('/api/admin/notices/upload/image', formData);
         const imageUrl = response.data.url;
         
         // 에디터에 이미지 삽입
         insertImage(imageUrl);
+        
+        // 첨부파일에 이미지 추가 (첨부파일 표시용)
+        const imageFile = new File([compressedFile], file.name, { type: compressedFile.type });
+        addFileToAttachments(imageFile);
         
         // 파일 인풋 초기화
         event.target.value = null;
@@ -433,6 +459,11 @@ export default {
         console.error('이미지 업로드 실패:', error);
         alert('이미지 업로드에 실패했습니다.');
       }
+    };
+
+    // 파일을 첨부파일 목록에 추가하는 헬퍼 함수
+    const addFileToAttachments = (file) => {
+      form.value.files = [...form.value.files, file];
     };
 
     const handleSubmit = async () => {
@@ -445,12 +476,57 @@ export default {
           return;
         }
 
+        // 에디터 내용에서 이미지 태그 검색
+        const imgRegex = /<img[^>]+src="([^">]+)"/g;
+        let match;
+        let hasInlineImages = false;
+        let processedContent = form.value.content;
+        
+        // 모든 base64 이미지를 서버에 업로드하고 URL로 변경
+        while ((match = imgRegex.exec(form.value.content)) !== null) {
+          const imageUrl = match[1];
+          hasInlineImages = true;
+          
+          // 이미 서버 URL인 경우에는 변환하지 않음
+          if (imageUrl.startsWith('https://localhost:8081/api/admin/notices/')) {
+            continue;
+          }
+          
+          // Base64 이미지인 경우 서버에 업로드하고 URL로 변환
+          if (imageUrl.startsWith('data:image/')) {
+            try {
+              // Base64 이미지를 서버에 업로드하고 URL로 변환
+              const blob = dataURLtoBlob(imageUrl);
+              const imgFormData = new FormData();
+              imgFormData.append('file', blob, 'embedded-image.png');
+              
+              // 동기적으로 업로드 처리
+              const uploadResponse = await axios.post('/api/admin/notices/upload/image', imgFormData);
+              const newUrl = uploadResponse.data.url;
+              
+              // 원본 URL을 새 URL로 교체
+              processedContent = processedContent.replace(imageUrl, newUrl);
+              console.log('이미지 업로드 성공:', newUrl);
+            } catch (imgError) {
+              console.error('이미지 업로드 실패:', imgError);
+              throw imgError; // 이미지 업로드 실패 시 전체 과정 중단
+            }
+          }
+        }
+        
+        // 인라인 이미지가 있을 경우 더미 첨부파일 추가 (첨부파일 표시용)
+        if (hasInlineImages && form.value.files.length === 0) {
+          // 이미 첨부파일이 없는 경우에만 더미 파일 추가
+          const dummyFile = new File([new Blob([''])], '이미지.png', { type: 'image/png' });
+          form.value.files.push(dummyFile);
+        }
+
         const formData = new FormData();
         
-        // notice 데이터를 JSON으로 변환
+        // 이미지가 URL로 변환된 content를 사용
         const noticeData = {
           title: form.value.title.trim(),
-          content: form.value.content.trim(),
+          content: processedContent, // 변환된 content 사용
           author: '관리자',  // 기본값으로 설정
           showPopup: form.value.showPopup,
           popupStart: form.value.showPopup ? form.value.popupStart : null,
@@ -489,60 +565,8 @@ export default {
           if (isEdit.value) {
             console.log('Updating notice ID:', route.params.id);
             
-            // 이미지 URL을 로컬 서버 URL로 변환하여 서버에서 처리할 수 있도록 수정
-            let processedContent = form.value.content;
-            const regex = /<img[^>]+src="([^">]+)"/g;
-            let match;
-            
-            // content에서 이미지 URL을 추출하여 서버에서 인식할 수 있는 형태로 변환
-            while ((match = regex.exec(processedContent)) !== null) {
-              const imageUrl = match[1];
-              // 이미 서버 URL인 경우에는 변환하지 않음
-              if (imageUrl.startsWith('https://localhost:8081/api/admin/upload/')) {
-                continue;
-              }
-              
-              if (imageUrl.startsWith('data:image/')) {
-                try {
-                  // Base64 이미지를 서버에 업로드하고 URL로 변환
-                  const blob = dataURLtoBlob(imageUrl);
-                  const imgFormData = new FormData();
-                  imgFormData.append('file', blob, 'embedded-image.png');
-                  
-                  const uploadResponse = await axios.post('/api/admin/upload/image', imgFormData);
-                  const newUrl = uploadResponse.data.url;
-                  
-                  // 원본 URL을 새 URL로 교체
-                  processedContent = processedContent.replace(imageUrl, newUrl);
-                } catch (imgError) {
-                  console.error('이미지 업로드 실패:', imgError);
-                }
-              }
-            }
-            
-            // 처리된 content로 noticeData 업데이트
-            const updatedNoticeData = {
-              ...noticeData,
-              content: processedContent
-            };
-            
-            // 업데이트된 noticeData로 Blob 재생성
-            const updatedNoticeBlob = new Blob([JSON.stringify(updatedNoticeData)], {
-              type: 'application/json'
-            });
-            
-            // FormData 재생성
-            const updatedFormData = new FormData();
-            updatedFormData.append('notice', updatedNoticeBlob);
-            
-            // 파일 재추가
-            if (form.value.files.length > 0) {
-              form.value.files.forEach(file => {
-                updatedFormData.append('files', file);
-              });
-            }
-            
-            response = await updateNotice(route.params.id, updatedFormData);
+            // 이미 모든 이미지가 처리되었으므로 추가 변환 작업 필요 없음
+            response = await updateNotice(route.params.id, formData);
           } else {
             console.log('Creating new notice');
             response = await createNotice(formData);
@@ -614,10 +638,18 @@ export default {
       }
     };
 
-    onMounted(() => {
-      fetchNotice();
-      // 에디터 초기화 후 설정
+    onMounted(async () => {
+      // 에디터 초기화
       initQuillEditor();
+      
+      if (isEdit.value) {
+        try {
+          await fetchNotice();
+        } catch (error) {
+          console.error('공지사항 불러오기 실패:', error);
+          errorMessage.value = '공지사항을 불러오는데 실패했습니다.';
+        }
+      }
     });
 
     return {
@@ -633,7 +665,8 @@ export default {
       handleFileChange,
       removeFile,
       insertImage,
-      handleSubmit
+      handleSubmit,
+      addFileToAttachments
     };
   }
 };

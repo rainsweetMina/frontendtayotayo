@@ -23,13 +23,12 @@
             <th>제목</th>
             <th>작성자</th>
             <th>작성일</th>
-            <th>첨부파일</th>
             <th>관리</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!notices || notices.length === 0">
-            <td colspan="6" class="text-center">등록된 공지사항이 없습니다.</td>
+            <td colspan="5" class="text-center">등록된 공지사항이 없습니다.</td>
           </tr>
           <tr v-for="notice in notices" :key="notice.id">
             <td>{{ notice.id }}</td>
@@ -40,12 +39,6 @@
             </td>
             <td>{{ notice.author }}</td>
             <td>{{ formatDate(notice.createdDate) }}</td>
-            <td>
-              <span v-if="hasAttachment(notice)" class="badge bg-success">
-                <i class="bi bi-paperclip"></i> 있음
-              </span>
-              <span v-else class="text-muted">-</span>
-            </td>
             <td>
               <router-link :to="`/admin/notices/${notice.id}/edit`" class="btn btn-warning btn-sm">수정</router-link>
               <button @click="deleteNotice(notice.id)" class="btn btn-danger btn-sm ms-2">삭제</button>
@@ -102,17 +95,6 @@ export default {
         if (Array.isArray(response.data)) {
           notices.value = response.data;
           totalPages.value = Math.ceil(response.data.length / pageSize);
-          
-          // 파일 정보 구조 확인용 로그
-          response.data.forEach(notice => {
-            if (notice.fileName || notice.fileUrl || notice.files) {
-              console.log(`Notice ${notice.id} file info:`, {
-                fileName: notice.fileName,
-                fileUrl: notice.fileUrl,
-                files: notice.files
-              });
-            }
-          });
         } else {
           notices.value = [];
           totalPages.value = 1;
@@ -145,10 +127,6 @@ export default {
       }
     };
 
-    const hasAttachment = (notice) => {
-      return !!(notice.fileName || notice.fileUrl || (notice.files && notice.files.length > 0));
-    };
-
     onMounted(() => fetchNotices(1));
 
     return {
@@ -159,7 +137,6 @@ export default {
       error,
       deleteNotice,
       changePage,
-      hasAttachment,
       formatDate: (date) => {
         if (!date) return '';
         return new Date(date).toLocaleDateString('ko-KR', {
@@ -196,5 +173,10 @@ export default {
 
 .table th {
   background-color: #f8f9fa;
+}
+
+.table th, .table td {
+  text-align: center;
+  vertical-align: middle;
 }
 </style> 
