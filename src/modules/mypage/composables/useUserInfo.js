@@ -29,7 +29,11 @@ export function useUserInfo() {
             user.value = null
             auth.logout() // ⭐ Pinia 상태도 초기화
 
-            if (err.response?.status === 401 && !['/login', '/register'].includes(route.path)) {
+            /*if (err.response?.status === 401 && !['/login', '/register'].includes(route.path)) {
+                router.push('/login')
+            }*/
+            if (redirectOnFail && err.response?.status === 401 && !['/login', '/register'].includes(route.path)) {
+                console.warn('🚨 로그인 리디렉트 발생! redirectOnFail:', redirectOnFail, 'current path:', route.path)
                 router.push('/login')
             }
         } finally {
@@ -37,9 +41,9 @@ export function useUserInfo() {
         }
     }
 
-    onMounted(async () => {
+    /*onMounted(async () => {
         await fetchUserInfo()
-    })
+    })*/
 
     return {
         user,

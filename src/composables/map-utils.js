@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { renderPopupComponent } from '@/utils/popup-mount'
+import {getSortedArrivalsFromApi} from "@/composables/arrival-utils.js";
 
 export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
     if (!Array.isArray(coordinates) || coordinates.length === 0) {
@@ -144,41 +145,9 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
         marker.on('click', async () => {
             try {
-                const res = await axios.get(`/api/bus/bus-arrival`, {
-                    params: { bsId: stop.bsId }
-                });
-
-                const body = res.data.body;
-
-                let content = `<div class="popup-wrapper">
-                                        <div class="popup-title"><b>${stop.bsNm}</b></div>
-                                    `;
-
-                if (!body.totalCount || !body.items) {
-                    content += `<div class="no-info">도착 정보 없음</div></div>`;
-                    marker.bindPopup(content).openPopup();
-                    return;
-                }
-
-                const items = Array.isArray(body.items) ? body.items : [body.items];
-                const routeMap = new Map();
-
-                // ✅ 노선번호별로 하나만 유지 (가장 빠른 arrState 기준)
-                items.forEach(item => {
-                    const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList];
-                    arrList.forEach(arr => {
-                        const existing = routeMap.get(item.routeNo);
-                        if (!existing || (arr.arrTime < existing.arrTime)) {
-                            routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn });
-                        }
-                    });
-                });
-
-                const sortedArrivals = [...routeMap.values()];
-
-                const popupContent = renderPopupComponent(marker, stop, sortedArrivals)
-                marker.bindPopup(popupContent).openPopup()
-
+                const sortedArrivals = await getSortedArrivalsFromApi(stop.bsId);
+                const popupContent = renderPopupComponent(marker, stop, sortedArrivals);
+                marker.bindPopup(popupContent).openPopup();
             } catch (err) {
                 marker.bindPopup(`<b>${stop.bsNm}</b><br>도착 정보 조회 실패`).openPopup();
                 console.error('❌ 도착 정보 요청 실패:', err);

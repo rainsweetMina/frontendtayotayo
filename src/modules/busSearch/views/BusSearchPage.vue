@@ -16,6 +16,8 @@
           :stops="recentStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
+          :isFavorited="isFavorited"
+          :toggleFavorite="handleToggleFavorite"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
@@ -26,7 +28,7 @@
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
           :isFavorited="isFavorited"
-          @toggleFavorite="handleToggleFavorite"
+          :toggleFavorite="toggleFavorite"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
@@ -41,6 +43,7 @@ import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
 import {ref, watch, onMounted, computed} from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
@@ -49,7 +52,8 @@ import {renderPopupComponent} from '@/utils/popup-mount'
 import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
 import {useStopArrival} from '../composables/useStopArrival.js'
 import {useFavoriteBusStop} from '../composables/useFavoriteBusStop.js'
-import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
+import {getSortedArrivalsFromApi} from "@/composables/arrival-utils.js";
 
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
@@ -57,12 +61,13 @@ import RouteResultList from '../components/RouteResultList.vue'
 import SearchBoxWrapper from "../components/SearchBoxWrapper.vue";
 import RecentFavorites from "../components/RecentFavorites.vue";
 
+const router = useRouter()
 const store = useSearchStore()
 
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
 const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
-const { isLoggedIn, fetchUserInfo } = useUserInfo()
+const {isLoggedIn, fetchUserInfo, isLoading} = useUserInfo(false)
 
 const map = ref(window.leafletMap)
 const markerFns = useMapMarkers(map)
@@ -76,15 +81,31 @@ const {
   fetchFavorites,
   getRecentFavorites
 } = useFavoriteBusStop()
+  console.log("로그인? " + isLoggedIn.value)
 
 onMounted(async () => {
-  await fetchUserInfo() // 👈 무조건 호출해야 로그인 상태 갱신됨
+  await fetchUserInfo()
+
   if (isLoggedIn.value) {
-    fetchFavorites()
+    await fetchFavorites()
   }
 })
 
+const waitUntilUserLoaded = async () => {
+  while (isLoading.value) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  return true
+}
+
 const handleToggleFavorite = async (stop) => {
+  if (!isLoggedIn.value) {
+    if (confirm('로그인이 필요한 기능입니다. 로그인하시겠습니까?')) {
+      window.location.href = '/login'
+    }
+    return
+  }
   await toggleFavorite(stop)
 }
 
@@ -303,26 +324,9 @@ function selectRoute(route) {
 
 async function bindArrivalPopup(marker, bsId, bsNm) {
   try {
-    const res = await axios.get('/api/bus/bus-arrival', {
-      params: {bsId}
-    })
-    const body = res.data.body
-    const items = Array.isArray(body?.items) ? body.items : body?.items ? [body.items] : []
-
-    const arrivals = []
-
-    items.forEach(item => {
-      const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
-      arrList.forEach(arr => {
-        arrivals.push({
-          routeNo: item.routeNo,
-          arrState: arr.arrState,
-          updn: arr.updn
-        })
-      })
-    })
-
-    const container = renderPopupComponent(marker, {bsId, bsNm}, arrivals)
+    const arrivals = await getSortedArrivalsFromApi(bsId)
+    const stop = store.busStops.find(s => s.bsId === bsId) || { bsId, bsNm }
+    const container = renderPopupComponent(marker, stop, arrivals)
     marker.bindPopup(container).openPopup()
   } catch (err) {
     console.error('도착 정보 조회 실패:', err)
