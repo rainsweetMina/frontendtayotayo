@@ -2,36 +2,38 @@
   <div class="sidebar-content">
     <SearchBoxWrapper/>
 
-    <RouteResultList
-        v-if="store.routeResults.length"
-        :routes="store.routeResults"
-        @selectRoute="selectRouteFromPath"
-        @drawRoutePath="drawOrsPolyline"
-    />
-
-    <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
-    <div v-else>
-      <RecentFavorites
-          v-if="isLoggedIn"
-          :stops="recentStops"
-          :openedStopId="openedStopId"
-          :arrivalDataMap="arrivalDataMap"
-          @selectStop="handleStopClick"
-          @selectAsStart="setStartStop"
-          @selectAsEnd="setEndStop"
+    <div class="search-results-container">
+      <RouteResultList
+          v-if="store.routeResults.length"
+          :routes="store.routeResults"
+          @selectRoute="selectRouteFromPath"
+          @drawRoutePath="drawOrsPolyline"
       />
 
-      <BusStopList
-          :stops="store.busStops"
-          :openedStopId="openedStopId"
-          :arrivalDataMap="arrivalDataMap"
-          :isFavorited="isFavorited"
-          @toggleFavorite="handleToggleFavorite"
-          @selectStop="handleStopClick"
-          @selectAsStart="setStartStop"
-          @selectAsEnd="setEndStop"
-      />
-      <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
+      <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
+      <div v-else>
+        <RecentFavorites
+            v-if="isLoggedIn"
+            :stops="recentStops"
+            :openedStopId="openedStopId"
+            :arrivalDataMap="arrivalDataMap"
+            @selectStop="handleStopClick"
+            @selectAsStart="setStartStop"
+            @selectAsEnd="setEndStop"
+        />
+
+        <BusStopList
+            :stops="store.busStops"
+            :openedStopId="openedStopId"
+            :arrivalDataMap="arrivalDataMap"
+            :isFavorited="isFavorited"
+            @toggleFavorite="handleToggleFavorite"
+            @selectStop="handleStopClick"
+            @selectAsStart="setStartStop"
+            @selectAsEnd="setEndStop"
+        />
+        <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
+      </div>
     </div>
   </div>
 </template>
@@ -351,3 +353,17 @@ watch(() => store.lastSearchedKeyword, async (keyword) => {
   }
 }, {immediate: true})
 </script>
+
+<style scoped>
+.sidebar-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-results-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 60px;
+}
+</style>

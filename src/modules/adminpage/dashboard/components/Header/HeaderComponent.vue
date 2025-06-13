@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white py-2 shadow-md min-h-[60px] relative">
+  <nav class="bg-white py-3 shadow-md relative border-b border-gray-100">
     <div class="container mx-auto px-4 flex items-center justify-between">
       <!-- 로고 -->
       <Logo class="mr-3" />
@@ -70,5 +70,9 @@ const noticeMenu = [
     overflow-x: auto;
     padding: 0 0.75rem;
   }
+}
+
+nav {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 </style>

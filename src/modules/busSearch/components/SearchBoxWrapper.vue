@@ -1,9 +1,9 @@
 <template>
-  <div class="w-full p-2">
+  <div class="w-full p-2 bg-white sticky top-0 z-50 border-b border-gray-200">
     <!-- ✅ 상단: 로고 + 토글 버튼 -->
-    <div class="flex items-center justify-between mx-2 mt-1">
+    <div class="flex items-center justify-between mx-2 mt-1 mb-2">
       <router-link to="/" class="flex items-center">
-        <Logo />
+        <Logo class="logo-img" />
       </router-link>
       <button
           @click="toggleMode"
@@ -75,6 +75,10 @@ watch(() => store.forceRouteMode, async (val) => {
 .logo-link {
   display: flex;
   align-items: center;
+}
+
+.logo-img {
+  max-height: 40px;
 }
 
 .mode-toggle-btn {

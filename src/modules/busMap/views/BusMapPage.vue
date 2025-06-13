@@ -1,15 +1,6 @@
 <template>
   <div class="bus-map-page">
-    <!-- 로고 + 검색창 맵 위에 띄우기 -->
-    <div class="fixed top-4 left-4 z-10 flex items-center gap-2">
-      <router-link to="/" class="logo-link">
-        <Logo />
-      </router-link>
-      <div class="search-box-wrapper w-64">
-        <SearchBox v-model="searchKeyword" @search="handleSearch" />
-      </div>
-    </div>
-
+    <!-- 로고와 검색창을 완전히 제거 - 사이드바 내에서만 표시 -->
     <div class="map-container" :class="{ 'shifted': store.sidebarOpen }">
       <MapView
           ref="mapRef"
@@ -64,7 +55,7 @@ function handleSearch({ keyword, newStart, newEnd }) {
 
   // ✅ 검색 수행
   store.setKeyword(keyword)
-  store.toggleSidebar(true)
+  store.toggleSidebar(true) // 검색 시 사이드바 열기
 
   axios.get('/api/bus/searchBSorBN', { params: { keyword } })
       .then(({ data }) => {
@@ -158,11 +149,6 @@ watch(() => store.selectedRoute, (route) => {
 }
 
 .map-container.shifted {
-  margin-left: 200px;
-}
-
-.logo-link {
-  display: flex;
-  align-items: center;
+  margin-left: 400px;
 }
 </style>

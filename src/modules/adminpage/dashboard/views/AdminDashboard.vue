@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>
-    </div>
+<!--    <div class="mb-6">-->
+<!--      <h1 class="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>-->
+<!--    </div>-->
 
     <!-- 인증 에러 메시지 -->
     <div v-if="!isAuthenticated && authError" class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">

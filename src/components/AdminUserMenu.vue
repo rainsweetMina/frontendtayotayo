@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
@@ -62,4 +62,91 @@ const handleLogout = () => {
   localStorage.removeItem('isAuthenticated')
   router.push('/login')
 }
+
+// 개발 환경에서만 로그 출력
+const log = (message, data) => {
+  if (import.meta.env.DEV) {
+    console.log(message, data);
+  }
+};
+
+// 사용 예시
+log('메인 페이지: 공지사항 로드 시도...');
+
+// localStorage를 활용한 검색 히스토리 관리
+const searchHistory = ref([]);
+
+// 검색 히스토리 로드
+const loadSearchHistory = () => {
+  const savedHistory = localStorage.getItem('searchHistory');
+  if (savedHistory) {
+    searchHistory.value = JSON.parse(savedHistory);
+  }
+};
+
+// 검색 히스토리 저장
+const saveSearchHistory = (keyword) => {
+  if (!keyword || searchHistory.value.includes(keyword)) return;
+  
+  searchHistory.value.unshift(keyword);
+  if (searchHistory.value.length > 4) {
+    searchHistory.value.pop();
+  }
+  
+  localStorage.setItem('searchHistory', JSON.stringify(searchHistory.value));
+};
+
+// 컴포넌트 마운트 시 히스토리 로드
+onMounted(() => {
+  loadSearchHistory();
+  fetchNotices();
+});
+
+// 에러 상태 관리 추가
+const errorMessages = ref({
+  notices: '',
+  busStops: '',
+  specialService: ''
+});
+
+// 공지사항 로드 실패 시 사용자에게 표시
+try {
+  // API 호출 코드...
+} catch (err) {
+  console.error('공지사항 로드 실패:', err);
+  errorMessages.value.notices = '공지사항을 불러오는데 실패했습니다.';
+  // 목업 데이터 표시...
+}
+
+// 슬라이더 데이터 구조화
+const sliderItems = ref([
+  {
+    id: 'notices',
+    title: '공지사항',
+    route: 'notices',
+    content: computed(() => notices.value.length > 0 ? {
+      title: notices.value[0].title,
+      date: notices.value[0].date,
+      action: () => viewNotice(notices.value[0].id)
+    } : null)
+  },
+  {
+    id: 'bus-stops',
+    title: '정류소 신·이설<br>정보안내기 설치',
+    route: 'bus-stops-update',
+    content: {
+      title: '시내버스 정류소<br>조정 안내(\'25.06.20. 시행)',
+      date: '2025.05.27.'
+    }
+  },
+  {
+    id: 'special-service',
+    title: '저상버스 대체안내',
+    route: 'special-service',
+    content: {
+      title: '금일(6월 12일)<br>저상버스 3231호<br>(북구3번 노선)<br>대체운행 안내',
+      date: '2025.06.12.'
+    }
+  }
+]);
 </script>

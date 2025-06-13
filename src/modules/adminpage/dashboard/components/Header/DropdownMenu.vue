@@ -1,13 +1,12 @@
 <template>
   <ul
       v-if="isOpen"
-      class="absolute top-full left-0 z-10 mt-1 w-[165px] py-2 bg-white rounded shadow-lg border border-gray-200"
+      class="dropdown-menu left-0 min-w-[180px] animate-fadeIn"
       :aria-labelledby="id"
   >
-
     <li v-for="item in items" :key="item.label">
       <router-link
-        class="block px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+        class="dropdown-item"
         :to="item.to"
       >
         {{ item.label }}
@@ -28,5 +27,22 @@ export default {
 </script>
 
 <style scoped>
-/* 추가 스타일이 필요한 경우 여기에 작성 */
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-menu {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 </style> 

@@ -1,5 +1,5 @@
 <template>
-  <div id="map" ref="mapRef" class="leaflet-map p-0"></div>
+  <div id="map" ref="mapRef" class="leaflet-map"></div>
 
   <!-- 현재 위치 버튼 추가 -->
   <button
@@ -349,7 +349,15 @@ watch(
 .leaflet-map {
   width: 100%;
   height: 100vh;
-  border: 1px solid #ccc;
-  position: relative;
+  z-index: 0;
+}
+
+/* 리프렛 컨트롤 스타일 개선 */
+:deep(.leaflet-control-container .leaflet-top) {
+  z-index: 800;
+}
+
+:deep(.leaflet-control-container .leaflet-bottom) {
+  z-index: 800;
 }
 </style>

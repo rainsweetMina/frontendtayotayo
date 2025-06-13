@@ -1,8 +1,8 @@
 <template>
   <li class="relative inline-block mx-3">
     <button
-      class="px-3 py-2 text-gray-700 font-medium whitespace-nowrap rounded focus:outline-none"
-      :class="{ 'bg-gray-200': isOpen, 'bg-white/80 hover:bg-white/90': !isOpen }"
+      class="px-3 py-2 text-gray-700 font-medium whitespace-nowrap rounded hover:bg-gray-50 focus:outline-none transition-colors duration-200"
+      :class="{ 'bg-gray-100': isOpen, 'hover:text-primary-600': !isOpen }"
       :id="id"
       @click="toggleDropdown"
       aria-expanded="false"
@@ -61,5 +61,27 @@ export default {
 </script>
 
 <style scoped>
-/* 추가 스타일이 필요한 경우 여기에 작성 */
+button {
+  position: relative;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: theme('colors.primary.500');
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+button:hover::after {
+  width: 70%;
+}
+
+.active button::after {
+  width: 70%;
+}
 </style>
