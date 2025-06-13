@@ -43,7 +43,8 @@ export function useFavoriteBusStop() {
         }
     }
 
-    const isFavorited = (bsId) => favoriteSet.value.has(bsId)
+    const isFavorited = (bsId) =>
+        favoriteStops.value.some(stop => stop.bsId === bsId)
 
     const toggleFavorite = async (stop) => {
         if (isFavorited(stop.bsId)) {

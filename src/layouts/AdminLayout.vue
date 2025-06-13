@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="min-h-screen bg-gray-100 ">
     <!-- 상단 네비게이션 바 -->
     <nav class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,6 +32,8 @@
 import AdminSidebar from './components/AdminSidebar.vue'
 import AdminUserMenu from '../components/AdminUserMenu.vue'
 </script>
+
+<style src="@/assets/tailwind.css"></style>
 
 <style scoped>
 .min-h-screen {

@@ -41,7 +41,8 @@ const route = useRoute()
 const store = useSearchStore()
 </script>
 
-<style>
+<style scoped>
+
 .searchBox {
   position: fixed;
   z-index: 2050;
