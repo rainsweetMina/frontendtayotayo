@@ -13,7 +13,7 @@
         </strong>
         <div class="flex gap-2 flex-shrink-0">
           <!-- 즐겨찾기 버튼 추가 -->
-          <button @click.stop="toggleFavorite(stop)" class="bg-transparent border-none p-0 cursor-pointer" :title="isFavorited(stop.bsId) ? '즐겨찾기 제거' : '즐겨찾기 추가'">
+          <button @click.stop="$emit('toggleFavorite', stop)" class="bg-transparent border-none p-0 cursor-pointer" :title="isFavorited(stop.bsId) ? '즐겨찾기 제거' : '즐겨찾기 추가'">
             <span class="text-yellow-400" :class="{ 'opacity-100': isFavorited(stop.bsId), 'opacity-30': !isFavorited(stop.bsId) }">★</span>
           </button>
 
@@ -56,32 +56,14 @@
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
-import {onMounted} from "vue";
-import {useFavoriteBusStop} from "@/modules/busSearch/composables/useFavoriteBusStop.js";
-import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
-
-const userInfo = useUserInfo()
-
-const {
-  favoriteStops,
-  toggleFavorite,
-  isFavorited,
-  fetchFavorites
-} = useFavoriteBusStop()
-
-onMounted(async () => {
-  if (userInfo?.value?.isLoggedIn) {
-    await fetchFavorites()
-  }
-})
-
 defineProps({
   stops: Array,
   openedStopId: String,
-  arrivalDataMap: Object
+  arrivalDataMap: Object,
+  isFavorited: Function
 })
 
-defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
+defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd', 'toggleFavorite'])
 </script>
 
 <style scoped>

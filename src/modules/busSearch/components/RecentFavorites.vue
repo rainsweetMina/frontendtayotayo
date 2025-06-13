@@ -7,7 +7,7 @@
         :openedStopId="openedStopId"
         :arrivalDataMap="arrivalDataMap"
         :isFavorited="isFavorited"
-        :toggleFavorite="toggleFavorite"
+        @toggleFavorite="$emit('toggleFavorite', $event)"
         @selectStop="$emit('selectStop', $event)"
         @selectAsStart="$emit('selectAsStart', $event)"
         @selectAsEnd="$emit('selectAsEnd', $event)"
@@ -23,11 +23,10 @@ defineProps({
   stops: Array,
   openedStopId: String,
   arrivalDataMap: Object,
-  isFavorited: Function,
-  toggleFavorite: Function
+  isFavorited: Function
 })
 
-defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
+defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd', 'toggleFavorite'])
 </script>
 
 <style scoped>
