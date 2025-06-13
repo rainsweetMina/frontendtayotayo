@@ -1,22 +1,22 @@
 <template>
-  <div class="popup-wrapper">
+  <div class="w-52 font-sans">
     <!-- 상단 영역: 정류장 이름 + 즐겨찾기 -->
-    <div class="popup-header">
-      <div class="stop-name" :title="stopName">{{ stopName }}</div>
-      <button class="fav-btn" @click="$emit('favorite')" title="즐겨찾기">★</button>
+    <div class="flex justify-between items-center mb-1.5">
+      <div class="text-base font-bold whitespace-nowrap overflow-hidden overflow-ellipsis" :title="stopName">{{ stopName }}</div>
+      <button class="bg-transparent border-none text-lg text-yellow-400 cursor-pointer p-0" @click="$emit('favorite')" title="즐겨찾기">★</button>
     </div>
     <!-- 도착 정보 -->
-    <div class="popup-scroll-area">
-      <div class="bus-info" v-for="bus in arrivals" :key="bus.routeNo">
-        <div class="route-no">{{ bus.routeNo }}</div>
-        <div class="arr-time">{{ bus.arrState }}</div>
+    <div class="max-h-52 overflow-y-auto mb-2 scrollbar-hide">
+      <div class="flex justify-between text-sm py-0.5 border-b border-gray-100" v-for="bus in arrivals" :key="bus.routeNo">
+        <div class="font-bold text-blue-500">{{ bus.routeNo }}</div>
+        <div class="font-bold text-gray-700">{{ bus.arrState }}</div>
       </div>
-      <div v-if="!arrivals.length" class="no-info">도착 정보 없음</div>
+      <div v-if="!arrivals.length" class="italic text-gray-400 text-xs text-center py-1">도착 정보 없음</div>
     </div>
     <!-- 하단 버튼 -->
-    <div class="footer-buttons">
-      <button class="start-btn" @click="$emit('setStart')">출발지</button>
-      <button class="end-btn" @click="$emit('setEnd')">도착지</button>
+    <div class="flex justify-between">
+      <button class="flex-1 mx-0.5 py-1 rounded text-xs border-none cursor-pointer text-white bg-blue-500" @click="$emit('setStart')">출발지</button>
+      <button class="flex-1 mx-0.5 py-1 rounded text-xs border-none cursor-pointer text-white bg-red-500" @click="$emit('setEnd')">도착지</button>
     </div>
   </div>
 </template>
@@ -30,97 +30,12 @@ defineEmits(['setStart', 'setEnd', 'favorite'])
 </script>
 
 <style scoped>
-.popup-wrapper {
-  width: 200px;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-.stop-name {
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.fav-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: gold;
-  cursor: pointer;
-  padding: 0;
-}
-
-.popup-scroll-area {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 8px;
-
+/* Tailwind CSS 클래스로 대체 */
+.scrollbar-hide {
   scrollbar-width: none;       /* Firefox */
-  -ms-overflow-style: none;
+  -ms-overflow-style: none;    /* IE and Edge */
 }
-
-.bus-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  padding: 3px 0;
-  border-bottom: 1px solid #eee;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;               /* Chrome, Safari and Opera */
 }
-
-.route-no {
-  font-weight: bold;
-  color: #0d82ff;
-}
-
-.arr-time {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-.no-info {
-  font-style: italic;
-  color: #999;
-  font-size: 13px;
-  text-align: center;
-  padding: 4px 0;
-}
-
-.footer-buttons {
-  display: flex;
-  justify-content: space-between;
-}
-
-.footer-buttons button {
-  flex: 1;
-  margin: 0 2px;
-  padding: 5px;
-  border-radius: 4px;
-  font-size: 13px;
-  border: none;
-  cursor: pointer;
-  color: white;
-}
-
-.start-btn {
-  background-color: #007bff;
-}
-.end-btn {
-  background-color: #fa4141;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid #5e5d5d;
-  margin: 6px 0;
-}
-
 </style>

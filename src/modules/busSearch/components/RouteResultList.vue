@@ -1,46 +1,47 @@
 <template>
-  <ul>
+  <ul class="px-5 list-none">
     <li
         v-for="(route, idx) in filteredRoutes"
         :key="route.routeId + '-' + idx"
-        class="route-item"
-        :class="{ selected: selectedRouteId === route.routeId }"
+        class="p-3 border border-gray-300 rounded-lg mb-2 bg-white hover:bg-gray-50"
+        :class="{ 'border-blue-500 bg-blue-50': selectedRouteId === route.routeId }"
         @click="toggleRoute(idx, route)"
     >
       <!-- 🔻 경로 정보 -->
-      <div @click="toggleRoute(idx, route)" class="route-type cursor-pointer">
-        <span class="badge" :class="route.type === '직통' ? 'direct' : 'transfer'">
+      <div @click="toggleRoute(idx, route)" class="flex items-center cursor-pointer">
+        <span class="text-xs py-1 px-2 rounded text-white mr-2" 
+              :class="route.type === '직통' ? 'bg-green-500' : 'bg-orange-500'">
           {{ route.type }}
         </span>
-        <span class="route-main">
+        <span class="font-bold flex-1">
           {{ route.routeNo }}
           <span v-if="route.transferRouteNo">→ {{ route.transferRouteNo }}</span>
         </span>
       </div>
 
-      <div class="duration">
+      <div class="flex justify-between items-center text-sm text-gray-600 mt-1">
          <span>
             {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length - 1 || 0 }}개 정류장
           </span>
         <span
-            class="dropdown-icon"
-            :class="{ open: openedIndex === idx }"
+            class="inline-block ml-1 text-gray-500 transition-transform duration-200"
+            :class="{ 'transform rotate-180': openedIndex === idx }"
         >
           ▼
         </span>
       </div>
 
-      <div class="summary" v-if="openedIndex === idx && route.stationIds?.length">
+      <div class="text-sm mt-2" v-if="openedIndex === idx && route.stationIds?.length">
         🚏 총 {{ route.stationIds.length - 1 }}개 정류장
-        <ul class="station-list mt-2">
+        <ul class="mt-1 pl-5">
           <li
               v-for="(station, sIdx) in route.stationIds"
               :key="sIdx"
-              class="station-item"
+              class="py-0.5 text-sm list-disc"
           >
             <template v-if="station.bsId === route.transferStationId">
-              <div class="transfer-inline">
-                <span class="transfer-inline-label">🔁 환승지점 : {{ station.bsNm }}</span>
+              <div class="flex items-center gap-1.5 -ml-1">
+                <span class="text-blue-600 font-bold text-sm">🔁 환승지점 : {{ station.bsNm }}</span>
               </div>
             </template>
             <template v-else>

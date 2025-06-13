@@ -1,66 +1,99 @@
 <template>
-  <div class="notice-management">
-    <div class="notice-header">
-      <h2>공지사항 관리</h2>
-      <router-link to="/admin/notices/new" class="btn btn-primary">새 공지사항</router-link>
+  <div class="p-5">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">공지사항 관리</h2>
+      <router-link to="/admin/notices/new" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">새 공지사항</router-link>
     </div>
 
-    <div v-if="error" class="alert alert-danger mb-3">
+    <div v-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
       {{ error }}
     </div>
 
-    <div class="notice-list">
-      <div v-if="isLoading" class="text-center my-5">
-        <div class="spinner-border" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div v-if="isLoading" class="flex justify-center items-center py-20">
+        <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       </div>
 
-      <table v-else class="table">
-        <thead>
+      <div v-else class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
           <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성일</th>
-            <th>관리</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성자</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성일</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
           </tr>
         </thead>
-        <tbody>
+          <tbody class="bg-white divide-y divide-gray-200">
           <tr v-if="!notices || notices.length === 0">
-            <td colspan="5" class="text-center">등록된 공지사항이 없습니다.</td>
+              <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">등록된 공지사항이 없습니다.</td>
           </tr>
-          <tr v-for="notice in notices" :key="notice.id">
-            <td>{{ notice.id }}</td>
-            <td>
-              <router-link :to="`/admin/notices/${notice.id}`" class="text-decoration-none">
+            <tr v-for="notice in notices" :key="notice.id" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.id }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <router-link :to="`/admin/notices/${notice.id}`" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
                 {{ notice.title }}
               </router-link>
             </td>
-            <td>{{ notice.author }}</td>
-            <td>{{ formatDate(notice.createdDate) }}</td>
-            <td>
-              <router-link :to="`/admin/notices/${notice.id}/edit`" class="btn btn-warning btn-sm">수정</router-link>
-              <button @click="deleteNotice(notice.id)" class="btn btn-danger btn-sm ms-2">삭제</button>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.author }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(notice.createdDate) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <router-link :to="`/admin/notices/${notice.id}/edit`" class="text-indigo-600 hover:text-indigo-900 mr-3">수정</router-link>
+                <button @click="deleteNotice(notice.id)" class="text-red-600 hover:text-red-900">삭제</button>
             </td>
           </tr>
         </tbody>
       </table>
+      </div>
       
-      <div v-if="!isLoading && notices && notices.length > 0" class="pagination mt-3">
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-center">
-            <li class="page-item" :class="{ disabled: currentPage === 1 }">
-              <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">이전</a>
-            </li>
-            <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-              <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
-            </li>
-            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-              <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">다음</a>
-            </li>
-          </ul>
+      <div v-if="!isLoading && notices && notices.length > 0" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button
+                @click.prevent="changePage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                :class="[
+                  'relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium',
+                  currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                ]"
+              >
+                <span class="sr-only">이전</span>
+                이전
+              </button>
+              
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                @click.prevent="changePage(page)"
+                :class="[
+                  'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                  currentPage === page 
+                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' 
+                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                ]"
+              >
+                {{ page }}
+              </button>
+              
+              <button
+                @click.prevent="changePage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                :class="[
+                  'relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium',
+                  currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                ]"
+              >
+                <span class="sr-only">다음</span>
+                다음
+              </button>
         </nav>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -151,32 +184,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.notice-management {
-  padding: 20px;
-}
-
-.notice-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.notice-list {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.table th {
-  background-color: #f8f9fa;
-}
-
-.table th, .table td {
-  text-align: center;
-  vertical-align: middle;
-}
-</style> 

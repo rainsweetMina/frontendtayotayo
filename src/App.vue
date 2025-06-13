@@ -19,3 +19,7 @@ const layout = computed(() => {
   return route.meta?.layout === 'none' ? EmptyLayout : DefaultLayout
 })
 </script>
+
+<style>
+/* Tailwind CSS 우선 적용을 위한 설정 */
+</style>

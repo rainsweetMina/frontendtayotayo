@@ -26,7 +26,16 @@ const routes = [
     ...myPageRoutes,
     ...filteredLostFoundRoutes, // 필터링된 경로만 사용
     ...noticeRoutes, // 공지사항 라우트 추가
-    ...userManagementRoutes
+    ...userManagementRoutes,
+    // Headless UI 데모 페이지 라우트
+    {
+        path: '/headless-ui-demo',
+        name: 'HeadlessUiDemo',
+        component: () => import('@/views/HeadlessUiDemo.vue'),
+        meta: {
+            title: 'Headless UI 데모'
+        }
+    }
 ]
 
 const router = createRouter({

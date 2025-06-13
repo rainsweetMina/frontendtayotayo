@@ -1,5 +1,5 @@
 <template>
-  <span class="visible" v-if="weatherList.length > 0">
+  <span class="weather-display" v-if="weatherList.length > 0">
     {{ weatherList[currentIndex] }}
   </span>
 </template>
@@ -127,11 +127,19 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/web-user";
-
-.visible {
+.weather-display {
   display: inline-block;
   transition: opacity 0.3s ease;
   opacity: 1;
+  color: #333;
+  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 </style>

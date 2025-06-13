@@ -73,7 +73,7 @@ const store = useSearchStore()
   left: 0;
   transform: translateY(-50%);
   z-index: 1050;
-  background-color: #4889cd;
+  background-color: #ffffff;
   color: white;
   border: none;
   padding: 0.5rem 0.75rem;

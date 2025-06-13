@@ -1,7 +1,7 @@
 <template>
-  <div class="search-box p-3">
+  <div class="p-3">
     <!-- 출발지 -->
-    <div class="d-flex mb-1 position-relative">
+    <div class="flex mb-1 relative">
       <input
           type="text"
           v-model="store.departure"
@@ -10,19 +10,19 @@
           @blur="hideDropdownWithDelay('start')"
           @keydown="onKeydown('start', $event)"
           placeholder="출발지"
-          class="form-control me-1 custom-input"
-          style="flex: 5;"
+          class="flex-1 h-10 px-3 py-2 border border-gray-300 rounded-l mr-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <button @click="swapInputs" class="btn btn-primary" style="flex: 1;">
-        <img :src=swapIcon alt="전환" style="width: 20px; height: 20px;" />
+      <button @click="swapInputs" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 transition-colors duration-200">
+        <img :src=swapIcon alt="전환" class="w-5 h-5" />
       </button>
 
-      <ul v-if="showStartDropdown && startSuggestions.length" class="autocomplete-list">
+      <ul v-if="showStartDropdown && startSuggestions.length" class="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 max-h-60 overflow-y-auto shadow-lg">
         <li
             v-for="(stop, i) in startSuggestions"
             :key="stop.bsId"
-            :class="{ active: i === startActiveIndex }"
+            :class="{ 'bg-blue-500 text-white': i === startActiveIndex, 'hover:bg-gray-100': i !== startActiveIndex }"
             @mousedown.prevent="selectStop('start', stop)"
+            class="px-3 py-2 cursor-pointer"
         >
           {{ stop.bsNm }}
         </li>
@@ -30,26 +30,26 @@
     </div>
 
     <!-- 도착지 -->
-    <div class="d-flex position-relative">
+    <div class="flex relative">
       <input
           type="text"
           v-model="store.arrival"
           @input="showEndDropdown = true"
           @focus="store.selectingField = 'end'; showEndDropdown = true"
           @blur="hideDropdownWithDelay('end')"
-          @keydown="onKeydown('end', $event)"r
+          @keydown="onKeydown('end', $event)"
           placeholder="도착지"
-          class="form-control me-1 custom-input"
-          style="flex: 5;"
+          class="flex-1 h-10 px-3 py-2 border border-gray-300 rounded-l mr-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <button @click="searchRoutes" class="btn btn-primary" style="flex: 1;">검색</button>
+      <button @click="searchRoutes" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r transition-colors duration-200">검색</button>
 
-      <ul v-if="showEndDropdown && endSuggestions.length" class="autocomplete-list">
+      <ul v-if="showEndDropdown && endSuggestions.length" class="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 max-h-60 overflow-y-auto shadow-lg">
         <li
             v-for="(stop, i) in endSuggestions"
             :key="stop.bsId"
-            :class="{ active: i === endActiveIndex }"
+            :class="{ 'bg-blue-500 text-white': i === endActiveIndex, 'hover:bg-gray-100': i !== endActiveIndex }"
             @mousedown.prevent="selectStop('end', stop)"
+            class="px-3 py-2 cursor-pointer"
         >
           {{ stop.bsNm }}
         </li>

@@ -1,14 +1,14 @@
 <template>
   <div
-      class="context-menu"
+      class="fixed z-[9999] bg-white rounded-lg shadow-lg border border-gray-200 p-1"
       :style="{ left: `${position.x}px`, top: `${position.y}px` }"
   >
-    <button class="menu-btn" @click="$emit('selectAsStart', coords)">
-      <img :src="startMarkerIcon" alt="출발지" style="width: 30px; height: 30px;"/>
+    <button class="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors rounded" @click="$emit('selectAsStart', coords)">
+      <img :src="startMarkerIcon" alt="출발지" class="w-7 h-7 mr-2"/>
       <span>출발지 지정</span>
     </button>
-    <button class="menu-btn" @click="$emit('selectAsEnd', coords)">
-      <img :src="arrivalMarkerIcon" alt="도착지" style="width: 30px; height: 30px;"/>
+    <button class="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors rounded" @click="$emit('selectAsEnd', coords)">
+      <img :src="arrivalMarkerIcon" alt="도착지" class="w-7 h-7 mr-2"/>
       <span>도착지 지정</span>
     </button>
   </div>

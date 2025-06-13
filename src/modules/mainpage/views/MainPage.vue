@@ -4,8 +4,7 @@
     <header class="main-header">
       <div class="header-content">
         <div class="header-center">
-          <h1 class="title">대구 버스 정보</h1>
-          <p class="subtitle">노선번호, 정류소명을 입력하세요</p>
+          <h1 class="title">버스정보 통합검색</h1>
         </div>
       </div>
     </header>
@@ -14,71 +13,182 @@
     <section class="search-section">
       <div class="search-container">
         <search-bar 
-          placeholder="예: 300, 반월당역 입력하세요" 
+          placeholder="『정류소, 노선, 목적지』를 입력하세요." 
           @search="handleSearch"
         />
-        <div class="search-highlight-text">
-          <span class="highlight-icon">🔍</span>
-          <span>대구 시내 버스 번호 또는 정류장 이름을 입력하면 자동으로 검색됩니다</span>
+        <div class="search-history" v-if="searchHistory.length > 0">
+          <div class="history-label">
+            <span class="history-icon">🕒</span>
+            <span>최근 검색 내역</span>
+          </div>
+          <div class="history-tags">
+            <span v-for="(item, index) in searchHistory" :key="index" 
+                  class="history-tag" @click="useHistoryItem(item)">
+              {{ item }}
+            </span>
+          </div>
         </div>
       </div>
     </section>
     
-    <!-- 메인 콘텐츠 영역 - 수직 레이아웃 -->
-    <div class="main-content">
-      <!-- 주요 기능 영역 -->
-      <section class="features-section">
-        <h2 class="section-title">주요 기능</h2>
-        <div class="features-grid">
-          <feature-button 
-            v-for="feature in features" 
-            :key="feature.id"
-            :icon="feature.icon"
-            :text="feature.text"
-            @click="navigateTo(feature.route)"
-          />
+    <!-- 메인 기능 영역 -->
+    <section class="main-features">
+      <div class="feature-buttons">
+        <div class="feature-button" @click="navigateTo('bus-routes')">
+          <div class="feature-icon">
+            <img src="/src/assets/icons/bus-route.svg" alt="노선개편 버스검색">
+            <span class="new-badge" v-if="true">NEW</span>
+          </div>
+          <span class="feature-text">노선개편 버스검색</span>
         </div>
-      </section>
-      
-      <!-- 추가 정보 영역 -->
-      <div class="additional-content">
-        <!-- 공지사항 영역 -->
-        <section class="notice-container">
-          <div v-if="isLoading" class="notice-loading">
-            <div class="loading-spinner"></div>
-            <p>공지사항 로딩 중...</p>
+        <div class="feature-button" @click="navigateTo('bus-schedule')">
+          <div class="feature-icon">
+            <img src="/src/assets/icons/bus-timetable.svg" alt="버스운행시간표">
           </div>
-          <div v-else-if="error" class="notice-error">
-            <p>{{ error }}</p>
+          <span class="feature-text">버스운행시간표</span>
+        </div>
+        <div class="feature-button" @click="navigateTo('special-service')">
+          <div class="feature-icon">
+            <img src="/src/assets/icons/special-service.svg" alt="저상버스 운행정보">
           </div>
-          <notice-section 
-            v-else
-            :notices="notices"
-            @view-more="navigateTo('notices')"
-            @view-notice="viewNotice"
-          />
-        </section>
-        
-        <!-- 바로가기 링크 영역 -->
-        <section class="quick-links-section">
-          <h3 class="quick-links-title">빠른 링크</h3>
-          <div class="quick-links">
-            <div class="quick-link" @click="navigateTo('bus-routes')">
-              <span class="link-icon">🔗</span>
-              <span class="link-text">노선 안내</span>
-            </div>
-            <div class="quick-link" @click="navigateTo('bus-map')">
-              <span class="link-icon">🔗</span>
-              <span class="link-text">버스 지도</span>
-            </div>
-            <div class="quick-link" @click="navigateTo('lost-found')">
-              <span class="link-icon">🔗</span>
-              <span class="link-text">분실물 센터</span>
-            </div>
+          <span class="feature-text">저상버스 운행정보</span>
+        </div>
+        <div class="feature-button" @click="navigateTo('bus-usage')">
+          <div class="feature-icon">
+            <img src="/src/assets/icons/bus-usage.svg" alt="버스 이용 현황">
           </div>
-        </section>
+          <span class="feature-text">버스 이용 현황</span>
+        </div>
+        <div class="feature-button" @click="navigateTo('announcement')">
+          <div class="feature-icon">
+            <img src="/src/assets/icons/announcement.svg" alt="승객용 공지">
+          </div>
+          <span class="feature-text">승객용 공지</span>
+        </div>
       </div>
-    </div>
+    </section>
+    
+    <!-- 슬라이더 영역 -->
+    <section class="info-slider">
+      <div class="slider-container">
+        <div class="slider-track">
+          <!-- 공지사항 -->
+          <div class="slider-item" @click="navigateTo('notices')">
+            <div class="slider-title">
+              <h3>공지사항</h3>
+              <span class="more-link">더보기</span>
+            </div>
+            <div class="notice-item" v-if="notices.length > 0" @click.stop="viewNotice(notices[0].id)">
+              <div class="notice-content">
+                <h4>{{ notices[0].title }}</h4>
+                <p class="notice-date">{{ notices[0].date }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 정류소 신규정보 -->
+          <div class="slider-item" @click="navigateTo('bus-stops-update')">
+            <div class="slider-title">
+              <h3>정류소 신·이설<br>정보안내기 설치</h3>
+              <span class="more-link">더보기</span>
+            </div>
+            <div class="update-info">
+              <h4>시내버스 정류소<br>조정 안내('25.06.20. 시행)</h4>
+              <p class="update-date">2025.05.27.</p>
+            </div>
+          </div>
+          
+          <!-- 저상버스 대체안내 -->
+          <div class="slider-item" @click="navigateTo('special-service')">
+            <div class="slider-title">
+              <h3>저상버스 대체안내</h3>
+              <span class="more-link">더보기</span>
+            </div>
+            <div class="update-info">
+              <h4>금일(6월 12일)<br>저상버스 3231호<br>(북구3번 노선)<br>대체운행 안내</h4>
+              <p class="update-date">2025.06.12.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 앨범존 영역 -->
+    <section class="album-zone">
+      <h2 class="section-title">알림존</h2>
+      <div class="album-container">
+        <!-- 첫 번째 배너 -->
+        <div class="album-banner">
+          <img src="/src/assets/banners/city-bus-banner.jpg" alt="현금 없는 시내버스">
+          <div class="banner-content">
+            <h3>2025년 4월 1일</h3>
+            <h2>현금 없는 시내버스</h2>
+            <p>전 노선 전면 시행</p>
+            <p class="banner-note">"당신이 카드만 있다면 승차바로 도와줄게요"</p>
+          </div>
+        </div>
+        <!-- 두 번째 배너 -->
+        <div class="album-banner weather-banner">
+          <div class="weather-content">
+            <h3>오늘의 날씨</h3>
+            <div class="weather-info">
+              <div class="weather-icon">
+                <img src="/src/assets/icons/partly-cloudy.svg" alt="구름 조금">
+              </div>
+              <div class="temperature">29.3°C</div>
+            </div>
+            <div class="weather-details">
+              <span>미세</span>
+              <span>초미세</span>
+              <span>오존</span>
+              <span>보통</span>
+              <span>통합</span>
+              <span>보통</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 이용안내 & 다운로드 영역 -->
+    <section class="info-download">
+      <div class="info-container">
+        <div class="info-box">
+          <h3 class="info-title">이용안내</h3>
+          <h4 class="info-subtitle">USER GUIDE</h4>
+          <div class="info-links">
+            <a href="#" @click.prevent="navigateTo('homepage-guide')">홈페이지 이용안내</a>
+            <a href="#" @click.prevent="navigateTo('mobile-guide')">모바일 이용안내</a>
+          </div>
+        </div>
+        
+        <div class="download-box">
+          <h3 class="info-title">자료 다운로드</h3>
+          <div class="download-links">
+            <a href="#" @click.prevent="downloadFile('route-info')">
+              <span class="download-icon">•</span>
+              <span>노선별 정류소 목록</span>
+              <span class="download-button">DOWNLOAD</span>
+            </a>
+            <a href="#" @click.prevent="downloadFile('stop-timetable')">
+              <span class="download-icon">•</span>
+              <span>노선별 정류버스시간표</span>
+              <span class="download-button">DOWNLOAD</span>
+            </a>
+            <a href="#" @click.prevent="downloadFile('bus-location')">
+              <span class="download-icon">•</span>
+              <span>버스위치목록</span>
+              <span class="download-button">DOWNLOAD</span>
+            </a>
+            <a href="#" @click.prevent="downloadFile('stop-location')">
+              <span class="download-icon">•</span>
+              <span>노선안내 책자</span>
+              <span class="download-button">DOWNLOAD</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -87,50 +197,11 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
-import FeatureButton from '../components/FeatureButton.vue';
-import NoticeSection from '../components/NoticeSection.vue';
 
 const router = useRouter();
 
-// 기능 메뉴 데이터
-const features = ref([
-  {
-    id: 1,
-    icon: '🚌',
-    text: '노선 정보',
-    route: 'bus-routes'
-  },
-  {
-    id: 2,
-    icon: '🚏',
-    text: '정류소 정보',
-    route: 'bus-stops'
-  },
-  {
-    id: 3,
-    icon: '🗺️',
-    text: '버스 지도',
-    route: 'bus-map'
-  },
-  {
-    id: 4,
-    icon: '🔍',
-    text: '분실물 안내',
-    route: 'lost-found'
-  },
-  {
-    id: 5,
-    icon: '📢',
-    text: '공지사항',
-    route: 'notices'
-  },
-  {
-    id: 6,
-    icon: '🕒',
-    text: '운행 시간표',
-    route: 'bus-timetable'
-  }
-]);
+// 검색 히스토리
+const searchHistory = ref(['730', '내당삼익맨션건너', '7', '중앙로']);
 
 // 공지사항 데이터
 const notices = ref([]);
@@ -237,6 +308,14 @@ const handleSearch = (searchData) => {
   const { keyword } = searchData;
   if (!keyword) return;
   
+  // 검색 히스토리에 추가 (중복 방지 및 최대 4개 유지)
+  if (!searchHistory.value.includes(keyword)) {
+    searchHistory.value.unshift(keyword);
+    if (searchHistory.value.length > 4) {
+      searchHistory.value.pop();
+    }
+  }
+  
   // 숫자로만 이루어져 있거나 숫자로 시작하는 경우 노선으로 간주
   if (/^\d+/.test(keyword)) {
     // 노선 검색
@@ -253,14 +332,24 @@ const handleSearch = (searchData) => {
   }
 };
 
+const useHistoryItem = (keyword) => {
+  // 히스토리 아이템으로 검색
+  handleSearch({ keyword });
+};
+
 const navigateTo = (route) => {
   const routeMap = {
     'bus-routes': '/bus/routes',
     'bus-stops': '/bus/stops',
     'bus-map': '/bus/map',
-    'lost-found': '/lost-found',
-    'notices': '/notice', // 공지사항 목록 경로
-    'bus-timetable': '/bus/timetable'
+    'bus-schedule': '/bus/timetable',
+    'special-service': '/bus/special-service',
+    'bus-usage': '/bus/usage',
+    'announcement': '/notice',
+    'notices': '/notice',
+    'bus-stops-update': '/bus/stops/update',
+    'homepage-guide': '/guide/homepage',
+    'mobile-guide': '/guide/mobile'
   };
   
   router.push(routeMap[route] || '/');
@@ -270,6 +359,22 @@ const viewNotice = (noticeId) => {
   // 공지사항 상세 페이지로 라우팅
   console.log(`공지사항 클릭: ID=${noticeId}`);
   router.push(`/notice/${noticeId}`);
+};
+
+const downloadFile = (fileType) => {
+  const fileMap = {
+    'route-info': '/downloads/route-info.xlsx',
+    'stop-timetable': '/downloads/stop-timetable.xlsx',
+    'bus-location': '/downloads/bus-location.xlsx',
+    'stop-location': '/downloads/stop-location.pdf'
+  };
+  
+  const url = fileMap[fileType];
+  if (url) {
+    // 실제 구현에서는 서버 API를 통해 다운로드할 수 있음
+    console.log(`파일 다운로드: ${url}`);
+    window.open(url, '_blank');
+  }
 };
 
 // 컴포넌트 마운트 시 공지사항 데이터 로드
@@ -290,316 +395,474 @@ onMounted(() => {
 
 /* 헤더 영역 스타일 */
 .main-header {
-  background-color: #2a7dc0;
+  background-color: #1e73c9;
   color: white;
-  padding: 0;
-  margin-bottom: 50px;
-  background-image: linear-gradient(to right, #2a7dc0, #4a90c0);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 70px 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: none;
 }
 
 .header-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  max-width: 1800px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 50px;
+  padding: 0 20px;
 }
 
 .header-center {
   text-align: center;
-  max-width: 800px;
 }
 
 .title {
-  font-size: 3.8rem;
-  margin-bottom: 15px;
+  font-size: 2.8rem;
   font-weight: 700;
   letter-spacing: -0.5px;
-  text-align: center;
-}
-
-.subtitle {
-  font-size: 1.5rem;
-  opacity: 0.9;
-  margin: 0 auto;
-  text-align: center;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 검색 섹션 스타일 */
 .search-section {
-  margin-top: -25px;
-  margin-bottom: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
   position: relative;
   z-index: 10;
 }
 
 .search-container {
-  max-width: 1000px;
-  margin: 0 auto;
+  margin-bottom: 20px;
+}
+
+.search-history {
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+  padding: 10px 15px;
+  margin-top: -5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+}
+
+.history-label {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  margin-right: 15px;
+  font-weight: 500;
+  color: #444;
+}
+
+.history-icon {
+  margin-right: 5px;
+}
+
+.history-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-tag {
+  background-color: #f0f4fa;
+  border: 1px solid #dbe4f0;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-tag:hover {
+  background-color: #e0eaf8;
+  border-color: #c0d0e8;
+}
+
+/* 메인 기능 영역 */
+.main-features {
+  max-width: 1200px;
+  margin: 0 auto 30px;
   padding: 0 20px;
 }
 
-.search-highlight-text {
+.feature-buttons {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 15px;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  background-color: rgba(42, 125, 192, 0.8);
-  padding: 8px 20px;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 80%;
-  margin-left: auto;
-  margin-right: auto;
+  justify-content: space-between;
+  gap: 15px;
 }
 
-.highlight-icon {
-  margin-right: 8px;
-  font-size: 1.1rem;
+.feature-button {
+  flex: 1;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px 0;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.desktop-badge {
+.feature-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  margin-bottom: 10px;
+  position: relative;
   display: inline-block;
-  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon img {
+  width: 60px;
+  height: 60px;
+}
+
+.new-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: #ff5252;
   color: white;
-  padding: 6px 15px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  margin-top: 20px;
+  font-size: 0.7rem;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.feature-text {
+  font-size: 1rem;
   font-weight: 500;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #333;
 }
 
-/* 메인 콘텐츠 영역 스타일 */
-.main-content {
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: 0 50px 50px;
+/* 슬라이더 영역 */
+.info-slider {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
 }
 
-/* 섹션 제목 스타일 */
-.section-title {
-  font-size: 2rem;
-  margin-bottom: 25px;
+.slider-container {
+  overflow: hidden;
+}
+
+.slider-track {
+  display: flex;
+  gap: 20px;
+}
+
+.slider-item {
+  flex: 1;
+  min-width: calc(33.333% - 14px);
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.slider-item:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.slider-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.slider-title h3 {
+  font-size: 1.2rem;
   font-weight: 600;
   color: #333;
-  position: relative;
-  padding-bottom: 15px;
+  margin: 0;
 }
 
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 80px;
-  height: 4px;
-  background-color: #2a7dc0;
-  border-radius: 2px;
+.more-link {
+  color: #1e73c9;
+  font-size: 0.9rem;
 }
 
-/* 기능 버튼 영역 스타일 */
-.features-section {
-  margin-bottom: 50px;
+.notice-item, .update-info {
+  padding: 10px 0;
 }
 
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
+.notice-item h4, .update-info h4 {
+  font-size: 1.1rem;
+  margin: 0 0 10px 0;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
 }
 
-/* 추가 콘텐츠 영역 */
-.additional-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 30px;
-  margin-bottom: 50px;
+.notice-date, .update-date {
+  color: #888;
+  font-size: 0.9rem;
 }
 
-/* 공지사항 컨테이너 */
-.notice-container {
-  width: 100%;
+/* 앨범존 영역 */
+.album-zone {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
 }
 
-/* 퀵 링크 영역 스타일 */
-.quick-links-section {
-  background-color: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  height: 100%;
-}
-
-.quick-links-title {
+.section-title {
   font-size: 1.5rem;
   margin-bottom: 20px;
   font-weight: 600;
   color: #333;
+}
+
+.album-container {
+  display: flex;
+  gap: 20px;
+}
+
+.album-banner {
+  flex: 1;
   position: relative;
-  padding-bottom: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 200px;
 }
 
-.quick-links-title::after {
-  content: '';
+.album-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-content {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
-  width: 50px;
-  height: 3px;
-  background-color: #2a7dc0;
-  border-radius: 2px;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(90deg, rgba(30, 90, 170, 0.8) 0%, rgba(30, 90, 170, 0.4) 100%);
+  color: white;
 }
 
-.quick-links {
-  display: grid;
-  grid-template-columns: 1fr;
+.banner-content h3 {
+  font-size: 1rem;
+  margin: 0 0 10px 0;
+  font-weight: 400;
+}
+
+.banner-content h2 {
+  font-size: 1.8rem;
+  margin: 0 0 5px 0;
+  font-weight: 700;
+}
+
+.banner-content p {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.banner-note {
+  font-size: 0.9rem !important;
+  margin-top: 15px !important;
+  opacity: 0.8;
+}
+
+.weather-banner {
+  background-color: #FF6A3D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-content {
+  text-align: center;
+  color: white;
+  padding: 20px;
+}
+
+.weather-content h3 {
+  font-size: 1.3rem;
+  margin: 0 0 15px 0;
+}
+
+.weather-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.weather-icon img {
+  width: 60px;
+  height: 60px;
+  margin-right: 15px;
+}
+
+.temperature {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.weather-details {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.weather-details span {
+  font-size: 0.9rem;
+}
+
+/* 이용안내 & 다운로드 영역 */
+.info-download {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 20px;
+}
+
+.info-container {
+  display: flex;
+  gap: 20px;
+}
+
+.info-box, .download-box {
+  flex: 1;
+  background-color: white;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-title {
+  font-size: 1.3rem;
+  margin: 0 0 5px 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.info-subtitle {
+  font-size: 0.9rem;
+  color: #888;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+}
+
+.info-links {
+  display: flex;
+  flex-direction: column;
   gap: 15px;
 }
 
-.quick-link {
+.info-links a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.info-links a:hover {
+  color: #1e73c9;
+}
+
+.download-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.download-links a {
   display: flex;
   align-items: center;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
-}
-
-.quick-link:hover {
-  background-color: #e8f0f9;
-  transform: translateX(5px);
-  border-left-color: #2a7dc0;
-}
-
-.link-icon {
-  margin-right: 15px;
-  font-size: 1.3rem;
-  color: #2a7dc0;
-}
-
-.link-text {
-  font-weight: 500;
   color: #333;
-  font-size: 1.1rem;
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
-/* 태블릿 반응형 스타일 */
-@media (max-width: 1200px) {
-  .header-content {
-    padding: 35px;
+.download-links a:hover {
+  color: #1e73c9;
+}
+
+.download-icon {
+  margin-right: 10px;
+  color: #1e73c9;
+}
+
+.download-button {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #1e73c9;
+  text-transform: uppercase;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 1024px) {
+  .feature-buttons {
+    flex-wrap: wrap;
   }
   
-  .main-content {
-    padding: 0 40px 40px;
+  .feature-button {
+    flex: 0 0 calc(33.333% - 10px);
+    min-width: calc(33.333% - 10px);
   }
   
-  .features-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .slider-track {
+    flex-wrap: wrap;
   }
   
-  .additional-content {
-    grid-template-columns: 1fr;
-    gap: 30px;
+  .slider-item {
+    flex: 0 0 calc(50% - 10px);
+    min-width: calc(50% - 10px);
   }
   
-  .title {
-    font-size: 3rem;
-  }
-  
-  .search-container {
-    max-width: 90%;
+  .album-container, .info-container {
+    flex-direction: column;
   }
 }
 
-/* 모바일 반응형 스타일 */
 @media (max-width: 768px) {
-  .header-content {
-    padding: 30px 20px;
-  }
-  
-  .main-content {
-    padding: 0 20px 30px;
-  }
-  
   .title {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
   }
   
-  .subtitle {
-    font-size: 1.2rem;
+  .feature-button {
+    flex: 0 0 calc(50% - 8px);
+    min-width: calc(50% - 8px);
   }
   
-  .search-section {
-    margin-top: -15px;
-  }
-  
-  .search-container {
-    max-width: 100%;
-    padding: 0 15px;
-  }
-  
-  .search-highlight-text {
-    max-width: 100%;
-    font-size: 0.9rem;
-    padding: 8px 15px;
-  }
-  
-  .features-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  
-  .additional-content {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .slider-item {
+    flex: 0 0 100%;
+    min-width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .features-grid {
-    grid-template-columns: 1fr;
+  .title {
+    font-size: 1.8rem;
   }
-}
-
-/* 공지사항 로딩 및 에러 스타일 */
-.notice-loading, .notice-error {
-  background-color: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  margin-bottom: 15px;
-  border: 3px solid rgba(42, 125, 192, 0.1);
-  border-radius: 50%;
-  border-top-color: #2a7dc0;
-  animation: spin 1s ease-in-out infinite;
-}
-
-.notice-error p {
-  color: #e74c3c;
-  font-weight: 500;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  
+  .feature-button {
+    flex: 0 0 100%;
+    min-width: 100%;
+  }
+  
+  .search-history {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .history-label {
+    margin-bottom: 10px;
+  }
 }
 </style> 

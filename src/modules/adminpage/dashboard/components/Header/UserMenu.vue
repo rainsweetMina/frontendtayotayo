@@ -1,22 +1,16 @@
 <template>
+  <div class="user-menu d-flex align-items-center">
   <template v-if="!isLoggedIn">
-    <li class="nav-item">
-      <router-link to="/login" class="nav-link">회원가입(로그인)</router-link>
-    </li>
+      <router-link to="/login" class="btn btn-light me-2">회원가입(로그인)</router-link>
   </template>
   <template v-else>
-    <template v-if="isLoggedIn">
-      <li v-if="role === 'USER'" class="nav-item">
-        <router-link to="/mypage" class="nav-link">마이페이지</router-link>
-      </li>
-      <li v-if="role === 'ADMIN'" class="nav-item">
-        <router-link to="/admin/dashboard" class="nav-link">관리자 페이지</router-link>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#" @click.prevent="handleLogout">로그아웃</a>
-      </li>
+      <div class="d-flex align-items-center">
+        <router-link v-if="role === 'USER'" to="/mypage" class="btn btn-light me-3">마이페이지</router-link>
+        <router-link v-if="role === 'ADMIN'" to="/admin/dashboard" class="btn btn-light me-3">관리자 페이지</router-link>
+        <button @click="handleLogout" class="btn btn-outline-danger">로그아웃</button>
+      </div>
     </template>
-  </template>
+  </div>
 </template>
 
 <script setup>
@@ -43,10 +37,38 @@ const handleLogout = async () => {
 }
 </script>
 
-<style scoped lang="scss">
-@use "@/assets/web-user";
+<style scoped>
+.user-menu {
+  display: flex;
+  align-items: center;
+}
 
-.nav-item:hover .nav-link:hover {
-  color: #ddd;
+.btn {
+  padding: 0.375rem 1rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  border-radius: 4px;
+}
+
+.btn-light {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.btn-light:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000;
+}
+
+.btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+  font-weight: 500;
+}
+
+.btn-outline-danger:hover {
+  color: #fff;
+  background-color: #dc3545;
 }
 </style>

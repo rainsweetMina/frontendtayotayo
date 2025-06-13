@@ -1,11 +1,11 @@
 <template>
   <div class="bus-map-page">
-    <!-- ✅ 로고 + 검색창 맵 위에 띄우기 -->
-    <div class="floating-search top-0 start-1">
+    <!-- 로고 + 검색창 맵 위에 띄우기 -->
+    <div class="fixed top-4 left-4 z-10 flex items-center gap-2">
       <router-link to="/" class="logo-link">
         <Logo />
       </router-link>
-      <div class="search-box-wrapper">
+      <div class="search-box-wrapper w-64">
         <SearchBox v-model="searchKeyword" @search="handleSearch" />
       </div>
     </div>
@@ -141,24 +141,8 @@ watch(() => store.selectedRoute, (route) => {
   margin-left: 200px;
 }
 
-.floating-search {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 1000;
+.logo-link {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;         /* ✅ 줄바꿈 방지 */
-  gap: 10px;                 /* ✅ 간격 부여 */
-}
-
-.logo-link {
-  margin-right: -20px;  /* ❗ 인접 요소와 붙이기 위함 */
-}
-
-.search-box-wrapper {
-  flex: 1;
-  width: 300px;
-  max-width: none;           /* ✅ 너비 제한 해제 */
 }
 </style>

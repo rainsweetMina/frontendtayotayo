@@ -159,41 +159,41 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
                 const body = res.data.body;
 
-                let content = `<div class="popup-wrapper">
-                                        <div class="popup-title"><b>${stop.bsNm}</b></div>
-                                    `;
-
-                if (!body.totalCount || !body.items) {
-                    content += `<div class="no-info">도착 정보 없음</div></div>`;
-                    marker.bindPopup(content).openPopup();
-                    return;
-                }
-
-                const items = Array.isArray(body.items) ? body.items : [body.items];
-                const routeMap = new Map();
-
-                // ✅ 노선번호별로 하나만 유지 (가장 빠른 arrState 기준)
-                items.forEach(item => {
-                    const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList];
-                    arrList.forEach(arr => {
-                        const existing = routeMap.get(item.routeNo);
-                        if (!existing || (arr.arrTime < existing.arrTime)) {
-                            routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn });
-                        }
-                    });
-                });
-
-                const sortedArrivals = [...routeMap.values()];
-
-                const popupContent = renderPopupComponent(marker, stop, sortedArrivals)
-                marker.bindPopup(popupContent).openPopup()
+                // 팝업 컴포넌트 렌더링으로 대체
+                const popupContent = renderPopupComponent(marker, stop, 
+                    getArrivalData(body)
+                );
+                marker.bindPopup(popupContent).openPopup();
 
             } catch (err) {
-                marker.bindPopup(`<b>${stop.bsNm}</b><br>도착 정보 조회 실패`).openPopup();
+                marker.bindPopup(`<div class="w-52 font-sans"><div class="font-bold">${stop.bsNm}</div><div class="text-red-500">도착 정보 조회 실패</div></div>`).openPopup();
                 console.error('❌ 도착 정보 요청 실패:', err);
             }
         });
 
         window.busStopMarkers.push(marker);
     });
+}
+
+// 도착 정보 데이터 처리 함수 분리
+function getArrivalData(body) {
+    if (!body.totalCount || !body.items) {
+        return [];
+    }
+
+    const items = Array.isArray(body.items) ? body.items : [body.items];
+    const routeMap = new Map();
+
+    // ✅ 노선번호별로 하나만 유지 (가장 빠른 arrState 기준)
+    items.forEach(item => {
+        const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList];
+        arrList.forEach(arr => {
+            const existing = routeMap.get(item.routeNo);
+            if (!existing || (arr.arrTime < existing.arrTime)) {
+                routeMap.set(item.routeNo, { ...arr, routeNo: item.routeNo, updn: item.updn });
+            }
+        });
+    });
+
+    return [...routeMap.values()];
 }

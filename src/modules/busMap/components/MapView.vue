@@ -1,6 +1,14 @@
 <template>
   <div id="map" ref="mapRef" class="leaflet-map p-0"></div>
 
+  <!-- 현재 위치 버튼 추가 -->
+  <button 
+    @click="moveToCurrentLocation" 
+    class="absolute bottom-8 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-colors duration-200"
+  >
+    <i class="fas fa-location-dot"></i>
+  </button>
+
   <ContextMenu
       v-if="contextMenu.visible"
       :position="contextMenu.position"
@@ -70,6 +78,23 @@ const {
   handleTouchEnd,
   hideContextMenu
 } = useContextMenu(mapRef, map)
+
+// 현재 위치로 이동하는 함수 추가
+function moveToCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude: lat, longitude: lng } = pos.coords
+      if (map.value && map.value._loaded) {
+        map.value.flyTo([lat, lng], 16)
+      }
+    }, err => {
+      console.error('위치 정보를 가져오는데 실패했습니다:', err)
+      alert('현재 위치를 가져올 수 없습니다. 위치 권한을 확인해주세요.')
+    })
+  } else {
+    alert('이 브라우저에서는 위치 정보를 지원하지 않습니다.')
+  }
+}
 
 function selectAsStart(coords) {
   clearAutoMarkers()
@@ -248,16 +273,28 @@ onMounted(() => {
   map.value = useMapInit(mapRef)
   window.leafletMap = map.value
 
+  // 컨텍스트 메뉴 이벤트 리스너 등록
   mapRef.value.addEventListener('contextmenu', handleRightClick)
   mapRef.value.addEventListener('touchstart', handleTouchStart)
   mapRef.value.addEventListener('touchend', handleTouchEnd)
-  mapRef.value.addEventListener('click', hideContextMenu)
+  
+  // 지도 클릭 시 컨텍스트 메뉴 숨기기
+  map.value.on('click', hideContextMenu)
 })
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value)
   clearAutoMarkers()
   clearManualMarkers()
+
+  // 이벤트 리스너 제거
+  mapRef.value.removeEventListener('contextmenu', handleRightClick)
+  mapRef.value.removeEventListener('touchstart', handleTouchStart)
+  mapRef.value.removeEventListener('touchend', handleTouchEnd)
+  
+  if (map.value) {
+    map.value.off('click', hideContextMenu)
+  }
 
   if (window.transferMarker) {
     map.value.removeLayer(window.transferMarker)
