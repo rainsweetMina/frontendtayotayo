@@ -23,6 +23,9 @@ const emit = defineEmits(['search'])
 
 function onSearch() {
   if (!store.keyword.trim()) return
+
+  store.forceRouteMode = false
+
   emit('search', {
     keyword: store.keyword,
     newStart: store.startCoord,

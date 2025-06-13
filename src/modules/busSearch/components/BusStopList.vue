@@ -8,16 +8,27 @@
     >
       <!-- 이름 + 버튼 한 줄 정렬 -->
       <div class="flex items-center justify-between">
-        <strong class="text-blue-500 font-bold text-lg whitespace-nowrap overflow-hidden text-ellipsis max-w-[calc(100%-80px)]" :title="stop.bsNm">{{ stop.bsNm }}</strong>
+        <strong class="text-blue-500 font-bold text-lg whitespace-nowrap overflow-hidden text-ellipsis max-w-[calc(100%-120px)]" :title="stop.bsNm">
+          {{ stop.bsNm }}
+        </strong>
         <div class="flex gap-2 flex-shrink-0">
+          <!-- 즐겨찾기 버튼 추가 -->
+          <button @click.stop="toggleFavorite(stop)" class="bg-transparent border-none p-0 cursor-pointer" :title="isFavorited(stop.bsId) ? '즐겨찾기 제거' : '즐겨찾기 추가'">
+            <span class="text-yellow-400" :class="{ 'opacity-100': isFavorited(stop.bsId), 'opacity-30': !isFavorited(stop.bsId) }">★</span>
+          </button>
+
+          <!-- 출발지 선택 -->
           <button @click.stop="$emit('selectAsStart', stop)" class="bg-transparent border-none p-0 cursor-pointer" title="출발지 선택">
             <img :src="startIcon" alt="출발" class="w-6 h-6" />
           </button>
+
+          <!-- 도착지 선택 -->
           <button @click.stop="$emit('selectAsEnd', stop)" class="bg-transparent border-none p-0 cursor-pointer" title="도착지 선택">
             <img :src="arrivalIcon" alt="도착" class="w-6 h-6" />
           </button>
         </div>
       </div>
+
 
       <!-- 도착 정보 -->
       <div v-if="openedStopId === stop.bsId" class="mt-3 pt-2 border-t border-dashed border-gray-300">
@@ -44,6 +55,25 @@
 <script setup>
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
+
+import {onMounted} from "vue";
+import {useFavoriteBusStop} from "@/modules/busSearch/composables/useFavoriteBusStop.js";
+import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
+
+const userInfo = useUserInfo()
+
+const {
+  favoriteStops,
+  toggleFavorite,
+  isFavorited,
+  fetchFavorites
+} = useFavoriteBusStop()
+
+onMounted(async () => {
+  if (userInfo?.value?.isLoggedIn) {
+    await fetchFavorites()
+  }
+})
 
 defineProps({
   stops: Array,
@@ -79,6 +109,26 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   justify-content: space-between;
 }
 
+.favorite-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-icon {
+  font-size: 22px;
+  color: #ccc;
+  transition: color 0.3s;
+}
+
+.favorite-icon.active {
+  color: gold; /* 활성 상태 (즐겨찾기됨) */
+}
+
 .stop-name {
   font-size: 17px;
   color: #4889cd;
@@ -93,6 +143,13 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.favorite-icon {
+  font-size: 22px;
+  color: gold;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .icon-button {

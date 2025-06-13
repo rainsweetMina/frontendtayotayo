@@ -218,4 +218,8 @@ const route = useRoute()
 .router-link-active {
   @apply bg-gray-50 text-gray-900;
 }
+
+a {
+  text-decoration: none;
+}
 </style> 

@@ -10,18 +10,15 @@ export function useMapMarkers(map) {
     let manualEndMarker = null
 
     function clearAutoMarkers() {
+        if (!map.value) return;
+
         const keys = [
-            'lastStartMarker',
-            'lastEndMarker',
-            'lastTransferMarker',
-            'manualStartMarker',
-            'manualEndMarker',
-            'transferMarker'
+            'lastStartMarker', 'lastEndMarker', 'lastTransferMarker',
         ];
 
         keys.forEach(key => {
             const marker = window[key];
-            if (marker instanceof L.Marker && map.value.hasLayer(marker)) {
+            if (marker && map.value.hasLayer(marker)) {
                 try {
                     map.value.removeLayer(marker);
                 } catch (e) {
@@ -54,6 +51,8 @@ export function useMapMarkers(map) {
                 iconAnchor: [18, 36]
             })
         }).addTo(map.value)
+
+        window.manualStartMarker = manualStartMarker
     }
 
     const drawManualEndMarker = (coord) => {
@@ -67,6 +66,8 @@ export function useMapMarkers(map) {
                 iconAnchor: [18, 36]
             })
         }).addTo(map.value)
+
+        window.manualEndMarker = manualEndMarker
     }
 
     const clearManualStartMarkers = () => {
@@ -109,7 +110,6 @@ export function useMapMarkers(map) {
         }).addTo(map.value)
 
         window.lastEndMarker = marker
-        console.log('✅ drawEndMarker - 마커 생성됨:', marker.getLatLng(), 'ID:', marker._leaflet_id)
     }
 
     const clearStartMarker = () => {
@@ -132,40 +132,39 @@ export function useMapMarkers(map) {
         }
     }
 
-    function drawTransferMarker(coord, title = '환승지점') {
-        if (window.transferMarker && map.value.hasLayer(window.transferMarker)) {
-            map.value.removeLayer(window.transferMarker)
+    function drawTransferMarker(latlng, label) {
+        if (!map.value) return null;
+
+        // ✅ 기존 마커 제거
+        if (window.lastTransferMarker && map.value.hasLayer(window.lastTransferMarker)) {
+            map.value.removeLayer(window.lastTransferMarker);
+            window.lastTransferMarker = null;
         }
 
-        const marker = L.marker([coord.lat, coord.lng], {
+        const marker = L.marker([latlng.lat, latlng.lng], {
             icon: L.icon({
                 iconUrl: transferIcon,
                 iconSize: [36, 36],
                 iconAnchor: [18, 36]
-            }),
-            title
-        }).addTo(map.value)
+            })
+        }).addTo(map.value).bindPopup(label);
 
-        window.transferMarker = marker
-        return marker
+        window.lastTransferMarker = marker;  // ✅ 이 부분이 핵심
+        return marker;
     }
 
     function clearTransferMarker() {
-        if (window.lastTransferMarker && map.value.hasLayer(window.lastTransferMarker)) {
-            map.value.removeLayer(window.lastTransferMarker)
-            console.log('🧹 lastTransferMarker 제거됨')
-            window.lastTransferMarker = null
+        if (window.transferMarker && map.value.hasLayer(window.transferMarker)) {
+            map.value.removeLayer(window.transferMarker)
+            window.transferMarker = null
         }
     }
 
     const removeAllMarkersAtCoord = (coord) => {
-        console.log('🗑️ removeAllMarkersAtCoord 실행:', coord)
-
         map.value.eachLayer(layer => {
             if (layer instanceof L.Marker) {
                 const pos = layer.getLatLng()
                 if (pos.lat === coord.lat && pos.lng === coord.lng) {
-                    console.warn('⚠️ 마커 제거됨 (같은 좌표):', pos)
                     map.value.removeLayer(layer)
                 }
             }

@@ -2,8 +2,8 @@
   <div id="map" ref="mapRef" class="leaflet-map p-0"></div>
 
   <!-- 현재 위치 버튼 추가 -->
-  <button 
-    @click="moveToCurrentLocation" 
+  <button
+    @click="moveToCurrentLocation"
     class="absolute bottom-8 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-colors duration-200"
   >
     <i class="fas fa-location-dot"></i>
@@ -19,8 +19,6 @@
 </template>
 
 <script setup>
-import transferIcon from '@/assets/icons/transfer_icon.png'
-
 import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
@@ -51,10 +49,11 @@ const transferMarker = ref(null)
 const routePolyline = ref(null)
 const busMarkers = ref([])
 const intervalId = ref(null)
+let drawTransferMarker = null
 
 const { tryAutoRouteFromCoords } = useAutoRoute(store)
 
-const {
+let {
   drawManualStartMarker,
   drawManualEndMarker,
   drawStartMarker,
@@ -63,7 +62,6 @@ const {
   clearManualEndMarkers,
   clearStartMarker,
   clearEndMarker,
-  drawTransferMarker,
   clearTransferMarker,
   removeAllMarkersAtCoord,
   clearAllStartMarkers,
@@ -115,16 +113,12 @@ function selectAsStart(coords) {
 }
 
 function selectAsEnd(coords) {
-  console.log('🧭 selectAsEnd 실행됨, coords:', coords)
-
   clearAutoMarkers()
   clearRoutePolylines()
   store.routeResults = []
 
   endCoord.value = coords
   drawManualEndMarker(coords)
-
-  console.log('📌 endCoord 저장됨:', endCoord.value)
 
   if (store.setEndCoordText) {
     store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
@@ -159,8 +153,10 @@ function clearMapElementsForSearch() {
 }
 
 defineExpose({
-  clearMapElementsForSearch,
-  clearTransferMarker
+  drawTransferMarker,
+  clearTransferMarker,
+  clearRoutePolylines,
+  clearMapElementsForSearch
 })
 
 async function fetchBusLocations() {
@@ -270,15 +266,20 @@ function handleSelectedRoute(route) {
 }
 
 onMounted(() => {
+  // 지도 초기화
   map.value = useMapInit(mapRef)
   window.leafletMap = map.value
 
-  // 컨텍스트 메뉴 이벤트 리스너 등록
+  // ✅ 마커 기능 로딩 (예: 환승 마커 등)
+  const markerFns = useMapMarkers(map)
+  drawTransferMarker = markerFns.drawTransferMarker
+
+  // ✅ 컨텍스트 메뉴 및 터치 관련 DOM 이벤트 리스너 등록
   mapRef.value.addEventListener('contextmenu', handleRightClick)
   mapRef.value.addEventListener('touchstart', handleTouchStart)
   mapRef.value.addEventListener('touchend', handleTouchEnd)
-  
-  // 지도 클릭 시 컨텍스트 메뉴 숨기기
+
+  // ✅ 지도 클릭 시 컨텍스트 메뉴 숨기기 (Leaflet 방식 권장)
   map.value.on('click', hideContextMenu)
 })
 
@@ -291,7 +292,7 @@ onBeforeUnmount(() => {
   mapRef.value.removeEventListener('contextmenu', handleRightClick)
   mapRef.value.removeEventListener('touchstart', handleTouchStart)
   mapRef.value.removeEventListener('touchend', handleTouchEnd)
-  
+
   if (map.value) {
     map.value.off('click', hideContextMenu)
   }

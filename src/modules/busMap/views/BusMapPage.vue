@@ -45,6 +45,7 @@ window.routePointMarkers = []
 
 // 검색 실행
 function handleSearch({ keyword, newStart, newEnd }) {
+  store.forceRouteMode = false
   if (!keyword.trim()) return
 
   clearMapElements(window.leafletMap)
@@ -88,9 +89,28 @@ const selectRoute = (route) => {
   store.setSelectedRoute(route)
 }
 
+function showTransferMarker(stop) {
+  const lat = parseFloat(stop.yPos ?? stop.ypos)
+  const lng = parseFloat(stop.xPos ?? stop.xpos)
+  if (isNaN(lat) || isNaN(lng)) return
+
+  mapRef.value?.drawTransferMarker?.(
+      { lat, lng },
+      `환승지점: ${stop.bsNm}`
+  )
+}
+
 // 경로 선택 시 지도 반영
 watch(() => store.selectedRoute, (route) => {
   if (!route?.stationIds?.length) return
+
+  const transferStop = route.stationIds.find(
+      s => s.bsNm.replace(/\s/g, '') === route.transferStationName?.replace(/\s/g, '')
+  )
+
+  if (transferStop) {
+    showTransferMarker(transferStop)
+  }
 
   const start = route.stationIds[0]
   const end = route.stationIds.at(-1)
