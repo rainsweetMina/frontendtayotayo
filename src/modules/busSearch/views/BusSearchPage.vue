@@ -11,10 +11,22 @@
 
     <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
     <div v-else>
+      <RecentFavorites
+          v-if="isLoggedIn"
+          :stops="recentStops"
+          :openedStopId="openedStopId"
+          :arrivalDataMap="arrivalDataMap"
+          @selectStop="handleStopClick"
+          @selectAsStart="setStartStop"
+          @selectAsEnd="setEndStop"
+      />
+
       <BusStopList
           :stops="store.busStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
+          :isFavorited="isFavorited"
+          @toggleFavorite="handleToggleFavorite"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
@@ -27,60 +39,63 @@
 <script setup>
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
-import transferIcon from '@/assets/icons/transfer_icon.png'
 
-import {ref, watch} from 'vue'
+import {ref, watch, onMounted, computed} from 'vue'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
 import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
 import {renderPopupComponent} from '@/utils/popup-mount'
+import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
+import {useStopArrival} from '../composables/useStopArrival.js'
+import {useFavoriteBusStop} from '../composables/useFavoriteBusStop.js'
+import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
 import RouteResultList from '../components/RouteResultList.vue'
-import SearchBoxWrapper from "@/modules/busSearch/components/SearchBoxWrapper.vue";
+import SearchBoxWrapper from "../components/SearchBoxWrapper.vue";
+import RecentFavorites from "../components/RecentFavorites.vue";
 
 const store = useSearchStore()
 
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
+const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
+const { isLoggedIn, fetchUserInfo } = useUserInfo()
+
+const map = ref(window.leafletMap)
+const markerFns = useMapMarkers(map)
 let lastStartMarker = null
 let lastEndMarker = null
 let lastTransferMarker = null
 
-async function handleStopClick(stop) {
-  const bsId = stop.bsId
-  openedStopId.value = bsId
+const {
+  toggleFavorite,
+  isFavorited,
+  fetchFavorites,
+  getRecentFavorites
+} = useFavoriteBusStop()
 
-  const map = window.leafletMap
-  const lat = parseFloat(stop.ypos || stop.lat)
-  const lng = parseFloat(stop.xpos || stop.lng)
-
-  // ✅ 지도 이동
-  if (!isNaN(lat) && !isNaN(lng)) {
-    map.flyTo([lat, lng], 17)
-
-    // ✅ 기존 정류장 마커에서 해당 위치 마커 찾기
-    const marker = (window.busStopMarkers || []).find(m =>
-        m.getLatLng().lat === lat && m.getLatLng().lng === lng
-    )
-    if (marker) marker.openPopup()
+onMounted(async () => {
+  await fetchUserInfo() // 👈 무조건 호출해야 로그인 상태 갱신됨
+  if (isLoggedIn.value) {
+    fetchFavorites()
   }
+})
 
-  if (!arrivalDataMap.value[bsId]) {
-    try {
-      const {data} = await axios.get('/api/bus/bus-arrival', {
-        params: {bsId}
-      })
-      arrivalDataMap.value[bsId] = data?.body?.items || []
-    } catch (err) {
-      console.error('도착 정보 조회 실패:', err)
-      arrivalDataMap.value[bsId] = []
-    }
-  }
+const handleToggleFavorite = async (stop) => {
+  await toggleFavorite(stop)
 }
 
+const recentStops = computed(() => {
+  return getRecentFavorites(3).map(fav => ({
+    bsId: fav.bsId,
+    bsNm: fav.bsNm ?? '(정류장 이름 없음)'
+  }))
+})
+
+/*-----여기까지 즐겨찾기------*/
 function isSamePoint(p1, p2, epsilon = 0.00015) {
   const dx = Math.abs(parseFloat(p1.xPos ?? p1.xpos) - parseFloat(p2.xPos ?? p2.xpos))
   const dy = Math.abs(parseFloat(p1.yPos ?? p1.ypos) - parseFloat(p2.yPos ?? p2.ypos))
@@ -105,6 +120,9 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
   if (lastTransferMarker) {
     map.removeLayer(lastTransferMarker)
     lastTransferMarker = null
+  }
+  if (!markerFns.value) {
+    markerFns.value = useMapMarkers(ref(map))
   }
 
   const transferX = parseFloat(transferStation?.xPos ?? transferStation?.xpos)
@@ -139,20 +157,16 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     }
 
     // 🔁 환승 마커
-    const marker = L.marker([transferY, transferX], {
-      icon: L.icon({
-        iconUrl: transferIcon,
-        iconSize: [36, 36],
-        iconAnchor: [15, 30]
-      }),
-      title: `환승지점: ${transferStation.bsNm}`
-    }).addTo(map)
+    const marker = markerFns.value?.drawTransferMarker?.(
+        {lat: transferY, lng: transferX},
+        `환승지점: ${transferStation.bsNm}`
+    )
 
-    marker.on('click', () => {
-      bindArrivalPopup(marker, transferStation.bsId, transferStation.bsNm)
-    })
-
-    lastTransferMarker = marker
+    if (marker) {
+      marker.on('click', () => {
+        bindArrivalPopup(marker, transferStation.bsId, transferStation.bsNm)
+      })
+    }
   } else {
     // 환승 없을 경우 단일 경로
     drawBusRouteMapORS(map, polyline, 'yellowgreen')
@@ -286,7 +300,6 @@ function selectRoute(route) {
         alert('노선 정보를 불러오는 데 실패했습니다.')
       })
 }
-
 
 async function bindArrivalPopup(marker, bsId, bsNm) {
   try {
