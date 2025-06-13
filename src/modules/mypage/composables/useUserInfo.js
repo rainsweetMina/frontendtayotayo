@@ -13,43 +13,32 @@ export function useUserInfo() {
     const auth = useAuthStore()
 
     async function fetchUserInfo() {
+        isLoading.value = true
         try {
             const res = await api.get('/api/user/info', { withCredentials: true })
 
-            user.value = {
-                ...auth.user,
+            const userData = {
                 ...res.data
             }
 
-            auth.login(user.value)
+            user.value = userData
+            auth.login(userData)
             isLoggedIn.value = true
-
         } catch (err) {
             isLoggedIn.value = false
             user.value = null
+            auth.logout() // ⭐ Pinia 상태도 초기화
 
             if (err.response?.status === 401 && !['/login', '/register'].includes(route.path)) {
                 router.push('/login')
             }
+        } finally {
+            isLoading.value = false
         }
     }
 
     onMounted(async () => {
-        const publicPaths = ['/', '/login', '/register']
-        const isPublic = publicPaths.includes(route.path)
-
-        if (auth.user) {
-            user.value = { ...auth.user }
-            isLoggedIn.value = true
-        }
-
-        if (!isPublic) {
-            isLoading.value = true
-            await fetchUserInfo()
-            isLoading.value = false
-        } else {
-            isLoading.value = false
-        }
+        await fetchUserInfo()
     })
 
     return {

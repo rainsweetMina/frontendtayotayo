@@ -7,6 +7,12 @@ export default [
     {
         path: '/mypage/lost/:id',
         name: 'LostItemDetail',
+        component: () => import('../views/user/LostItemDetail.vue'),
+        props: true
+    },
+    {
+        path: '/mypage/lost/edit/:id',
+        name: 'LostItemEdit',
         component: () => import('../components/LostItemEdit.vue'),
         props: true
     },
@@ -16,22 +22,25 @@ export default [
         component: () => import('@/modules/lostFound/views/user/LostPublicList.vue')
     },
     {
+        path: '/lost/:id',
+        name: 'LostPublicDetail',
+        component: () => import('@/modules/lostFound/views/user/LostPublicDetail.vue'),
+        props: true
+    },
+    {
+        path: '/lost/create',
+        name: 'LostPublicCreate',
+        component: () => import('@/modules/lostFound/views/user/LostPublicCreate.vue')
+    },
+    {
         path: '/found',
         name: 'FoundPublicList',
         component: () => import('@/modules/lostFound/views/user/FoundPublicList.vue')
     },
     {
-        path: '/admin/found',
-        name: 'FoundAdminList',
-        component: () => import('@/modules/lostFound/views/admin/FoundAdminList.vue')
-    },
-    {
-        path: '/admin/registered-lost-items',
-        name: 'RegisteredFoundItems',
-        component: () => import('@/modules/lostFound/views/admin/ReportedFoundItems.vue')
+        path: '/found/:id',
+        name: 'FoundPublicDetail',
+        component: () => import('@/modules/lostFound/views/user/FoundPublicDetail.vue'),
+        props: true
     }
-
-
-
-
 ]

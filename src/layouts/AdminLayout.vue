@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import AdminSidebar from '../components/AdminSidebar.vue'
+import AdminSidebar from './components/AdminSidebar.vue'
 import AdminUserMenu from '../components/AdminUserMenu.vue'
 </script>
 

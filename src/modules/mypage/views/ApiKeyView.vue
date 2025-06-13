@@ -15,10 +15,18 @@
       </p>
 
       <p><strong>상태:</strong>
-        <span v-if="apiKey.status === 'APPROVED' && apiKey.active">활성화됨</span>
-        <span v-else-if="apiKey.status === 'PENDING'">승인 대기 중</span>
-        <span v-else-if="apiKey.status === 'EXPIRED'">만료됨</span>
-        <span v-else>알 수 없음 ({{ apiKey.status }})</span> <!-- 디버깅용 -->
+        <template v-if="apiKey.status === 'APPROVED'">
+          ✅ 승인됨 / {{ apiKey.active ? '🔓 활성화됨' : '🔒 비활성화됨' }}
+        </template>
+        <template v-else-if="apiKey.status === 'PENDING'">
+          ⏳ 승인 대기 중
+        </template>
+        <template v-else-if="apiKey.status === 'EXPIRED'">
+          ❌ 만료됨
+        </template>
+        <template v-else>
+          ❓ 알 수 없음 ({{ apiKey.status }})
+        </template>
       </p>
 
       <p><strong>발급일:</strong> {{ formatDate(apiKey.createdAt) }}</p>
@@ -56,14 +64,14 @@ const isVisible = ref(false)
 const copied = ref(false)
 
 const fetchApiKey = async () => {
-  if (!user.value?.userId) return
   try {
-    const res = await axios.get(`/api/user/apikey/getApiKey`, {
-      params: { userId: user.value.userId }
+    const res = await axios.get('/api/user/apikey/getApiKey', {
+      withCredentials: true  // ✅ 쿠키 인증 기반
     })
     apiKey.value = res.data
   } catch (e) {
     apiKey.value = null
+    console.error('API 키 조회 실패:', e)
   }
 }
 

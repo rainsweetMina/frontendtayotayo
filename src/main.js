@@ -13,10 +13,11 @@ import 'leaflet/dist/leaflet.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import 'bootstrap'
+import './assets/main.css'
+
 
 // ✅ 레이아웃 컴포넌트
 import EmptyLayout from "@/layouts/components/EmptyLayout.vue"
-import DashboardLayout from "@/layouts/components/DashboardLayout.vue"
 
 // ✅ Axios 전역 설정 적용
 import './config/axios'
@@ -29,7 +30,6 @@ pinia.use(piniaPersistedState)
 const app = createApp(App)
 app.use(pinia)
 app.use(router)
-app.component("default-layout", DashboardLayout)
 app.component("empty-layout", EmptyLayout)
 
 app.mount('#app')

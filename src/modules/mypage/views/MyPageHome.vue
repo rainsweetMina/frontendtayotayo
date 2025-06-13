@@ -2,7 +2,7 @@
   <div class="mypage-main">
     <!-- 사용자 정보 -->
     <section class="user-info">
-      <h4>👤 {{ user?.username }}님, 환영합니다!</h4>
+      <h4>👤 {{ user?.name }}님, 환영합니다!</h4>
       <p>최근 접속일: {{ user?.lastLoginAt ? formatDate(user.lastLoginAt) : '정보 없음' }}</p>
     </section>
 
@@ -65,7 +65,17 @@ function formatDate(dateString) {
 }
 
 const router = useRouter()
-const { user, isLoading, isLoggedIn } = useUserInfo()
+const { user, isLoading, isLoggedIn, fetchUserInfo } = useUserInfo()
+
+onMounted(async () => {
+  // 소셜 로그인 후 강제로 한번 더 사용자 정보 갱신
+  if (!user.value) {
+    await fetchUserInfo()
+  }
+
+  await waitUntilUserLoaded()
+})
+
 
 const favorites = ref({ busCount: 0, stopCount: 0 })
 const lostItems = ref(0)
@@ -75,9 +85,11 @@ const notificationCount = ref(0)
 
 const handleLogout = async () => {
   try {
-    await axios.post('/auth/logout', null, { withCredentials: true })
+    await axios.post('/api/logout', null, { withCredentials: true })
     router.push('/login')
   } catch (error) {
+    console.error('❌ 로그아웃 에러:', error)
+    console.error('응답 객체:', error?.response)
     alert('로그아웃에 실패했습니다.')
     console.error(error)
   }
@@ -128,12 +140,11 @@ const waitUntilUserLoaded = async () => {
     await new Promise(resolve => setTimeout(resolve, 100))
   }
 
-  if (!isLoggedIn.value) {
+  if (!user.value || !user.value.userId) {
     router.push('/login')
     return
   }
 
-  // 로그인 상태 유지되었을 경우
   fetchFavoriteSummary()
   fetchApiKeySummary()
   fetchNotificationCount()
@@ -145,7 +156,6 @@ onMounted(async () => {
 })
 
 const formattedLastLogin = computed(() => {
-  console.log("🔥 user.value:", user.value)
   if (!user.value?.lastLoginAt) return '정보 없음'
   try {
     const date = new Date(user.value.lastLoginAt)

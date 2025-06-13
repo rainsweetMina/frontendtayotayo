@@ -36,6 +36,7 @@
 
     <div v-if="qnaList.length === 0" class="empty-message">등록된 질문이 없습니다.</div>
   </div>
+  <router-link to="/mypage" class="back-button">← 마이페이지로 돌아가기</router-link>
 </template>
 
 <script setup>
@@ -73,7 +74,6 @@ async function toggleDetail(id) {
 async function fetchQnaList() {
   try {
     const res = await api.get('/api/qna/list')
-    console.log('🔥 응답 데이터:', res.data)
     qnaList.value = res.data
   } catch (e) {
     console.error('❌ Q&A 목록 로딩 실패', e)

@@ -36,23 +36,27 @@
 <script setup>
 import axios from 'axios'
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import api from '@/api/axiosInstance'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
-const userId = ref('')
-const password = ref('')
+const userId = ref('admin')
+const password = ref('!1aaaaaa')
 const rememberId = ref(false)
 const error = ref('')
 
 onMounted(() => {
   const savedId = localStorage.getItem('savedUserId')
-  if (savedId) {
+
+  if (savedId && savedId !== 'null' && savedId !== 'undefined') {
     userId.value = savedId
     rememberId.value = true
+  } else {
+    userId.value = 'user' // 기본값 설정
   }
 })
 
@@ -61,6 +65,8 @@ watch(rememberId, (checked) => {
 })
 
 const handleLogin = async () => {
+  error.value = '' // 이전 에러 초기화
+
   try {
     const formData = new URLSearchParams()
     formData.append('username', userId.value)
@@ -70,12 +76,10 @@ const handleLogin = async () => {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
 
-    // 로그인 성공 시 사용자 정보 가져오기
-    await new Promise(resolve => setTimeout(resolve, 100)) // 세션 반영 기다림
+    await new Promise(resolve => setTimeout(resolve, 100))
+
     const userInfo = await axios.get('/api/user/info', { withCredentials: true })
-    const { id, name, fetchedUserId, email, role = 'USER' } = userInfo.data;
-    console.log("1111 -> " + id)
-    // const role = userInfo.data.role || 'USER'
+    const { id, userId: fetchedUserId, name, email, role = 'USER' } = userInfo.data
 
     auth.login({
       id,
@@ -89,16 +93,20 @@ const handleLogin = async () => {
       localStorage.setItem('savedUserId', fetchedUserId)
     }
 
-    // role에 따라 이동
-    if (role === 'ADMIN') {
-      router.push('/admin/dashboard')
-    } else {
-      router.push('/mypage')
-    }
+    // ✅ redirect 쿼리 파라미터 우선 사용
+    const redirectPath = route.query.redirect || (role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
+    router.push(redirectPath)
 
   } catch (err) {
-    console.error(err)
-    error.value = '아이디 또는 비밀번호가 잘못되었거나 서버 오류입니다.'
+    console.error('❌ 로그인 실패:', err)
+    console.error('에러 응답 전체:', err.response);
+    console.log('에러 메시지 상태:', error.value);
+
+    if (err.response && err.response.data && err.response.data.message) {
+      error.value = err.response.data.message
+    } else {
+      error.value = '아이디 또는 비밀번호가 잘못되었습니다.'
+    }
   }
 }
 

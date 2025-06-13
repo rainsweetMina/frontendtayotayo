@@ -5,7 +5,7 @@
   >
     <div class="card-header">
       <div>
-        <div class="title">{{ item.title }}</div>
+        <div class="title" @click="$emit('view', item)" style="cursor: pointer;">{{ item.title }}</div>
         <div class="date">{{ formatDate(item.lostTime) }}</div>
       </div>
       <div class="button-group">
@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <div class="content">
+    <div class="content" @click="$emit('view', item)" style="cursor: pointer;">
       {{ item.content || '내용 없음' }}
     </div>
 
@@ -26,6 +26,8 @@
 
 <script setup>
 const props = defineProps({ item: Object });
+
+defineEmits(['edit', 'delete', 'view']);
 
 const formatDate = (dateStr) => {
   return dateStr ? new Date(dateStr).toISOString().split('T')[0] : '-';
