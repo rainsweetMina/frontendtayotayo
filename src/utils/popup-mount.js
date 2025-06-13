@@ -2,12 +2,14 @@ import { createApp } from 'vue'
 import { useSearchStore } from "@/stores/searchStore.js";
 import { tryFindRoute } from '@/utils/route-search'
 import BusStopPopup from '@/modules/busMap/components/BusStopPopup.vue'
+import { useFavoriteBusStop } from '@/modules/busSearch/composables/useFavoriteBusStop.js'
 
 export function renderPopupComponent(marker, stop, arrivals) {
     const container = document.createElement('div')
     document.body.appendChild(container)
 
     const store = useSearchStore()
+    const { isFavorited, toggleFavorite } = useFavoriteBusStop()
 
     const app = createApp(BusStopPopup, {
         stopName: stop.bsNm,
@@ -47,9 +49,6 @@ export function renderPopupComponent(marker, stop, arrivals) {
                 }
                 tryFindRoute(store)
             }
-        },
-        onFavorite: () => {
-            console.log('⭐ 즐겨찾기:', stop.bsNm)
         }
     })
 

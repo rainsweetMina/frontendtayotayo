@@ -29,6 +29,8 @@ import {useMapInit} from "@/modules/busMap/composables/useMapInit.js";
 import {useContextMenu} from '@/modules/busMap/composables/useContextMenu'
 import { useMapMarkers } from '@/modules/busMap/composables/useMapMarkers'
 import { useAutoRoute } from '@/modules/busMap/composables/useAutoRoute'
+import {getSortedArrivalsFromApi} from "@/composables/arrival-utils.js";
+import {renderPopupComponent} from "@/utils/popup-mount.js";
 
 
 const props = defineProps({
@@ -228,36 +230,9 @@ function handleSelectedRoute(route) {
 
   marker.on('click', async () => {
     try {
-      const res = await axios.get(`/api/bus/bus-arrival`, {params: {bsId: transferStop.bsId}})
-      const body = res.data.body
-      let content = `<div class="popup-wrapper"><div class="popup-title"><b>${transferStop.bsNm}</b> (🔁 환승지점)</div>`
-
-      if (!body.totalCount || !body.items) {
-        content += `<div class="no-info">도착 정보 없음</div></div>`
-        marker.bindPopup(content).openPopup()
-        return
-      }
-
-      const items = Array.isArray(body.items) ? body.items : [body.items]
-      const routeMap = new Map()
-
-      items.forEach(item => {
-        const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
-        arrList.forEach(arr => {
-          const existing = routeMap.get(item.routeNo)
-          if (!existing || arr.arrTime < existing.arrTime) {
-            routeMap.set(item.routeNo, {...arr, routeNo: item.routeNo, updn: item.updn})
-          }
-        })
-      })
-
-      const sortedArrivals = [...routeMap.values()]
-      content += `<div class="popup-scroll-area">`
-      sortedArrivals.forEach(arr => {
-        content += `<div class="bus-info"><div class="route-no">🚌 ${arr.routeNo}</div><div class="arr-time">${arr.arrState}</div><div class="direction">${arr.updn ?? ''}</div></div>`
-      })
-      content += `</div></div>`
-      marker.bindPopup(content).openPopup()
+      const arrivals = await getSortedArrivalsFromApi(transferStop.bsId)
+      const popup = renderPopupComponent(marker, transferStop, arrivals)
+      marker.bindPopup(popup).openPopup()
     } catch (err) {
       marker.bindPopup(`<b>${transferStop.bsNm}</b><br>도착 정보 조회 실패`).openPopup()
       console.error('도착 정보 실패:', err)

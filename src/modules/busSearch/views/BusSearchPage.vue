@@ -2,38 +2,38 @@
   <div class="sidebar-content">
     <SearchBoxWrapper/>
 
-    <div class="search-results-container">
-      <RouteResultList
-          v-if="store.routeResults.length"
-          :routes="store.routeResults"
-          @selectRoute="selectRouteFromPath"
-          @drawRoutePath="drawOrsPolyline"
+    <RouteResultList
+        v-if="store.routeResults.length"
+        :routes="store.routeResults"
+        @selectRoute="selectRouteFromPath"
+        @drawRoutePath="drawOrsPolyline"
+    />
+
+    <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
+    <div v-else>
+      <RecentFavorites
+          v-if="isLoggedIn"
+          :stops="recentStops"
+          :openedStopId="openedStopId"
+          :arrivalDataMap="arrivalDataMap"
+          :isFavorited="isFavorited"
+          @toggleFavorite="handleToggleFavorite"
+          @selectStop="handleStopClick"
+          @selectAsStart="setStartStop"
+          @selectAsEnd="setEndStop"
       />
 
-      <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
-      <div v-else>
-        <RecentFavorites
-            v-if="isLoggedIn"
-            :stops="recentStops"
-            :openedStopId="openedStopId"
-            :arrivalDataMap="arrivalDataMap"
-            @selectStop="handleStopClick"
-            @selectAsStart="setStartStop"
-            @selectAsEnd="setEndStop"
-        />
-
-        <BusStopList
-            :stops="store.busStops"
-            :openedStopId="openedStopId"
-            :arrivalDataMap="arrivalDataMap"
-            :isFavorited="isFavorited"
-            @toggleFavorite="handleToggleFavorite"
-            @selectStop="handleStopClick"
-            @selectAsStart="setStartStop"
-            @selectAsEnd="setEndStop"
-        />
-        <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
-      </div>
+      <BusStopList
+          :stops="store.busStops"
+          :openedStopId="openedStopId"
+          :arrivalDataMap="arrivalDataMap"
+          :isFavorited="isFavorited"
+          @toggleFavorite="handleToggleFavorite"
+          @selectStop="handleStopClick"
+          @selectAsStart="setStartStop"
+          @selectAsEnd="setEndStop"
+      />
+      <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
     </div>
   </div>
 </template>
@@ -41,29 +41,29 @@
 <script setup>
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
+import axios from 'axios'
 
 import {ref, watch, onMounted, computed} from 'vue'
-import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
-import {tryFindRoute} from "@/utils/route-search.js";
+import {tryFindRoute} from '@/utils/route-search.js'
 import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
 import {renderPopupComponent} from '@/utils/popup-mount'
-import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
+import {useMapMarkers} from '@/modules/busMap/composables/useMapMarkers.js'
 import {useStopArrival} from '../composables/useStopArrival.js'
 import {useFavoriteBusStop} from '../composables/useFavoriteBusStop.js'
-import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
 
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
 import RouteResultList from '../components/RouteResultList.vue'
-import SearchBoxWrapper from "../components/SearchBoxWrapper.vue";
-import RecentFavorites from "../components/RecentFavorites.vue";
+import SearchBoxWrapper from '../components/SearchBoxWrapper.vue'
+import RecentFavorites from '../components/RecentFavorites.vue'
 
 const store = useSearchStore()
 
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
-const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
+const { handleStopClick } = useStopArrival(arrivalDataMap, openedStopId)
 const { isLoggedIn, fetchUserInfo } = useUserInfo()
 
 const map = ref(window.leafletMap)
@@ -80,13 +80,19 @@ const {
 } = useFavoriteBusStop()
 
 onMounted(async () => {
-  await fetchUserInfo() // 👈 무조건 호출해야 로그인 상태 갱신됨
+  await fetchUserInfo()
   if (isLoggedIn.value) {
     fetchFavorites()
   }
 })
 
 const handleToggleFavorite = async (stop) => {
+  if (!isLoggedIn.value) {
+    if (confirm('로그인이 필요한 기능입니다. 로그인하시겠습니까?')) {
+      window.location.href = '/login'
+    }
+    return
+  }
   await toggleFavorite(stop)
 }
 
@@ -97,32 +103,23 @@ const recentStops = computed(() => {
   }))
 })
 
-/*-----여기까지 즐겨찾기------*/
 function isSamePoint(p1, p2, epsilon = 0.00015) {
   const dx = Math.abs(parseFloat(p1.xPos ?? p1.xpos) - parseFloat(p2.xPos ?? p2.xpos))
   const dy = Math.abs(parseFloat(p1.yPos ?? p1.ypos) - parseFloat(p2.yPos ?? p2.ypos))
   return dx < epsilon && dy < epsilon
 }
 
-function drawOrsPolyline({polyline, start, end, transferStation}) {
+function drawOrsPolyline({ polyline, start, end, transferStation }) {
   const map = window.leafletMap
   if (!map || !polyline?.length) return
 
   clearMapElements(map)
 
-  // ❌ 이전 마커 제거
-  if (lastStartMarker) {
-    map.removeLayer(lastStartMarker)
-    lastStartMarker = null
-  }
-  if (lastEndMarker) {
-    map.removeLayer(lastEndMarker)
-    lastEndMarker = null
-  }
-  if (lastTransferMarker) {
-    map.removeLayer(lastTransferMarker)
-    lastTransferMarker = null
-  }
+  if (lastStartMarker) map.removeLayer(lastStartMarker)
+  if (lastEndMarker) map.removeLayer(lastEndMarker)
+  if (lastTransferMarker) map.removeLayer(lastTransferMarker)
+  lastStartMarker = lastEndMarker = lastTransferMarker = null
+
   if (!markerFns.value) {
     markerFns.value = useMapMarkers(ref(map))
   }
@@ -131,9 +128,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
   const transferY = parseFloat(transferStation?.yPos ?? transferStation?.ypos)
 
   if (transferStation && !isNaN(transferX) && !isNaN(transferY)) {
-    // 🔍 환승 기준으로 경로 나누기
     let splitIndex = polyline.findIndex(p => isSamePoint(p, transferStation))
-
     if (splitIndex === -1) {
       let minDist = Infinity
       polyline.forEach((p, i) => {
@@ -150,7 +145,6 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     if (splitIndex > 0) {
       const beforeTransfer = polyline.slice(0, splitIndex + 1)
       const afterTransfer = polyline.slice(splitIndex)
-
       drawBusRouteMapORS(map, beforeTransfer, 'yellowgreen')
       drawBusRouteMapORS(map, afterTransfer, 'orange')
     } else {
@@ -158,9 +152,8 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
       drawBusRouteMapORS(map, polyline, 'gray')
     }
 
-    // 🔁 환승 마커
     const marker = markerFns.value?.drawTransferMarker?.(
-        {lat: transferY, lng: transferX},
+        { lat: transferY, lng: transferX },
         `환승지점: ${transferStation.bsNm}`
     )
 
@@ -170,29 +163,18 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
       })
     }
   } else {
-    // 환승 없을 경우 단일 경로
     drawBusRouteMapORS(map, polyline, 'yellowgreen')
   }
 
-  // 출발 마커
   if (start?.yPos && start?.xPos) {
     lastStartMarker = L.marker([start.yPos, start.xPos], {
-      icon: L.icon({
-        iconUrl: startIcon,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36]
-      })
+      icon: L.icon({ iconUrl: startIcon, iconSize: [36, 36], iconAnchor: [18, 36] })
     }).addTo(map).bindPopup(`출발: ${start.bsNm}`)
   }
 
-  // 도착 마커
   if (end?.yPos && end?.xPos) {
     lastEndMarker = L.marker([end.yPos, end.xPos], {
-      icon: L.icon({
-        iconUrl: arrivalIcon,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36]
-      })
+      icon: L.icon({ iconUrl: arrivalIcon, iconSize: [36, 36], iconAnchor: [18, 36] })
     }).addTo(map).bindPopup(`도착: ${end.bsNm}`)
   }
 
@@ -203,41 +185,32 @@ function selectRouteFromPath(route) {
   const map = window.leafletMap
   if (!map) return
 
-  if (window.customStartMarker) {
-    map.removeLayer(window.customStartMarker)
-    window.customStartMarker = null
-  }
-  if (window.customEndMarker) {
-    map.removeLayer(window.customEndMarker)
-    window.customEndMarker = null
-  }
+  if (window.customStartMarker) map.removeLayer(window.customStartMarker)
+  if (window.customEndMarker) map.removeLayer(window.customEndMarker)
+  window.customStartMarker = window.customEndMarker = null
 
-  store.setSelectedRoute(route)  // 지도 반영은 mapPage.vue 쪽에서 watch로 처리
+  store.setSelectedRoute(route)
 }
 
 function setStartStop(stop) {
   store.setStartStop(stop)
-  store.departure = stop.bsNm  // ✅ 인풋 연동
+  store.departure = stop.bsNm
   store.selectingField = 'start'
-
   if (store.endStop) {
     store.busStops = []
     store.busRoutes = []
   }
-
-  tryFindRoute()// 출+도착 다 선택되었을 경우 길찾기 호출
+  tryFindRoute()
 }
 
 function setEndStop(stop) {
   store.setEndStop(stop)
-  store.arrival = stop.bsNm  // ✅ 인풋 연동
+  store.arrival = stop.bsNm
   store.selectingField = 'end'
-
   if (store.startStop) {
     store.busStops = []
     store.busRoutes = []
   }
-
   tryFindRoute()
 }
 
@@ -247,9 +220,9 @@ function selectRoute(route) {
   clearMapElements(map)
 
   axios.all([
-    axios.get('/api/bus/bus-route', {params: {routeId}}),
-    axios.get('/api/bus/bus-route-link', {params: {routeId}}),
-    axios.get('/api/bus/bus-route-Bus', {params: {routeId}})
+    axios.get('/api/bus/bus-route', { params: { routeId } }),
+    axios.get('/api/bus/bus-route-link', { params: { routeId } }),
+    axios.get('/api/bus/bus-route-Bus', { params: { routeId } })
   ])
       .then(axios.spread((stopRes, linkRes, busRes) => {
         const stops = stopRes.data
@@ -261,35 +234,23 @@ function selectRoute(route) {
         drawBusRouteMapORS(map, forward, 'pink')
         drawBusRouteMapORS(map, reverse, 'skyblue')
 
-        // ✅ 실시간 버스 마커 찍기
         window.busLocationMarkers = []
         buses.forEach(bus => {
           const lat = parseFloat(bus.ypos || bus.lat)
           const lng = parseFloat(bus.xpos || bus.lng)
-
           if (!isNaN(lat) && !isNaN(lng)) {
             const isReverse = bus.moveDir === 0
-            const iconUrl = isReverse
-                ? '/images/bus-reverse.png'
-                : '/images/bus-forward.png'
-
+            const iconUrl = isReverse ? '/images/bus-reverse.png' : '/images/bus-forward.png'
             const marker = L.marker([lat, lng], {
-              icon: L.icon({
-                iconUrl,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-              })
+              icon: L.icon({ iconUrl, iconSize: [24, 24], iconAnchor: [12, 12] })
             }).addTo(map)
-
-            marker.bindPopup(`🚌 ${bus.routeNo}<br>
-                                방향: <strong>${isReverse ? '역방향' : '정방향'}</strong>
-                              `)
+            marker.bindPopup(`🚌 ${bus.routeNo}<br>방향: <strong>${isReverse ? '역방향' : '정방향'}</strong>`)
             window.busLocationMarkers.push(marker)
           }
         })
 
         if (forward.length > 0) {
-          const {yPos, xPos} = forward[0]
+          const { yPos, xPos } = forward[0]
           const lat = parseFloat(yPos)
           const lng = parseFloat(xPos)
           if (!isNaN(lat) && !isNaN(lng)) {
@@ -305,26 +266,19 @@ function selectRoute(route) {
 
 async function bindArrivalPopup(marker, bsId, bsNm) {
   try {
-    const res = await axios.get('/api/bus/bus-arrival', {
-      params: {bsId}
-    })
+    const res = await axios.get('/api/bus/bus-arrival', { params: { bsId } })
     const body = res.data.body
     const items = Array.isArray(body?.items) ? body.items : body?.items ? [body.items] : []
 
     const arrivals = []
-
     items.forEach(item => {
       const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
       arrList.forEach(arr => {
-        arrivals.push({
-          routeNo: item.routeNo,
-          arrState: arr.arrState,
-          updn: arr.updn
-        })
+        arrivals.push({ routeNo: item.routeNo, arrState: arr.arrState, updn: arr.updn })
       })
     })
 
-    const container = renderPopupComponent(marker, {bsId, bsNm}, arrivals)
+    const container = renderPopupComponent(marker, { bsId, bsNm }, arrivals)
     marker.bindPopup(container).openPopup()
   } catch (err) {
     console.error('도착 정보 조회 실패:', err)
@@ -338,9 +292,7 @@ watch(() => store.lastSearchedKeyword, async (keyword) => {
     const map = window.leafletMap
     if (map) clearMapElements(map)
 
-    const {data} = await axios.get('/api/bus/searchBSorBN', {
-      params: {keyword}
-    })
+    const { data } = await axios.get('/api/bus/searchBSorBN', { params: { keyword } })
     store.busStops = data.busStops || []
     store.busRoutes = data.busNumbers || []
 
@@ -351,7 +303,7 @@ watch(() => store.lastSearchedKeyword, async (keyword) => {
   } catch (err) {
     console.error('❌ 자동 검색 실패:', err)
   }
-}, {immediate: true})
+}, { immediate: true })
 </script>
 
 <style scoped>
