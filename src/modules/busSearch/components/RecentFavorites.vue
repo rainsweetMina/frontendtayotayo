@@ -20,7 +20,10 @@
 import BusStopList from './BusStopList.vue'
 
 defineProps({
-  stops: Array,
+  stops: {
+    type: Array,
+    default: () => []
+  },
   openedStopId: String,
   arrivalDataMap: Object,
   isFavorited: Function,
@@ -48,6 +51,6 @@ hr {
   border: none;
   border-top: 2px dashed #808080;
   height: 0; /* 점선일 때는 height 0 */
-  margin: 0 25px 16px; /* 좌우 5px, 아래쪽 8px */
+  margin: 16px 25px 8px; /* 좌우 5px, 아래쪽 8px */
 }
 </style>

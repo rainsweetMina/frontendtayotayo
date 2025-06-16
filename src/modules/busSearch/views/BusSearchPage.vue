@@ -12,7 +12,7 @@
     <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
     <div v-else>
       <RecentFavorites
-          v-if="isLoggedIn"
+          v-if="isLoggedIn && !store.routeResults.length && !store.isRouteSearchMode"
           :stops="recentStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
@@ -67,7 +67,7 @@ const store = useSearchStore()
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
 const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
-const {isLoggedIn, fetchUserInfo, isLoading} = useUserInfo(false)
+const {isLoggedIn, fetchUserInfo2, isLoading} = useUserInfo(false)
 
 const map = ref(window.leafletMap)
 const markerFns = useMapMarkers(map)
@@ -79,12 +79,13 @@ const {
   toggleFavorite,
   isFavorited,
   fetchFavorites,
-  getRecentFavorites
+  getRecentFavorites,
+  favoriteStops
 } = useFavoriteBusStop()
-  console.log("로그인? " + isLoggedIn.value)
 
 onMounted(async () => {
-  await fetchUserInfo()
+  await fetchUserInfo2()
+  await waitUntilUserLoaded()
 
   if (isLoggedIn.value) {
     await fetchFavorites()
@@ -109,13 +110,13 @@ const handleToggleFavorite = async (stop) => {
   await toggleFavorite(stop)
 }
 
-const recentStops = computed(() => {
-  return getRecentFavorites(3).map(fav => ({
-    bsId: fav.bsId,
-    bsNm: fav.bsNm ?? '(정류장 이름 없음)'
-  }))
-})
+const recentStops = ref([])
 
+watch(favoriteStops, (newVal) => {
+  recentStops.value = [...(newVal || [])]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 3)
+})
 /*-----여기까지 즐겨찾기------*/
 function isSamePoint(p1, p2, epsilon = 0.00015) {
   const dx = Math.abs(parseFloat(p1.xPos ?? p1.xpos) - parseFloat(p2.xPos ?? p2.xpos))

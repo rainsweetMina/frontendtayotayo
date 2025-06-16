@@ -6,10 +6,8 @@ export function useFavoriteBusStop() {
     const favoriteSet = ref(new Set())
     const favoriteList = ref([]) // 🕒 전체 객체 리스트 (bsId + createdAt 등)
     const favoriteStops = ref([])
-    const {isLoggedIn} = useUserInfo()
 
     const fetchFavorites = async () => {
-        if (!isLoggedIn.value) return
         try {
             const res = await axios.get('/api/mypage/favorite/bus-stop', {withCredentials: true})
             favoriteStops.value = res.data
@@ -23,13 +21,20 @@ export function useFavoriteBusStop() {
     }
 
     const addFavoriteStop = async (stop) => {
+        if (!stop?.bsId) {
+            console.warn('❌ 유효하지 않은 stop 객체:', stop)
+            alert('정류장 정보가 올바르지 않습니다.')
+            return
+        }
+
         try {
+            console.log('🧪 즐겨찾기 추가 요청:', stop.bsId)
             await axios.post('/api/mypage/favorite/bus-stop',
                 {bsId: stop.bsId},
-                {withCredentials: true},)
+                {withCredentials: true})
             await fetchFavorites()
         } catch (e) {
-            handleAuthError(e, '정류장 즐겨찾기 추가에 실패했습니다.')
+            handleAuthError(e, '로그인이 필요합니다')
         }
     }
 
@@ -54,7 +59,7 @@ export function useFavoriteBusStop() {
     }
 
     const getRecentFavorites = (count = 3) => {
-        return [...favoriteStops.value]
+        return [...(favoriteStops.value || [])]
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, count)
     }

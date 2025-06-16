@@ -13,7 +13,7 @@
           class="form-control me-1 custom-input"
           style="flex: 5;"
       />
-      <button @click="swapInputs" class="btn btn-primary" style="flex: 1;">
+      <button type="button" @click="swapInputs" class="btn btn-primary" style="flex: 1;">
         <img :src=swapIcon alt="전환" style="width: 20px; height: 20px;" />
       </button>
 

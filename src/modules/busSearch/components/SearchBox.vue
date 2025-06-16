@@ -9,7 +9,7 @@
           placeholder="버스 번호/정류장 검색"
           style="flex: 5;"
       />
-      <button @click="onSearch" class="btn btn-primary" style="flex:1;">검색</button>
+      <button type="button" @click="onSearch" class="btn btn-primary" style="flex:1;">검색</button>
     </div>
   </div>
 </template>
