@@ -13,6 +13,7 @@ import noticeRoutes from '@/modules/board/notice/router'
 
 // 📌 Pinia에서 인증 상태 가져오기
 import { useAuthStore } from '@/stores/auth'
+import {useUserInfo} from "@/modules/mypage/composables/useUserInfo.js";
 
 // 중복되는 라우트 경로 제거 (adminRoutes에서 이미 정의된 경로)
 const filteredLostFoundRoutes = lostFoundRoutes.filter(route => !route.path.startsWith('/admin'));
@@ -34,15 +35,12 @@ const router = createRouter({
     routes
 })
 
-// ✅ 전역 가드 설정 (최소한으로만 추가)
-router.beforeEach((to, from, next) => {
-    const auth = useAuthStore()
-    const isLoggedIn = auth.isAuthenticated // ✅ getter로 로그인 상태 확인
+// ✅ 소셜 로그인 후 새로고침이나 직접 접근 시 자동 로그인 복원
+router.beforeEach(async (to, from, next) => {
+    const { isLoggedIn, fetchUserInfo } = useUserInfo()
 
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-        if (!isLoggedIn) {
-            return next({ path: '/login', query: { redirect: to.fullPath } })
-        }
+    if (!isLoggedIn.value && to.path.startsWith('/mypage')) {
+        await fetchUserInfo()
     }
 
     next()
