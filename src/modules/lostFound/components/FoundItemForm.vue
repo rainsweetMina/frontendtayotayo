@@ -319,67 +319,43 @@ const handleSubmit = async () => {
       return;
     }
 
-    // ✅ DTO 객체 생성 (서버 요구사항에 맞게 조정)
-    const dto = {
-      itemName: form.itemName,
-      busCompany: selected.companyName,
-      busNumber: form.busNumber,
-      foundTime: form.foundTime,
-      foundPlace: form.foundPlace || '',
-      content: form.content || '',
-      storageLocation: form.storageLocation || '',
-      handlerContact: form.handlerContact || '',
-      handlerEmail: form.handlerEmail || '',
-      status: form.status,
-      handlerId: handlerId.toString()
-    };
-    
-    // 수정 시 ID 추가 및 photoUrl 유지
+    // 각 필드를 FormData에 직접 추가 (key-value로)
+    formData.append('itemName', form.itemName);
+    formData.append('busCompany', selected.companyName);
+    formData.append('busNumber', form.busNumber);
+    formData.append('foundTime', form.foundTime);
+    formData.append('foundPlace', form.foundPlace || '');
+    formData.append('content', form.content || '');
+    formData.append('storageLocation', form.storageLocation || '');
+    formData.append('handlerContact', form.handlerContact || '');
+    formData.append('handlerEmail', form.handlerEmail || '');
+    formData.append('status', form.status || 'IN_STORAGE');
+    formData.append('handlerId', handlerId.toString());
+
+    // 수정 시 추가 필드
     if (props.item) {
-      // ID를 문자열로 명시적 설정 (서버에서 처리하는 방식에 맞춤)
-      dto.id = props.item.id.toString();
-      
-      // photoUrl은 서버에서 상대 경로로 처리되므로 BASE_URL 제외하고 저장
-      dto.photoUrl = props.item.photoUrl || '';
-      console.log("📸 기존 이미지 경로 유지:", dto.photoUrl);
-      
-      // 상태 필드가 필수임을 확인
-      if (!dto.status) {
-        dto.status = "IN_STORAGE"; // 기본값 설정
-      }
+      formData.append('id', props.item.id.toString());
+      formData.append('photoUrl', props.item.photoUrl || '');
     }
 
-    console.log("📝 전송할 DTO:", JSON.stringify(dto, null, 2));
-
-    // ✅ JSON -> Blob -> FormData에 넣기 (content-type 명시)
-    const dtoBlob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
-    formData.append('dto', dtoBlob);
-
-    // ✅ 이미지 파일 처리 (수정/생성에 따라 다름)
+    // 이미지 처리
     const isUpdate = !!props.item;
     const hasNewImage = !!imageFile.value;
-    
+
     if (!isUpdate && !hasNewImage) {
-      // 신규 등록 시 이미지 필수
       alert('이미지를 선택해주세요.');
       return;
     }
-    
     if (hasNewImage) {
-      // 새 이미지가 있을 때만 이미지 전송
-      console.log("📸 새 이미지 파일 추가:", imageFile.value.name, imageFile.value.size);
       formData.append('image', imageFile.value);
-    } else if (isUpdate) {
-      // 수정 시 이미지가 없으면 빈 파일이 아닌 이미지 필드 자체를 생략
-      console.log("📸 이미지 변경 없음, 기존 이미지 URL 유지:", dto.photoUrl);
     }
+    // 이미지 변경이 없을 땐 그냥 이미지 필드는 생략 (서버에서 기존 이미지 유지)
 
     // API 호출
     if (isUpdate) {
-      console.log(`📤 습득물 ID ${dto.id} 수정 요청`);
-      const response = await updateFoundItem(dto.id, formData);
+      console.log(`📤 습득물 ID ${props.item.id} 수정 요청`);
+      const response = await updateFoundItem(props.item.id, formData);
       console.log('수정 응답:', response);
-      alert('수정 완료');
     } else {
       const response = await registerFoundItem(formData);
       console.log('등록 응답:', response);
@@ -400,12 +376,11 @@ const handleSubmit = async () => {
       if (fileInput.value) fileInput.value.value = '';
     }
 
-    emit('submitted');
+    emit('submitted', formData);
   } catch (e) {
     console.error('폼 제출 오류:', e);
     console.error('상세 오류:', e.response?.data);
-    
-    // 서버 응답 상세 정보 추가
+
     let errorMessage = '저장 실패: ';
     if (e.response?.data?.message) {
       errorMessage += e.response.data.message;
@@ -414,10 +389,11 @@ const handleSubmit = async () => {
     } else {
       errorMessage += '알 수 없는 오류가 발생했습니다.';
     }
-    
+
     alert(errorMessage);
   }
 };
+
 </script>
 
 <style scoped>

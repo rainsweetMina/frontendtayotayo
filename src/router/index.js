@@ -15,7 +15,7 @@ import noticeRoutes from '@/modules/board/notice/router'
 import { useAuthStore } from '@/stores/auth'
 
 // 중복되는 라우트 경로 제거 (adminRoutes에서 이미 정의된 경로)
-const filteredLostFoundRoutes = lostFoundRoutes.filter(route => !route.path.startsWith('/admin'));
+// const filteredLostFoundRoutes = lostFoundRoutes.filter(route => !route.path.startsWith('/admin'));
 
 const routes = [
     // { path: '/', component: HomeView }, // 메인 페이지로 교체
@@ -24,7 +24,7 @@ const routes = [
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes,
-    ...filteredLostFoundRoutes, // 필터링된 경로만 사용
+    ...lostFoundRoutes,      // 👈 여기로 바꿔주면 됨!
     ...noticeRoutes, // 공지사항 라우트 추가
     ...userManagementRoutes
 ]

@@ -61,19 +61,13 @@
             to="/admin/reported-lost-items"
             class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
-            신고된 분실물
-          </router-link>
-          <router-link
-            to="/admin/registered-lost-items"
-            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-          >
-            등록된 습득물
+            분실물 관리
           </router-link>
           <router-link
               to="/admin/found"
               class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
-            등록된 습득물 관리 (신규)
+            습득물 관리
           </router-link>
         </div>
       </div>

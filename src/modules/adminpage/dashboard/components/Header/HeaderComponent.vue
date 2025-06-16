@@ -30,8 +30,8 @@
             <WeatherDisplay />
           </div>
         </div>
-      <UserMenu :role="auth.role" />
       </div>
+      <UserMenu :role="auth.role" />
     </div>
   </nav>
 </template>

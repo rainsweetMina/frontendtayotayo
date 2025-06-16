@@ -27,7 +27,7 @@
         <tr
             v-for="item in foundItems"
             :key="item.id"
-            class="hover:bg-gray-50 cursor-pointer"
+            :class="rowClass(item)"
             @click="goToDetailPage(item.id)"
         >
           <td class="px-4 py-3 text-sm text-gray-500">{{ item.id }}</td>
@@ -38,17 +38,33 @@
           <td class="px-4 py-3">{{ item.itemName }}</td>
           <td class="px-4 py-3 text-sm text-gray-500">{{ formatDate(item.foundTime) }}</td>
           <td class="px-4 py-3">
-              <span :class="getStatusClass(item.status)">
-                {{ getStatusText(item.status) }}
-              </span>
+            <span :class="getStatusClass(item.status)">
+              {{ getStatusText(item.status) }}
+            </span>
+            <!-- 상태 표시 -->
+            <span v-if="item.isDeleted || item.deleted" class="ml-2 text-xs text-red-600">(삭제됨)</span>
+            <span v-else-if="item.visible === false" class="ml-2 text-xs text-gray-500">(숨김됨)</span>
           </td>
           <td class="px-4 py-3 text-sm">
             <div class="flex space-x-2" @click.stop>
-              <button class="text-blue-600 hover:underline" @click="goToDetailPage(item.id)">상세</button>
-              <button class="text-green-600 hover:underline" @click="goToEditPage(item.id)">수정</button>
-              <button class="text-yellow-600 hover:underline" @click="matchItem(item)">매칭</button>
-              <button class="text-gray-600 hover:underline" @click="hideItem(item)">숨김</button>
-              <button class="text-red-600 hover:underline" @click="deleteItem(item)">삭제</button>
+              <!-- 수정은 항상 활성화 -->
+              <button
+                  class="text-green-600 hover:underline"
+                  @click="goToEditPage(item.id)"
+              >수정</button>
+              <!-- 숨김/삭제는 비활성처리(스타일/속성 모두) -->
+              <button
+                  class="text-gray-600 hover:underline"
+                  @click="hideItem(item)"
+                  :disabled="!item.visible || item.isDeleted || item.deleted"
+                  :class="inactiveBtnClass(item)"
+              >숨김</button>
+              <button
+                  class="text-red-600 hover:underline"
+                  @click="deleteItem(item)"
+                  :disabled="item.isDeleted || item.deleted"
+                  :class="inactiveBtnClass(item)"
+              >삭제</button>
             </div>
           </td>
         </tr>
@@ -61,10 +77,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getFoundItemsForAdmin } from '@/modules/lostFound/api/foundAdmin'
+import { getFoundItemsForAdmin, hideFoundItem, deleteFoundItem } from '@/modules/lostFound/api/foundAdmin'
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
-
 
 const router = useRouter()
 const foundItems = ref([])
@@ -90,17 +105,45 @@ const goToEditPage = (id) => {
   router.push(`/admin/found/edit/${id}`)
 }
 
-const matchItem = (item) => {
-  // TODO: 매칭 페이지로 이동
-}
-
+// ✅ 숨김 기능
 const hideItem = async (item) => {
-  // TODO: 숨김 API 연동
+  if (!confirm('정말로 숨기겠습니까?')) return;
+  try {
+    await hideFoundItem(item.id);
+    alert('숨김 처리되었습니다.');
+    fetchFoundItems();
+  } catch (e) {
+    alert('숨김 처리 실패: ' + (e.response?.data?.message || e.message));
+  }
 }
 
+// ✅ 삭제 기능
 const deleteItem = async (item) => {
-  // TODO: 삭제 API 연동
+  if (!confirm('정말로 삭제하시겠습니까?')) return;
+  try {
+    await deleteFoundItem(item.id);
+    alert('삭제되었습니다.');
+    fetchFoundItems();
+  } catch (e) {
+    alert('삭제 실패: ' + (e.response?.data?.message || e.message));
+  }
 }
+
+// ✅ 행 배경 색상/불투명도 동적 적용
+const rowClass = (item) => {
+  if (item.isDeleted || item.deleted) return "bg-red-100 opacity-60";        // 삭제 → 빨간색
+  if (item.visible === false)    return "bg-gray-100 opacity-80";            // 숨김 → 회색
+  return "";
+};
+
+// ✅ 버튼 비활성화 스타일
+const inactiveBtnClass = (item) => {
+  // 삭제된 항목, 숨김된 항목에 대해 비활성
+  if (item.isDeleted || item.deleted || item.visible === false) {
+    return 'opacity-50 cursor-not-allowed pointer-events-none';
+  }
+  return '';
+};
 
 const getStatusText = (status) => {
   const map = {
