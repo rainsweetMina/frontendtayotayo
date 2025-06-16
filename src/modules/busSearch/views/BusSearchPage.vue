@@ -3,14 +3,14 @@
     <SearchBoxWrapper/>
 
     <RouteResultList
-        v-if="store.routeResults.length"
+        v-if="store.routeResults.length && !isLoadingRoutes"
         :routes="store.routeResults"
         @selectRoute="selectRouteFromPath"
         @drawRoutePath="drawOrsPolyline"
     />
 
     <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
-    <div v-else>
+    <div v-else-if="!isLoadingRoutes">
       <RecentFavorites
           v-if="isLoggedIn && !store.routeResults.length && !store.isRouteSearchMode"
           :stops="recentStops"
@@ -34,6 +34,9 @@
           @selectAsEnd="setEndStop"
       />
       <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
+    </div>
+    <div v-else>
+      <p class="text-center text-gray-500 mt-4">🔄 경로 탐색 중입니다...</p>
     </div>
   </div>
 </template>
@@ -64,6 +67,7 @@ import RecentFavorites from "../components/RecentFavorites.vue";
 const router = useRouter()
 const store = useSearchStore()
 
+const isLoadingRoutes = ref(false)
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
 const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
