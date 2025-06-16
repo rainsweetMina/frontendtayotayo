@@ -20,12 +20,19 @@
       <tr v-for="key in apiKeys" :key="key.id" class="text-center border-t">
         <td class="px-4 py-2">{{ key.id }}</td>
         <td class="px-4 py-2">{{ key.username }} ({{ key.userId }})</td>
-        <td class="px-4 py-2">{{ key.apiKey }}</td>
+        <td class="px-4 py-2">
+          <span v-if="visibleKeys[key.id]">
+            {{ key.apiKey }}
+            <button @click="toggleVisibility(key.id)" class="ml-2 text-sm text-blue-600">숨기기</button>
+          </span>
+          <span v-else>
+            {{ maskKey(key.apiKey) }}
+            <button @click="toggleVisibility(key.id)" class="ml-2 text-sm text-blue-600">보기</button>
+          </span>
+        </td>
 
-        <!-- 현재 상태 출력 -->
         <td class="px-4 py-2">{{ key.status }}</td>
 
-        <!-- 상태 선택 후 변경 -->
         <td class="px-4 py-2">
           <select v-model="statusChanges[key.id]" class="border rounded px-2 py-1">
             <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
@@ -38,12 +45,10 @@
           </button>
         </td>
 
-        <!-- 활성 여부 -->
         <td class="px-4 py-2">{{ key.active ? '✅' : '❌' }}</td>
         <td class="px-4 py-2">{{ formatDate(key.createdAt) }}</td>
         <td class="px-4 py-2">{{ formatDate(key.expiresAt) }}</td>
 
-        <!-- 활성/비활성 토글 -->
         <td class="px-4 py-2">
           <button
               class="px-2 py-1 bg-indigo-500 text-white rounded"
@@ -64,21 +69,32 @@ import axios from '@/api/axiosInstance'
 
 const apiKeys = ref([])
 const statuses = ['APPROVED', 'PENDING', 'EXPIRED']
-const statusChanges = ref({}) // id → 선택된 status 값
+const statusChanges = ref({})
+const visibleKeys = ref({})
 
 const fetchApiKeys = async () => {
   try {
     const res = await axios.get('/api/admin/apikey')
     apiKeys.value = res.data
 
-    // 드롭다운 초기값 설정
     statusChanges.value = {}
+    visibleKeys.value = {}
     res.data.forEach(key => {
       statusChanges.value[key.id] = key.status
+      visibleKeys.value[key.id] = false
     })
   } catch (err) {
     console.error('❌ API 키 목록 로딩 실패:', err)
   }
+}
+
+const toggleVisibility = (id) => {
+  visibleKeys.value[id] = !visibleKeys.value[id]
+}
+
+const maskKey = (key) => {
+  if (!key) return ''
+  return '*'.repeat(key.length - 4) + key.slice(-4)
 }
 
 const toggleActive = async (id, isActive) => {

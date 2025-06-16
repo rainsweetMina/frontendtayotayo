@@ -54,8 +54,9 @@
 </template>
 
 <script setup>
+import api from '@/api/axiosInstance'
 import { ref, onMounted, watch, computed } from 'vue'
-import axios from 'axios'
+
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 const { user, isLoggedIn, isLoading } = useUserInfo()
@@ -65,7 +66,7 @@ const copied = ref(false)
 
 const fetchApiKey = async () => {
   try {
-    const res = await axios.get('/api/user/apikey/getApiKey', {
+    const res = await api.get('/api/user/apikey/getApiKey', {
       withCredentials: true  // ✅ 쿠키 인증 기반
     })
     apiKey.value = res.data
@@ -89,7 +90,7 @@ const requestApiKey = async () => {
       callbackUrls: []
     }
 
-    await axios.post('/api/user/apikey/request', requestBody)
+    await api.post('/api/user/apikey/request', requestBody)
     await fetchApiKey()
   } catch (e) {
     alert('API 키 신청 중 오류 발생')
@@ -98,7 +99,7 @@ const requestApiKey = async () => {
 
 const reissueApiKey = async () => {
   try {
-    await axios.post(`/api/user/apikey/reissue`)  // userId는 서버가 인증 정보로 처리
+    await api.post(`/api/user/apikey/reissue`)  // userId는 서버가 인증 정보로 처리
     alert('API 키가 재발급되었습니다.')
     await fetchApiKey()
   } catch (e) {

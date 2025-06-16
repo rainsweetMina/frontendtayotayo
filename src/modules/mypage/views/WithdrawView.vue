@@ -19,7 +19,8 @@
 </template>
 
 <script setup>
-import axios from 'axios'
+import api from '@/api/axiosInstance'
+
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ref } from 'vue'
@@ -35,7 +36,7 @@ const withdraw = async () => {
   }
 
   try {
-    await axios.post('/api/mypage/withdraw', { password: password.value })
+    await api.post('/api/mypage/withdraw', { password: password.value })
     auth.logout()
     alert('회원 탈퇴가 완료되었습니다.')
     router.push('/login')

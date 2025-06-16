@@ -29,12 +29,18 @@
         <p>아직 계정이 없으신가요?</p>
         <button @click="goToRegister">회원가입</button>
       </div>
+
+      <!-- 🔑 비밀번호 찾기 링크 추가 -->
+      <div class="find-password">
+        <router-link to="/find-password">비밀번호를 잊으셨나요?</router-link>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import axios from 'axios'
+
 import { ref, onMounted, watch } from 'vue'
 import api from '@/api/axiosInstance'
 import { useRouter, useRoute } from 'vue-router'
@@ -79,7 +85,7 @@ const handleLogin = async () => {
 
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    const userInfo = await axios.get('/api/user/info', { withCredentials: true })
+    const userInfo = await api.get('/api/user/info', { withCredentials: true })
     const { id, userId: fetchedUserId, name, email, role = 'USER' } = userInfo.data
 
     auth.login({
@@ -253,5 +259,19 @@ button[type="submit"]:hover {
 
 .register-link button:hover {
   background-color: #388e3c;
+}
+
+.find-password {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.find-password a {
+  color: #4889cd;
+  text-decoration: none;
+}
+
+.find-password a:hover {
+  text-decoration: underline;
 }
 </style>

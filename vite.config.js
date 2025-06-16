@@ -46,7 +46,7 @@ export default defineConfig({
                 configure: (proxy) => {
                     proxy.on('proxyReq', (proxyReq, req, res) => {
                         // ✅ 인증 쿠키를 프록시 요청에 포함
-                        proxyReq.setHeader('origin', 'https://localhost:5173');
+                        proxyReq.setHeader('origin', 'https://localhost:8081');
                     });
                 }
             },

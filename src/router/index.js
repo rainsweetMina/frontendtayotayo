@@ -39,11 +39,22 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const { isLoggedIn, fetchUserInfo } = useUserInfo()
 
+    // ✅ 인증 필요 없는 경로는 무시
+    if (to.path === '/oauth-success') {
+        return next()
+    }
+
+    // ✅ 마이페이지 접근 시 자동 로그인 복원
     if (!isLoggedIn.value && to.path.startsWith('/mypage')) {
-        await fetchUserInfo()
+        const ok = await fetchUserInfo()
+
+        if (!ok) {
+            return next('/login')
+        }
     }
 
     next()
 })
+
 
 export default router

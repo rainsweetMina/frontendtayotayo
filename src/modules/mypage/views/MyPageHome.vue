@@ -2,7 +2,7 @@
   <div class="mypage-main" v-if="!isLoading">
     <!-- 사용자 정보 -->
     <section class="user-info">
-      <h4>👤 {{ user?.name }}님, 환영합니다!</h4>
+      <h4>👤 {{ user?.username }}님, 환영합니다!</h4>
       <p>최근 접속일: {{ formattedLastLogin }}</p>
     </section>
 
@@ -52,7 +52,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 function formatDate(dateString) {
@@ -78,8 +78,8 @@ const notificationCount = ref(0)
 
 const handleLogout = async () => {
   try {
-    await axios.post('/api/logout', null, { withCredentials: true })
-    router.push('/login')
+    await api.post('/api/logout')
+    await router.push('/login')
   } catch (error) {
     alert('로그아웃에 실패했습니다.')
   }
@@ -87,12 +87,15 @@ const handleLogout = async () => {
 
 const fetchAllSummaries = async () => {
   try {
+    console.log('[MyPageHome] 📡 데이터 요약 요청 시작')
     const [favRes, apiRes, notiRes, qnaRes] = await Promise.all([
-      axios.get('/api/mypage/favorites/summary', { withCredentials: true }),
-      axios.get('/api/user/apikey/summary', { withCredentials: true }),
-      axios.get('/api/mypage/notifications/count', { withCredentials: true }),
-      axios.get('/api/qna/count', { withCredentials: true })
+      api.get('/api/mypage/favorites/summary'),
+      api.get('/api/user/apikey/summary'),
+      api.get('/api/mypage/notifications/count'),
+      api.get('/api/qna/count')
     ])
+
+    console.log('[MyPageHome] ✅ 응답 수신 완료')
 
     favorites.value = favRes.data
     apiKeyStatusText.value = apiRes.data?.status === 'APPROVED' ? '승인됨' :
@@ -104,14 +107,17 @@ const fetchAllSummaries = async () => {
   }
 }
 
+
 onMounted(async () => {
   const success = await fetchUserInfo()
+  console.log('[MyPageHome] ✅ fetchUserInfo 완료 여부:', success)
   if (!success) {
     router.push('/login')
     return
   }
-
-  await fetchAllSummaries()
+  setTimeout(async () => {
+    await fetchAllSummaries()
+  }, 300)
 })
 
 const formattedLastLogin = computed(() => {

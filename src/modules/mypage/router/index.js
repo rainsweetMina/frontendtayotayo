@@ -97,5 +97,20 @@ export default [
         path: '/register',
         name: 'Register',
         component: () => import('../views/RegisterView.vue')
+    },
+
+    {
+        path: '/oauth-success',
+        name: 'OAuthSuccess',
+        component: () => import('@/modules/mypage/views/OAuthSuccess.vue'),
+        meta: { layout: 'none' }
+    },
+
+    {
+        path: '/find-password',
+        name: 'FindPassword',
+        component: () => import('@/modules/mypage/views/FindPasswordView.vue'),
+        meta: { layout: 'none' }
     }
+
 ]
