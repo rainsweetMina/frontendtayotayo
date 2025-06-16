@@ -16,7 +16,6 @@ export function useUserInfo() {
         isLoading.value = true
         try {
             const res = await api.get('/api/user/info', { withCredentials: true })
-
             const userData = {
                 ...res.data
             }

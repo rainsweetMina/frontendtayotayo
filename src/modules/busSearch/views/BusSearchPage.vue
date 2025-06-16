@@ -114,7 +114,8 @@ const recentStops = ref([])
 
 watch(favoriteStops, (newVal) => {
   recentStops.value = [...(newVal || [])]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .sort((b, a) => new Date(b.createdAt) - new Date(a.createdAt))
+      .reverse()
       .slice(0, 3)
 })
 /*-----여기까지 즐겨찾기------*/

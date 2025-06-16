@@ -28,7 +28,6 @@ export function useFavoriteBusStop() {
         }
 
         try {
-            console.log('🧪 즐겨찾기 추가 요청:', stop.bsId)
             await axios.post('/api/mypage/favorite/bus-stop',
                 {bsId: stop.bsId},
                 {withCredentials: true})

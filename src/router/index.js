@@ -1,12 +1,12 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 import busSearchRoutes from '@/modules/busSearch/router'
 import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
 import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
 import userManagementRoutes from '@/modules/usermanagement/router'
+import boardRoutes from '@/modules/board/router'
 
 import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
@@ -26,7 +26,8 @@ const routes = [
     ...myPageRoutes,
     ...filteredLostFoundRoutes, // 필터링된 경로만 사용
     ...noticeRoutes, // 공지사항 라우트 추가
-    ...userManagementRoutes
+    ...userManagementRoutes,
+    ...boardRoutes
 ]
 
 const router = createRouter({
