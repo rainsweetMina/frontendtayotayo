@@ -65,8 +65,9 @@
 </template>
 
 <script setup>
+import api from '@/api/axiosInstance'
 import { ref, computed } from 'vue'
-import axios from 'axios'
+
 
 const form = ref({
   userId: '',
@@ -101,7 +102,7 @@ const checkPasswordMatch = () => {
 
 const checkDuplicateId = async () => {
   try {
-    const res = await axios.get(`/api/user/check-id?userId=${form.value.userId}`)
+    const res = await api.get(`/api/user/check-id?userId=${form.value.userId}`)
     idDuplicate.value = res.data.duplicate // true: 중복, false: 사용 가능
   } catch (err) {
     idDuplicate.value = true
@@ -119,7 +120,7 @@ const handleEmailSelect = () => {
 const sendVerificationCode = async () => {
   form.value.email = `${emailLocal.value}@${emailDomain.value}`
   try {
-    await axios.post('/api/email/send', { email: form.value.email })
+    await api.post('/api/email/send', { email: form.value.email })
     codeSent.value = true
     startTimer()
   } catch (err) {
@@ -146,7 +147,7 @@ const canSubmit = computed(() =>
 
 const handleRegister = async () => {
   try {
-    await axios.post('/api/user/join', form.value)
+    await api.post('/api/user/join', form.value)
     alert('회원가입 완료! 로그인해주세요.')
     window.location.href = '/login'
   } catch (err) {

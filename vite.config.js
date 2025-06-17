@@ -24,6 +24,8 @@ export default defineConfig({
         global: 'globalThis'
     },
     build: {
+        outDir: '../backend/src/main/resources/static',  // 백엔드 정적 리소스 위치
+        emptyOutDir: true, // 기존 static 폴더 지우고 새로 생성
         rollupOptions: {
             plugins: [nodePolyfills()]
         }
@@ -44,7 +46,7 @@ export default defineConfig({
                 configure: (proxy) => {
                     proxy.on('proxyReq', (proxyReq, req, res) => {
                         // ✅ 인증 쿠키를 프록시 요청에 포함
-                        proxyReq.setHeader('origin', 'https://localhost:5173');
+                        proxyReq.setHeader('origin', 'https://localhost:8081');
                     });
                 }
             },

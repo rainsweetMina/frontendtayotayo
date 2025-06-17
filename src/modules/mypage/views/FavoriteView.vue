@@ -64,8 +64,9 @@
 </template>
 
 <script setup>
+import api from '@/api/axiosInstance'
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 import { useRouter } from 'vue-router'
 
@@ -85,7 +86,7 @@ const search = async () => {
   if (!keyword.value.trim()) return
 
   try {
-    const res = await axios.get('/api/bus/searchBSorBN', {
+    const res = await api.get('/api/bus/searchBSorBN', {
       params: { keyword: keyword.value }
     })
     busStops.value = res.data.busStops
@@ -98,10 +99,10 @@ const search = async () => {
 
 const fetchFavorites = async () => {
   try {
-    const stopRes = await axios.get('/api/mypage/favorite/bus-stop')
+    const stopRes = await api.get('/api/mypage/favorite/bus-stop')
     favoriteStops.value = stopRes.data
 
-    const routeRes = await axios.get('/api/mypage/favorite/route')
+    const routeRes = await api.get('/api/mypage/favorite/route')
     favoriteRoutes.value = routeRes.data
   } catch (e) {
     console.error('❌ 즐겨찾기 목록 불러오기 실패:', e)
@@ -110,7 +111,7 @@ const fetchFavorites = async () => {
 
 const addFavoriteStop = async (stop) => {
   try {
-    await axios.post('/api/mypage/favorite/bus-stop', {
+    await api.post('/api/mypage/favorite/bus-stop', {
       bsId: stop.bsId
     })
     alert(`'${stop.bsNm}' 정류장이 즐겨찾기에 추가되었습니다.`)
@@ -123,7 +124,7 @@ const addFavoriteStop = async (stop) => {
 
 const addFavoriteRoute = async (route) => {
   try {
-    await axios.post('/api/mypage/favorite/route', {
+    await api.post('/api/mypage/favorite/route', {
       routeId: route.routeId
     })
     alert(`'${route.routeNo}'번 노선이 즐겨찾기에 추가되었습니다.`)
@@ -139,7 +140,7 @@ const deleteFavoriteStop = async (bsId) => {
   if (!confirmed) return
 
   try {
-    await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`)
+    await api.delete(`/api/mypage/favorite/bus-stop/${bsId}`)
     favoriteStops.value = favoriteStops.value.filter(s => s.bsId !== bsId)
     alert('정류장 즐겨찾기가 삭제되었습니다.')
   } catch (e) {
@@ -153,7 +154,7 @@ const deleteFavoriteRoute = async (routeId) => {
   if (!confirmed) return
 
   try {
-    await axios.delete(`/api/mypage/favorite/route/${routeId}`)
+    await api.delete(`/api/mypage/favorite/route/${routeId}`)
     favoriteRoutes.value = favoriteRoutes.value.filter(r => r.routeId !== routeId)
     alert('노선 즐겨찾기가 삭제되었습니다.')
   } catch (e) {

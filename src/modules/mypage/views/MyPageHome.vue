@@ -1,9 +1,9 @@
 <template>
-  <div class="mypage-main">
+  <div class="mypage-main" v-if="!isLoading">
     <!-- 사용자 정보 -->
     <section class="user-info">
-      <h4>👤 {{ user?.name }}님, 환영합니다!</h4>
-      <p>최근 접속일: {{ user?.lastLoginAt ? formatDate(user.lastLoginAt) : '정보 없음' }}</p>
+      <h4>👤 {{ user?.username }}님, 환영합니다!</h4>
+      <p>최근 접속일: {{ formattedLastLogin }}</p>
     </section>
 
     <!-- 새 알림 요약 영역 -->
@@ -44,12 +44,15 @@
       <router-link to="/mypage/withdraw">🗑️ 회원 탈퇴</router-link>
     </section>
   </div>
+  <div v-else>
+    ⏳ 마이페이지 정보를 불러오는 중입니다...
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 function formatDate(dateString) {
@@ -67,16 +70,6 @@ function formatDate(dateString) {
 const router = useRouter()
 const { user, isLoading, isLoggedIn, fetchUserInfo } = useUserInfo()
 
-onMounted(async () => {
-  // 소셜 로그인 후 강제로 한번 더 사용자 정보 갱신
-  if (!user.value) {
-    await fetchUserInfo()
-  }
-
-  await waitUntilUserLoaded()
-})
-
-
 const favorites = ref({ busCount: 0, stopCount: 0 })
 const lostItems = ref(0)
 const qnaCount = ref(0)
@@ -85,74 +78,46 @@ const notificationCount = ref(0)
 
 const handleLogout = async () => {
   try {
-    await axios.post('/api/logout', null, { withCredentials: true })
-    router.push('/login')
+    await api.post('/api/logout')
+    await router.push('/login')
   } catch (error) {
-    console.error('❌ 로그아웃 에러:', error)
-    console.error('응답 객체:', error?.response)
     alert('로그아웃에 실패했습니다.')
-    console.error(error)
   }
 }
 
-const fetchFavoriteSummary = async () => {
+const fetchAllSummaries = async () => {
   try {
-    const res = await axios.get('/api/mypage/favorites/summary', { withCredentials: true })
-    favorites.value = res.data
+    console.log('[MyPageHome] 📡 데이터 요약 요청 시작')
+    const [favRes, apiRes, notiRes, qnaRes] = await Promise.all([
+      api.get('/api/mypage/favorites/summary'),
+      api.get('/api/user/apikey/summary'),
+      api.get('/api/mypage/notifications/count'),
+      api.get('/api/qna/count')
+    ])
+
+    console.log('[MyPageHome] ✅ 응답 수신 완료')
+
+    favorites.value = favRes.data
+    apiKeyStatusText.value = apiRes.data?.status === 'APPROVED' ? '승인됨' :
+        apiRes.data?.status === 'PENDING' ? '승인 대기 중' : '없음'
+    notificationCount.value = notiRes.data.count
+    qnaCount.value = qnaRes.data.count
   } catch (err) {
-    console.error('❌ 즐겨찾기 요약 정보 실패:', err)
+    console.error('❌ 데이터 요약 로딩 실패:', err)
   }
 }
 
-const fetchApiKeySummary = async () => {
-  try {
-    const res = await axios.get('/api/user/apikey/summary', { withCredentials: true })
-    const status = res.data.status
-    apiKeyStatusText.value =
-        status === 'APPROVED' ? '승인됨' :
-            status === 'PENDING' ? '승인 대기 중' :
-                '없음'
-  } catch (e) {
-    console.error('❌ API 키 상태 로딩 실패:', e)
-  }
-}
 
-const fetchNotificationCount = async () => {
-  try {
-    const res = await axios.get('/api/mypage/notifications/count', { withCredentials: true })
-    notificationCount.value = res.data.count
-  } catch (err) {
-    console.error('❌ 알림 수 로딩 실패:', err)
-  }
-}
-
-const fetchQnaCount = async () => {
-  try {
-    const res = await axios.get('/api/qna/count', { withCredentials: true })
-    qnaCount.value = res.data.count
-  } catch (err) {
-    console.error('❌ Q&A 개수 로드 실패:', err)
-  }
-}
-
-const waitUntilUserLoaded = async () => {
-  while (isLoading.value) {
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
-
-  if (!user.value || !user.value.userId) {
+onMounted(async () => {
+  const success = await fetchUserInfo()
+  console.log('[MyPageHome] ✅ fetchUserInfo 완료 여부:', success)
+  if (!success) {
     router.push('/login')
     return
   }
-
-  fetchFavoriteSummary()
-  fetchApiKeySummary()
-  fetchNotificationCount()
-  fetchQnaCount()
-}
-
-onMounted(async () => {
-  await waitUntilUserLoaded()
+  setTimeout(async () => {
+    await fetchAllSummaries()
+  }, 300)
 })
 
 const formattedLastLogin = computed(() => {

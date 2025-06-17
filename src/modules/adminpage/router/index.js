@@ -24,6 +24,8 @@ import FoundAdminList from "@/modules/lostFound/views/admin/FoundAdminList.vue";
 import FoundAdminCreate from "@/modules/lostFound/views/admin/FoundAdminCreate.vue";
 import FoundAdminDetail from "@/modules/lostFound/views/admin/FoundAdminDetail.vue";
 import FoundAdminEdit from "@/modules/lostFound/views/admin/FoundAdminEdit.vue";
+import LostAdminDetail from "@/modules/lostFound/views/admin/LostAdminDetail.vue";
+import LostAdminList from "@/modules/lostFound/views/admin/LostAdminList.vue";
 
 export const adminRoutes = {
   path: "/admin",
@@ -158,6 +160,17 @@ export const adminRoutes = {
       path: "found/edit/:id",
       name: "FoundAdminEdit",
       component: FoundAdminEdit,
+      props: true
+    },
+    {
+      path: "lost",    // 🔥 /admin/lost
+      name: "LostAdminList",
+      component: LostAdminList
+    },
+    {
+      path: "lost/:id", // 상세
+      name: "LostAdminDetail",
+      component: LostAdminDetail,
       props: true
     }
   ],

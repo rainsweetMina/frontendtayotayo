@@ -1,4 +1,7 @@
 // src/modules/mypage/router/index.js
+import {useAuthStore} from "@/stores/auth.js";
+import api from "@/api/axiosInstance.js";
+
 export default [
     {
         path: '/mypage',
@@ -76,17 +79,16 @@ export default [
     {
         path: '/logout',
         name: 'Logout',
-        component: {
-            async setup() {
-                try {
-                    await axios.post('/auth/logout', null, { withCredentials: true })
-                } catch (e) {
-                    console.error('자동 로그아웃 실패:', e)
-                } finally {
-                    window.location.href = '/login'
-                }
-                return () => null
+        beforeEnter: async (to, from, next) => {
+            try {
+                await api.post('/auth/logout', {}, { withCredentials: true })
+            } catch (e) {
+                console.warn('서버 로그아웃 실패:', e)
             }
+
+            const auth = useAuthStore()
+            auth.logout()
+            next('/login')
         },
         meta: { layout: 'none' }
     },
@@ -95,5 +97,20 @@ export default [
         path: '/register',
         name: 'Register',
         component: () => import('../views/RegisterView.vue')
+    },
+
+    {
+        path: '/oauth-success',
+        name: 'OAuthSuccess',
+        component: () => import('@/modules/mypage/views/OAuthSuccess.vue'),
+        meta: { layout: 'none' }
+    },
+
+    {
+        path: '/find-password',
+        name: 'FindPassword',
+        component: () => import('@/modules/mypage/views/FindPasswordView.vue'),
+        meta: { layout: 'none' }
     }
+
 ]

@@ -35,9 +35,6 @@
         </td>
         <td class="px-2 py-2">{{ user.withdraw ? '탈퇴' : '활성' }}</td>
         <td class="px-2 py-2">
-          <button class="px-2 py-1 bg-yellow-500 text-white rounded text-xs" @click="generateTempPassword(user.userId)">발급</button>
-        </td>
-        <td class="px-2 py-2">
           <button class="px-2 py-1 bg-red-500 text-white rounded text-xs" @click="withdrawUser(user.userId)">탈퇴</button>
         </td>
       </tr>
@@ -80,7 +77,6 @@ const columns = [
   { label: '권한', key: 'role' },
   { label: '권한변경', key: 'roleChange' },
   { label: '계정상태', key: 'withdraw' },
-  { label: '임시비밀번호', key: 'tempPassword' },
   { label: '탈퇴처리', key: 'withdrawAction' },
 ]
 
@@ -147,15 +143,6 @@ const changeRole = async (userId, newRole) => {
     fetchUsers()
   } catch (err) {
     console.error('❌ 역할 변경 실패:', err)
-  }
-}
-
-const generateTempPassword = async (userId) => {
-  try {
-    const res = await axios.post(`/api/admin/user/${userId}/temp-password`)
-    alert(`${userId}의 임시 비밀번호: ${res.data.tempPassword}`)
-  } catch (err) {
-    console.error('❌ 임시 비밀번호 발급 실패:', err)
   }
 }
 

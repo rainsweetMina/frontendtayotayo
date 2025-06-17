@@ -10,7 +10,7 @@
         <input v-model="form.name" type="text" required />
 
         <label>이메일</label>
-        <input v-model="form.email" type="email" required />
+        <input v-model="form.email" type="email" :disabled="isSocial" required />
 
         <label>전화번호</label>
         <input v-model="form.phoneNumber" type="text" />
@@ -22,18 +22,24 @@
         <input :value="formattedSignupDate" disabled />
       </div>
 
-      <div class="form-section">
+      <!-- 비밀번호 변경 섹션은 일반 가입자만 -->
+      <div class="form-section" v-if="!isSocial">
         <h3>비밀번호 변경</h3>
 
         <label>현재 비밀번호 확인</label>
         <input v-model="form.currentPassword" type="password" />
 
         <label>새 비밀번호</label>
-        <input v-model="form.newPassword" type="password" />
+        <input v-model="form.newPassword" type="password" @input="validateNewPassword" />
+        <p class="error" v-if="form.newPassword && !passwordValid">영문, 숫자, 특수문자 포함 8자 이상이어야 합니다.</p>
+        <p class="success" v-if="form.newPassword && passwordValid">사용 가능한 비밀번호입니다.</p>
 
         <label>새 비밀번호 확인</label>
         <input v-model="form.confirmPassword" type="password" />
+        <p class="error" v-if="form.confirmPassword && form.newPassword !== form.confirmPassword">비밀번호가 일치하지 않습니다.</p>
+        <p class="success" v-if="form.confirmPassword && form.newPassword === form.confirmPassword">비밀번호가 일치합니다.</p>
       </div>
+
 
       <div class="form-actions">
         <button type="submit">수정하기</button>
@@ -44,15 +50,20 @@
 </template>
 
 <script setup>
+import api from '@/api/axiosInstance'
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 import { useAuthStore } from '@/stores/auth'
 
-const { user } = useUserInfo()
 const router = useRouter()
 const auth = useAuthStore()
+const { user, fetchUserInfo } = useUserInfo()
+const passwordValid = ref(false)
+const isSocial = computed(() => user.value?.signupType !== 'GENERAL')
+
+// 🔁 캐시 초기화를 위한 전역 변수 접근 (동일 모듈 내에서만 가능)
+import { isUserInfoFetched } from '@/modules/mypage/composables/useUserInfo'
 
 const form = ref({
   name: '',
@@ -63,15 +74,20 @@ const form = ref({
   confirmPassword: ''
 })
 
-onMounted(() => {
-  form.value.name = user.value.name
-  form.value.email = user.value.email
+onMounted(async () => {
+  const success = await fetchUserInfo()
+  if (!success) {
+    router.push('/login')
+    return
+  }
+
+  form.value.name = user.value.username || ''
+  form.value.email = user.value.email || ''
   form.value.phoneNumber = user.value.phoneNumber || ''
 })
 
 const formattedSignupDate = computed(() => {
   if (!user.value?.signupDate) return '정보 없음'
-
   try {
     const date = new Date(user.value.signupDate)
     return date.toLocaleDateString('ko-KR', {
@@ -86,39 +102,55 @@ const formattedSignupDate = computed(() => {
 
 const submit = async () => {
   try {
-    // ✅ 1. 회원 정보 수정
-    await axios.post('/api/mypage/modify', {
-      name: form.value.name,
-      email: form.value.email,
-      phoneNumber: form.value.phoneNumber
-    })
+    console.log('📦 제출 직전 form.value:', form.value)
 
-    // ✅ 2. 비밀번호 변경 (입력했을 경우에만 시도)
+    // ✅ 1. 일반 정보 수정 요청
+    await api.post(
+        '/api/mypage/modify',
+        {
+          username: form.value.name,
+          email: form.value.email,
+          phoneNumber: form.value.phoneNumber
+        },
+        { withCredentials: true }
+    )
+
+    // ✅ 2. 비밀번호 변경 요청
     if (form.value.newPassword) {
-      await axios.post('/api/mypage/password', {
-        currentPassword: form.value.currentPassword,
-        modifyPassword: form.value.newPassword,
-        modifyPasswordCheck: form.value.confirmPassword
-      })
+      await api.post(
+          '/api/mypage/password',
+          {
+            currentPassword: form.value.currentPassword,
+            modifyPassword: form.value.newPassword,
+            modifyPasswordCheck: form.value.confirmPassword
+          },
+          { withCredentials: true }
+      )
 
-      // ✅ 로그아웃 + 메시지 노출 후 이동
       auth.logout()
       alert('🔐 비밀번호가 변경되었습니다.\n다시 로그인해주세요.')
-      setTimeout(() => {
-        router.push('/login')
-      }, 100) // 약간의 딜레이 후 리디렉션
+      router.push('/login')
       return
     }
 
-    alert('수정이 완료되었습니다.')
+    // ✅ 3. 사용자 정보 캐시 리셋 및 재조회
+    isUserInfoFetched.value = false
+    await fetchUserInfo()
+
+    alert('✅ 회원정보가 수정되었습니다.')
     router.push('/mypage')
   } catch (err) {
-    console.error(err)
+    console.error('❌ 수정 오류:', err)
     alert(err.response?.data?.message || '수정 중 오류가 발생했습니다.')
+  }
+
+  const validateNewPassword = () => {
+    const password = form.value.newPassword
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&^])[A-Za-z\d@$!%*#?&^]{8,}$/
+    passwordValid.value = regex.test(password)
   }
 }
 </script>
-
 
 <style scoped>
 .edit-form {
