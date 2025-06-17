@@ -1,5 +1,5 @@
 <template>
-  <div class="edit-form">
+  <div class="edit-form" v-if="user">
     <h2>회원 정보 수정</h2>
     <form @submit.prevent="submit">
       <div class="form-section">
@@ -22,7 +22,7 @@
         <input :value="formattedSignupDate" disabled />
       </div>
 
-      <!-- 비밀번호 변경 섹션은 일반 가입자만 -->
+      <!-- 비밀번호 변경 섹션 -->
       <div class="form-section" v-if="!isSocial">
         <h3>비밀번호 변경</h3>
 
@@ -39,7 +39,6 @@
         <p class="error" v-if="form.confirmPassword && form.newPassword !== form.confirmPassword">비밀번호가 일치하지 않습니다.</p>
         <p class="success" v-if="form.confirmPassword && form.newPassword === form.confirmPassword">비밀번호가 일치합니다.</p>
       </div>
-
 
       <div class="form-actions">
         <button type="submit">수정하기</button>
@@ -58,12 +57,10 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { user, fetchUserInfo } = useUserInfo()
+const { user, fetchUserInfo, resetUserInfo } = useUserInfo() // ✅ 수정
+
 const passwordValid = ref(false)
 const isSocial = computed(() => user.value?.signupType !== 'GENERAL')
-
-// 🔁 캐시 초기화를 위한 전역 변수 접근 (동일 모듈 내에서만 가능)
-import { isUserInfoFetched } from '@/modules/mypage/composables/useUserInfo'
 
 const form = ref({
   name: '',
@@ -81,9 +78,9 @@ onMounted(async () => {
     return
   }
 
-  form.value.name = user.value.username || ''
-  form.value.email = user.value.email || ''
-  form.value.phoneNumber = user.value.phoneNumber || ''
+  form.value.name = user.value?.username || ''
+  form.value.email = user.value?.email || ''
+  form.value.phoneNumber = user.value?.phoneNumber || ''
 })
 
 const formattedSignupDate = computed(() => {
@@ -100,11 +97,17 @@ const formattedSignupDate = computed(() => {
   }
 })
 
+const validateNewPassword = () => {
+  const password = form.value.newPassword
+  const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&^])[A-Za-z\d@$!%*#?&^]{8,}$/
+  passwordValid.value = regex.test(password)
+}
+
 const submit = async () => {
   try {
     console.log('📦 제출 직전 form.value:', form.value)
 
-    // ✅ 1. 일반 정보 수정 요청
+    // ✅ 1. 일반 정보 수정
     await api.post(
         '/api/mypage/modify',
         {
@@ -115,7 +118,7 @@ const submit = async () => {
         { withCredentials: true }
     )
 
-    // ✅ 2. 비밀번호 변경 요청
+    // ✅ 2. 비밀번호 변경
     if (form.value.newPassword) {
       await api.post(
           '/api/mypage/password',
@@ -127,14 +130,15 @@ const submit = async () => {
           { withCredentials: true }
       )
 
-      auth.logout()
+      auth.logout(true)
+      resetUserInfo()
       alert('🔐 비밀번호가 변경되었습니다.\n다시 로그인해주세요.')
       router.push('/login')
       return
     }
 
-    // ✅ 3. 사용자 정보 캐시 리셋 및 재조회
-    isUserInfoFetched.value = false
+    // ✅ 3. 사용자 정보 재조회
+    resetUserInfo()
     await fetchUserInfo()
 
     alert('✅ 회원정보가 수정되었습니다.')
@@ -142,12 +146,6 @@ const submit = async () => {
   } catch (err) {
     console.error('❌ 수정 오류:', err)
     alert(err.response?.data?.message || '수정 중 오류가 발생했습니다.')
-  }
-
-  const validateNewPassword = () => {
-    const password = form.value.newPassword
-    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&^])[A-Za-z\d@$!%*#?&^]{8,}$/
-    passwordValid.value = regex.test(password)
   }
 }
 </script>

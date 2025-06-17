@@ -1,16 +1,17 @@
+// modules/mypage/composables/useUserInfo.js
+
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStore } from '@/modules/mypage/store/userStore'
 import api from '@/api/axiosInstance'
 
-export const user = ref(null)
-export const isLoading = ref(false)
-export const isLoggedIn = ref(false)
-export const isUserInfoFetched = ref(false) // ✅ 외부에서도 리셋 가능
-
 export function useUserInfo() {
     const auth = useAuthStore()
     const userStore = useUserStore()
+    const user = ref(null)
+    const isLoading = ref(false)
+    const isLoggedIn = ref(false)
+    const isUserInfoFetched = ref(false)
 
     async function fetchUserInfo(force = false) {
         if (isUserInfoFetched.value && !force) {
@@ -32,9 +33,7 @@ export function useUserInfo() {
                 signupDate, signupType
             } = res.data
 
-            if (!userId) {
-                throw new Error('[fetchUserInfo] ❌ userId 없음!')
-            }
+            if (!userId) throw new Error('[fetchUserInfo] ❌ userId 없음!')
 
             const userData = {
                 id, userId, username, email, role,
@@ -50,21 +49,27 @@ export function useUserInfo() {
             return true
         } catch (err) {
             console.error('[fetchUserInfo] ❌ 에러 발생:', err)
-            user.value = null
-            auth.logout()
-            userStore.setUser(null)
-            isLoggedIn.value = false
-            isUserInfoFetched.value = false
+            resetUserInfo()
+            auth.logout(true)
             return false
         } finally {
             isLoading.value = false
         }
     }
 
+    function resetUserInfo() {
+        user.value = null
+        isUserInfoFetched.value = false
+        isLoggedIn.value = false
+        userStore.setUser(null)
+    }
+
     return {
         user,
         isLoggedIn,
         isLoading,
-        fetchUserInfo
+        fetchUserInfo,
+        resetUserInfo,
+        isUserInfoFetched
     }
 }
