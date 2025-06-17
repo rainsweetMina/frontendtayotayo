@@ -35,8 +35,13 @@ const withdraw = async () => {
     return
   }
 
+  const confirmResult = window.confirm(
+      '정말로 탈퇴하시겠습니까?\n탈퇴 후에는 계정을 복구할 수 없습니다.'
+  )
+  if (!confirmResult) return
+
   try {
-    await api.post('/api/mypage/withdraw', { password: password.value })
+    await api.post('/api/mypage/withdraw', { password: password.value }, { withCredentials: true })
     auth.logout()
     alert('회원 탈퇴가 완료되었습니다.')
     router.push('/login')
