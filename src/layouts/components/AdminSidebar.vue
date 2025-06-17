@@ -58,7 +58,7 @@
         </div>
         <div class="space-y-1">
           <router-link
-            to="/admin/reported-lost-items"
+            to="/admin/lost"
             class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
             분실물 관리

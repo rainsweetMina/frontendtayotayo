@@ -2,16 +2,17 @@
   <div class="max-w-2xl mx-auto bg-white shadow p-8 rounded-lg">
     <h2 class="text-xl font-semibold mb-4">분실물 상세 정보</h2>
     <table class="table-auto w-full mb-4">
+      <tbody>
       <tr><th>ID</th><td>{{ item.id }}</td></tr>
-      <tr><th>제목</th><td>{{ item.itemName }}</td></tr>
+      <tr><th>제목</th><td>{{ item.title }}</td></tr>
       <tr><th>버스 번호</th><td>{{ item.busNumber }}</td></tr>
       <tr><th>버스 회사</th><td>{{ item.busCompany }}</td></tr>
-      <tr><th>신고자</th><td>{{ item.handlerId }}</td></tr>
+      <tr><th>신고자</th><td>{{ item.memberName }}</td></tr>
       <tr><th>삭제 여부</th><td>{{ item.deleted ? '삭제됨' : '정상' }}</td></tr>
       <tr><th>숨김 여부</th><td>{{ item.visible ? '보임' : '숨김' }}</td></tr>
-      <tr><th>등록일</th><td>{{ formatDate(item.foundTime) }}</td></tr>
+      <tr><th>분실일</th><td>{{ formatDate(item.lostTime) }}</td></tr>
       <tr><th>내용</th><td>{{ item.content }}</td></tr>
-      <!-- 필요에 따라 추가 -->
+      </tbody>
     </table>
     <button class="btn btn-secondary" @click="goList">목록</button>
   </div>

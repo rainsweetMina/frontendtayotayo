@@ -106,11 +106,12 @@ const formatDate = (dateStr) => {
 // 상태 출력
 const getStatusLabel = (status) => {
   switch (status) {
-    case 'STORED': return '보관중';
+    case 'IN_STORAGE': return '보관중';
     case 'RETURNED': return '수령완료';
     default: return status || '-';
   }
 };
+
 
 onMounted(() => {
   fetchItem();

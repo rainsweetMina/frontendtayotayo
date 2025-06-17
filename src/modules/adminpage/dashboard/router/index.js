@@ -7,6 +7,8 @@ import FoundAdminList from '@/modules/lostFound/views/admin/FoundAdminList.vue'
 import FoundAdminCreate from '@/modules/lostFound/views/admin/FoundAdminCreate.vue'
 import FoundAdminDetail from '@/modules/lostFound/views/admin/FoundAdminDetail.vue'
 import FoundAdminEdit from '@/modules/lostFound/views/admin/FoundAdminEdit.vue'
+import LostAdminList from "@/modules/lostFound/views/admin/LostAdminList.vue";
+import LostAdminDetail from "@/modules/lostFound/views/admin/LostAdminDetail.vue";
 
 
 const routes = [
@@ -92,7 +94,26 @@ const routes = [
       requiresAuth: true,
       layout: 'admin'
     }
+  },{
+    path: '/admin/lost',
+    name: 'LostAdminList',
+    component: LostAdminList,
+    meta: {
+      requiresAuth: true,
+      layout: 'admin'
+    }
+  },
+  {
+    path: '/admin/lost/:id',
+    name: 'LostAdminDetail',
+    component: LostAdminDetail,
+    props: true,
+    meta: {
+      requiresAuth: true,
+      layout: 'admin'
+    }
   }
+
 ]
 
 export default routes 

@@ -12,7 +12,7 @@
           <th>신고자</th>
           <th>삭제 여부</th>
           <th>숨김 여부</th>
-          <th>등록일</th>
+          <th>분실일</th>
           <th>액션</th>
         </tr>
         </thead>
@@ -21,10 +21,10 @@
             :class="rowClass(item)"
             @click="goDetail(item.id)">
           <td>{{ item.id }}</td>
-          <td>{{ item.itemName }}</td>
+          <td>{{ item.title }}</td>
           <td>{{ item.busNumber }}</td>
           <td>{{ item.busCompany }}</td>
-          <td>{{ item.handlerId }}</td>
+          <td>{{ item.memberName }}</td>
           <td>
             <span v-if="item.deleted" class="text-red-500">삭제됨</span>
             <span v-else>정상</span>
@@ -33,7 +33,7 @@
             <span v-if="!item.visible" class="text-gray-500">숨김</span>
             <span v-else>보임</span>
           </td>
-          <td>{{ formatDate(item.foundTime) }}</td>
+          <td>{{ formatDate(item.lostTime) }}</td>
           <td>
             <button class="btn btn-warning mr-2" @click.stop="hideItem(item)" :disabled="item.deleted || !item.visible">숨김</button>
             <button class="btn btn-danger" @click.stop="deleteItem(item)" :disabled="item.deleted">삭제</button>
@@ -55,6 +55,7 @@ const router = useRouter()
 
 const fetchLostItems = async () => {
   const { data } = await getLostItemsForAdmin()
+  console.log(data); // <-- 실제 key 이름이 뭔지 찍어보기!
   lostItems.value = data
 }
 

@@ -119,38 +119,44 @@ const getStartDate = (daysAgo) => {
   return date.toISOString().split('T')[0];
 };
 
-// 검색 버튼 클릭시
-const handleSearch = async () => {
-  console.log('검색 버튼 클릭');
-  fetchFoundItems();
-};
+// // 검색 버튼 클릭시
+// const handleSearch = async () => {
+//   console.log('검색 버튼 클릭');
+//   fetchFoundItems();
+// };
 
-// 🔍 검색 API 요청
-const fetchFoundItems = async () => {
+// ✅ 목록 데이터 가져오기 (isSearch: 검색이면 true, 전체/초기화면 false)
+const fetchFoundItems = async (isSearch = false) => {
   try {
-    console.log('🔍 검색 요청 시작');
-    
-    // 검색 파라미터 준비
-    const companyObj = busCompanies.value.find(c => c.id === selectedCompanyId.value);
-    const companyName = companyObj ? companyObj.companyName : '';
-
-    // 날짜 계산
     const endDate = new Date().toISOString().split('T')[0];
     const startDate = getStartDate(Number(dateRange.value));
-    
-    console.log('날짜 범위:', { startDate, endDate });
 
-    // 목록 데이터 가져오기 (검색 대신 기본 목록 API 사용)
-    console.log('전체 목록 조회 요청');
-    const { data } = await axios.get('/api/found');
-    console.log('목록 응답:', data);
-    
-    items.value = data;
+    if (isSearch) {
+      // ✅ 회사 id가 아니라, "회사명"을 찾아서 전달!
+      const companyObj = busCompanies.value.find(c => c.id === selectedCompanyId.value);
+      const companyName = companyObj ? companyObj.companyName : '';
+      const params = {
+        startDate,
+        endDate,
+        keyword: searchKeyword.value || undefined,
+        busCompany: companyName || undefined,  // 회사명!
+        busNumber: selectedRoute.value || undefined // 노선번호 그대로
+      };
+      Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
+      console.log("✅ [검색 파라미터]", params);
+
+      const { data } = await axios.get('/api/found/search', { params });
+      items.value = data;
+    } else {
+      const { data } = await axios.get('/api/found');
+      items.value = data;
+    }
   } catch (e) {
-    console.error('❌ 목록 조회 실패:', e);
     items.value = [];
+    console.error('❌ 목록 조회 실패:', e);
   }
 };
+
 
 // 🏢 버스회사 목록
 const fetchBusCompanies = async () => {
@@ -169,21 +175,27 @@ const handleCompanyChange = async () => {
   }
 };
 
-// 초기화
+// ✅ 검색 버튼
+const handleSearch = () => fetchFoundItems(true);
+
+// ✅ 초기화 버튼
 const resetFilters = () => {
-  console.log('필터 초기화');
   dateRange.value = '7';
   searchKeyword.value = '';
   selectedCompanyId.value = '';
   selectedRoute.value = '';
   busRoutes.value = [];
-  
-  // 초기화 후 목록 다시 로드
-  fetchFoundItems();
+  fetchFoundItems(false);
 };
 
 const formatDate = (dateStr) => {
-  return dateStr ? new Date(dateStr).toISOString().split('T')[0] : '-';
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  return (
+      date.getFullYear() + '-' +
+      String(date.getMonth() + 1).padStart(2, '0') + '-' +
+      String(date.getDate()).padStart(2, '0')
+  );
 };
 
 onMounted(() => {

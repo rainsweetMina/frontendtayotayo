@@ -24,8 +24,7 @@ export const getLostItemDetailForAdmin = (id) =>
 export const hideLostItem = (id) =>
     axiosInstance.patch(`${ADMIN_LOST_API}/hide/${id}`);
 
-// ✅ 삭제 처리
+// ✅ 삭제 처리 - 경로에서 /delete 제거!
 export const deleteLostItem = (id) =>
-    axiosInstance.delete(`${ADMIN_LOST_API}/delete/${id}`);
+    axiosInstance.delete(`${ADMIN_LOST_API}/${id}`);
 
-// (등록, 수정 등 추가하려면 여기서...)
