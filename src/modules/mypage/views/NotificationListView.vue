@@ -48,8 +48,9 @@
 </template>
 
 <script setup>
+import api from '@/api/axiosInstance'
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
+
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 const { user } = useUserInfo()
@@ -62,7 +63,7 @@ const totalPages = ref(1)
 const fetchNotifications = async (page = 1) => {
   try {
     // 서버에서 페이징을 지원한다고 가정 (page, size 파라미터 전달)
-    const res = await axios.get('/api/mypage/notifications', {
+    const res = await api.get('/api/mypage/notifications', {
       params: {
         userId: user.value.userId,
         page: page - 1, // 보통 0부터 시작하는 경우 많음
@@ -81,7 +82,7 @@ const fetchNotifications = async (page = 1) => {
 
 const markAsRead = async (id) => {
   try {
-    await axios.post(`/api/mypage/notifications/${id}/read`)
+    await api.post(`/api/mypage/notifications/${id}/read`)
     const n = notifications.value.find(n => n.id === id)
     if (n) n.read = true
   } catch (e) {
@@ -91,7 +92,7 @@ const markAsRead = async (id) => {
 
 const markAllAsRead = async () => {
   try {
-    await axios.post(`/api/mypage/notifications/readAll`, null, {
+    await api.post(`/api/mypage/notifications/readAll`, null, {
       params: { userId: user.value.userId }
     })
     notifications.value.forEach(n => n.read = true)
@@ -102,7 +103,7 @@ const markAllAsRead = async () => {
 
 const deleteOne = async (id) => {
   try {
-    await axios.delete(`/api/mypage/notifications/${id}`)
+    await api.delete(`/api/mypage/notifications/${id}`)
     notifications.value = notifications.value.filter(n => n.id !== id)
   } catch (e) {
     alert('삭제 실패')
@@ -111,7 +112,7 @@ const deleteOne = async (id) => {
 
 const deleteAll = async () => {
   try {
-    await axios.delete(`/api/mypage/notifications`, {
+    await api.delete(`/api/mypage/notifications`, {
       params: { userId: user.value.userId }
     })
     notifications.value = []

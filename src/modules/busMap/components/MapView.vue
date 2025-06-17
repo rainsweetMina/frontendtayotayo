@@ -11,8 +11,6 @@
 </template>
 
 <script setup>
-import transferIcon from '@/assets/icons/transfer_icon.png'
-
 import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
@@ -43,6 +41,7 @@ const transferMarker = ref(null)
 const routePolyline = ref(null)
 const busMarkers = ref([])
 const intervalId = ref(null)
+let drawTransferMarker = null
 
 const { tryAutoRouteFromCoords } = useAutoRoute(store)
 
@@ -55,13 +54,13 @@ const {
   clearManualEndMarkers,
   clearStartMarker,
   clearEndMarker,
-  drawTransferMarker,
   clearTransferMarker,
   removeAllMarkersAtCoord,
   clearAllStartMarkers,
   clearManualMarkers,
   clearAutoMarkers
 } = useMapMarkers(map)
+
 
 const {
   contextMenu,
@@ -90,16 +89,12 @@ function selectAsStart(coords) {
 }
 
 function selectAsEnd(coords) {
-  console.log('🧭 selectAsEnd 실행됨, coords:', coords)
-
   clearAutoMarkers()
   clearRoutePolylines()
   store.routeResults = []
 
   endCoord.value = coords
   drawManualEndMarker(coords)
-
-  console.log('📌 endCoord 저장됨:', endCoord.value)
 
   if (store.setEndCoordText) {
     store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
@@ -134,8 +129,10 @@ function clearMapElementsForSearch() {
 }
 
 defineExpose({
-  clearMapElementsForSearch,
-  clearTransferMarker
+  drawTransferMarker,
+  clearTransferMarker,
+  clearRoutePolylines,
+  clearMapElementsForSearch
 })
 
 async function fetchBusLocations() {
@@ -181,17 +178,8 @@ function handleSelectedRoute(route) {
   const lng = parseFloat(transferStop.xPos ?? transferStop.xpos)
   if (isNaN(lat) || isNaN(lng)) return
 
-  const marker = L.marker([lat, lng], {
-    icon: L.icon({
-      iconUrl: transferIcon,
-      iconSize: [36, 36],
-      iconAnchor: [15, 30]
-    }),
-    title: '환승지점: ' + transferStop.bsNm
-  }).addTo(map.value)
-
+  const marker = drawTransferMarker({ lat, lng }, '환승지점: ' + transferStop.bsNm)
   transferMarker.value = marker
-  window.transferMarker = marker // 외부 참조 위해 유지
 
   const allStations = route.stationIds
   const transferIdx = allStations.findIndex(s =>
@@ -247,6 +235,9 @@ function handleSelectedRoute(route) {
 onMounted(() => {
   map.value = useMapInit(mapRef)
   window.leafletMap = map.value
+
+  const markerFns = useMapMarkers(map)
+  drawTransferMarker = markerFns.drawTransferMarker
 
   mapRef.value.addEventListener('contextmenu', handleRightClick)
   mapRef.value.addEventListener('touchstart', handleTouchStart)

@@ -10,11 +10,16 @@
       <div class="header-row">
         <strong class="stop-name" :title="stop.bsNm">{{ stop.bsNm }}</strong>
         <div class="buttons">
+          <button @click.stop="toggleFavorite(stop)">
+            <span class="favorite-icon">
+              {{ isFavorited(stop.bsId) ? '★' : '☆' }}
+            </span>
+          </button>
           <button @click.stop="$emit('selectAsStart', stop)" class="icon-button" title="출발지 선택">
-            <img :src="startIcon" alt="출발" />
+            <img :src="startIcon" alt="출발"/>
           </button>
           <button @click.stop="$emit('selectAsEnd', stop)" class="icon-button" title="도착지 선택">
-            <img :src="arrivalIcon" alt="도착" />
+            <img :src="arrivalIcon" alt="도착"/>
           </button>
         </div>
       </div>
@@ -45,6 +50,24 @@
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
+import {onMounted} from "vue";
+import {useFavoriteBusStop} from "@/modules/busSearch/composables/useFavoriteBusStop.js";
+import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+
+const userInfo = useUserInfo()
+
+const {
+  favoriteStops,
+  toggleFavorite,
+  isFavorited,
+  fetchFavorites
+} = useFavoriteBusStop()
+
+onMounted(() => {
+  if (userInfo?.value?.isLoggedIn) {
+    fetchFavorites()
+  }
+})
 defineProps({
   stops: Array,
   openedStopId: String,
@@ -93,6 +116,13 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.favorite-icon {
+  font-size: 22px;
+  color: gold;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .icon-button {
