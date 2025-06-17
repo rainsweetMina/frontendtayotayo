@@ -1,19 +1,20 @@
 <template>
-  <div class="px-5 py-1">
+  <div class="bus-route-list">
     <div
         v-for="route in routes"
         :key="route.routeId"
-        class="p-4 border border-gray-300 mb-2 rounded-lg cursor-pointer bg-white transition-colors hover:bg-gray-100 overflow-hidden whitespace-nowrap text-ellipsis"
+        class="bus-route-item"
+        :class="getTextClass(route.routeNo)"
         @click="selectRoute(route)"
     >
       <!-- 노선번호와 색상 뱃지 -->
-      <strong class="text-lg">
-        <span :class="['px-2 py-0.5 rounded-full text-xs text-white', getBadgeClass(route.routeNo)]">
+      <strong style="font-size: 17px">
+        <span :class="['badge', getBadgeClass(route.routeNo)]">
           {{ getRouteType(route.routeNo) }}
         </span>
-        <span class="ml-2" :class="getTextClass(route.routeNo)">{{ route.routeNo }}</span>
+        <span class="ms-2">{{ route.routeNo }}</span>
       </strong>
-      <span v-if="route.routeNote" class="ml-1 text-gray-500 text-sm font-bold" :title="route.routeNote">
+      <span v-if="route.routeNote" class="ms-1 text-muted route-note" :title="route.routeNote">
         ({{ route.routeNote }})
       </span>
     </div>
@@ -39,20 +40,20 @@ export default {
       return '지선'
     },
     getBadgeClass(routeNo) {
-      if (routeNo.startsWith('순환')) return 'bg-yellow-500'
-      if (routeNo.startsWith('급행')) return 'bg-red-500'
-      if (routeNo.startsWith('직행')) return 'bg-red-500'
-      if (routeNo.startsWith('군위')) return 'bg-green-500'
-      if (/^\d+(-\d+)?$/.test(routeNo)) return 'bg-blue-500'
-      return 'bg-green-500'
+      if (routeNo.startsWith('순환')) return 'badge-yellow'
+      if (routeNo.startsWith('급행')) return 'badge-red'
+      if (routeNo.startsWith('직행')) return 'badge-red'
+      if (routeNo.startsWith('군위')) return 'badge-green'
+      if (/^\d+(-\d+)?$/.test(routeNo))  return 'badge-blue'
+      return 'badge-green'
     },
     getTextClass(routeNo) {
-      if (routeNo.startsWith('순환')) return 'text-yellow-500'
-      if (routeNo.startsWith('급행')) return 'text-red-500'
-      if (routeNo.startsWith('직행')) return 'text-red-500'
-      if (routeNo.startsWith('군위')) return 'text-green-500'
-      if (/^\d+(-\d+)?$/.test(routeNo)) return 'text-blue-600'
-      return 'text-green-500'
+      if (routeNo.startsWith('순환')) return 'text-yellow'
+      if (routeNo.startsWith('급행')) return 'text-red'
+      if (routeNo.startsWith('직행')) return 'text-red'
+      if (routeNo.startsWith('군위')) return 'text-green'
+      if (/^\d+(-\d+)?$/.test(routeNo))  return 'text-blue'
+      return 'text-green'
     }
   }
 }

@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 헤드리스 UI 관련 스타일 오버라이드 */
+.dropdown-menu {
+  @apply absolute z-50 bg-white rounded-md shadow-lg py-2;
+}
+
+.dropdown-item {
+  @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+}
+
+/* Bootstrap 충돌 해결을 위한 스타일 오버라이드 */
+/* 헤더 관련 스타일 */
+nav.bg-white {
+  @apply z-50;
+}
+
+/* 버튼 충돌 해결 */
+button.px-3.py-2 {
+  @apply bg-transparent border-0;
+}
+
+/* 드롭다운 메뉴 충돌 해결 */
+.dropdown-menu {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  z-index: 1000 !important;
+  display: block !important;
+  min-width: 10rem !important;
+  padding: 0.5rem 0 !important;
+  margin: 0.125rem 0 0 !important;
+  font-size: 1rem !important;
+  color: #212529 !important;
+  text-align: left !important;
+  list-style: none !important;
+  background-color: #fff !important;
+  background-clip: padding-box !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 0.25rem !important;
+} 

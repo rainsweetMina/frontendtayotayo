@@ -10,15 +10,15 @@
     </MenuButton>
 
     <transition
-      enter-active-class="transition ease-out duration-100"
-      enter-from-class="transform opacity-0 scale-95"
-      enter-to-class="transform opacity-100 scale-100"
-      leave-active-class="transition ease-in duration-75"
-      leave-from-class="transform opacity-100 scale-100"
-      leave-to-class="transform opacity-0 scale-95"
+        enter-active-class="transition ease-out duration-100"
+        enter-from-class="transform opacity-0 scale-95"
+        enter-to-class="transform opacity-100 scale-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100 scale-100"
+        leave-to-class="transform opacity-0 scale-95"
     >
-      <MenuItems 
-        class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100"
+      <MenuItems
+          class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100"
       >
         <div class="px-4 py-2 text-sm text-gray-700">
           <div class="font-medium">로그인 정보</div>
@@ -30,17 +30,17 @@
         </div>
         <div class="py-1">
           <MenuItem v-slot="{ active }">
-        <button
-          @click="handleLogout"
-              :class="[
+            <button
+                @click="handleLogout"
+                :class="[
                 active ? 'bg-gray-100 text-red-700' : 'text-red-700',
                 'w-full text-left px-4 py-2 text-sm'
               ]"
-        >
-          로그아웃
-        </button>
+            >
+              로그아웃
+            </button>
           </MenuItem>
-      </div>
+        </div>
       </MenuItems>
     </transition>
   </Menu>
@@ -76,6 +76,39 @@ log('메인 페이지: 공지사항 로드 시도...');
 // localStorage를 활용한 검색 히스토리 관리
 const searchHistory = ref([]);
 
+// 공지사항 데이터
+const notices = ref([]);
+
+// 공지사항 가져오기 함수
+const fetchNotices = async () => {
+  try {
+    log('공지사항 로드 중...');
+    // API 호출 코드
+    // 예시: const response = await fetch('/api/notices');
+    // const data = await response.json();
+    // notices.value = data;
+    
+    // 임시 데이터로 대체
+    notices.value = [
+      { id: 1, title: '시스템 점검 안내', date: '2023.06.15' },
+      { id: 2, title: '버스 노선 변경 안내', date: '2023.06.10' }
+    ];
+    log('공지사항 로드 완료', notices.value);
+  } catch (err) {
+    console.error('공지사항 로드 실패:', err);
+    errorMessages.value.notices = '공지사항을 불러오는데 실패했습니다.';
+    // 목업 데이터로 대체
+    notices.value = [
+      { id: 1, title: '공지사항 로드 실패', date: '오류 발생' }
+    ];
+  }
+};
+
+// 공지사항 상세 보기 함수
+const viewNotice = (id) => {
+  router.push(`/notices/${id}`);
+};
+
 // 검색 히스토리 로드
 const loadSearchHistory = () => {
   const savedHistory = localStorage.getItem('searchHistory');
@@ -87,12 +120,12 @@ const loadSearchHistory = () => {
 // 검색 히스토리 저장
 const saveSearchHistory = (keyword) => {
   if (!keyword || searchHistory.value.includes(keyword)) return;
-  
+
   searchHistory.value.unshift(keyword);
   if (searchHistory.value.length > 4) {
     searchHistory.value.pop();
   }
-  
+
   localStorage.setItem('searchHistory', JSON.stringify(searchHistory.value));
 };
 
@@ -108,15 +141,6 @@ const errorMessages = ref({
   busStops: '',
   specialService: ''
 });
-
-// 공지사항 로드 실패 시 사용자에게 표시
-try {
-  // API 호출 코드...
-} catch (err) {
-  console.error('공지사항 로드 실패:', err);
-  errorMessages.value.notices = '공지사항을 불러오는데 실패했습니다.';
-  // 목업 데이터 표시...
-}
 
 // 슬라이더 데이터 구조화
 const sliderItems = ref([

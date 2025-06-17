@@ -1,24 +1,18 @@
 import axios from 'axios'
 import {ref} from 'vue'
-import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
+
 
 export function useFavoriteBusStop() {
     const favoriteSet = ref(new Set())
     const favoriteList = ref([]) // 🕒 전체 객체 리스트 (bsId + createdAt 등)
     const favoriteStops = ref([])
-    const {isLoggedIn} = useUserInfo()
 
     const fetchFavorites = async () => {
-        if (!isLoggedIn.value) return
         try {
-            const res = await axios.get('/api/mypage/favorite/bus-stop', {withCredentials: true})
+            const res = await axios.get('/api/mypage/favorite/bus-stop')
             favoriteStops.value = res.data
-            favoriteSet.value = new Set(res.data.map(f => f.bsId))
         } catch (e) {
-            const status = e?.response?.status
-            if (status !== 401) {
-                console.error('❌ 즐겨찾기 불러오기 실패:', e)
-            }
+            console.error(e)
         }
     }
 
@@ -27,23 +21,29 @@ export function useFavoriteBusStop() {
             await axios.post('/api/mypage/favorite/bus-stop',
                 {bsId: stop.bsId},
                 {withCredentials: true},)
+            alert(`'${stop.bsNm}' 정류장이 즐겨찾기에 추가되었습니다.`)
             await fetchFavorites()
         } catch (e) {
+            console.error('🔥 추가 실패 - 응답 상태:', e?.response?.status)
+            console.error('🔥 추가 실패 - 응답 메시지:', e?.response?.data)
             handleAuthError(e, '정류장 즐겨찾기 추가에 실패했습니다.')
         }
     }
 
     const deleteFavoriteStop = async (bsId) => {
+        const confirmed = confirm('정말 해당 정류장을 즐겨찾기에서 삭제하시겠습니까?')
+        if (!confirmed) return
+
         try {
-            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`, {withCredentials: true})
+            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`)
             favoriteStops.value = favoriteStops.value.filter(s => s.bsId !== bsId)
+            alert('정류장 즐겨찾기가 삭제되었습니다.')
         } catch (e) {
             handleAuthError(e, '정류장 즐겨찾기 삭제에 실패했습니다.')
         }
     }
 
-    const isFavorited = (bsId) =>
-        favoriteStops.value.some(stop => stop.bsId === bsId)
+    const isFavorited = (bsId) => favoriteSet.value.has(bsId)
 
     const toggleFavorite = async (stop) => {
         if (isFavorited(stop.bsId)) {

@@ -60,7 +60,7 @@ axios.interceptors.response.use(
       }
       
       // 다른 페이지에서는 로그인 페이지로 리다이렉트
-      window.location.href = 'https://localhost:8081/auth/login';
+      // window.location.href = 'https://localhost:8081/auth/login';
     } else if (error.response?.status === 403) {
       // 권한 없음
       console.log('403 Forbidden');

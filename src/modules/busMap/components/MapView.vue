@@ -1,13 +1,5 @@
 <template>
-  <div id="map" ref="mapRef" class="leaflet-map"></div>
-
-  <!-- 현재 위치 버튼 추가 -->
-  <button
-    @click="moveToCurrentLocation"
-    class="absolute bottom-8 right-4 z-10 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-colors duration-200"
-  >
-    <i class="fas fa-location-dot"></i>
-  </button>
+  <div id="map" ref="mapRef" class="leaflet-map p-0"></div>
 
   <ContextMenu
       v-if="contextMenu.visible"
@@ -29,8 +21,6 @@ import {useMapInit} from "@/modules/busMap/composables/useMapInit.js";
 import {useContextMenu} from '@/modules/busMap/composables/useContextMenu'
 import { useMapMarkers } from '@/modules/busMap/composables/useMapMarkers'
 import { useAutoRoute } from '@/modules/busMap/composables/useAutoRoute'
-import {getSortedArrivalsFromApi} from "@/composables/arrival-utils.js";
-import {renderPopupComponent} from "@/utils/popup-mount.js";
 
 
 const props = defineProps({
@@ -55,7 +45,7 @@ let drawTransferMarker = null
 
 const { tryAutoRouteFromCoords } = useAutoRoute(store)
 
-let {
+const {
   drawManualStartMarker,
   drawManualEndMarker,
   drawStartMarker,
@@ -71,6 +61,7 @@ let {
   clearAutoMarkers
 } = useMapMarkers(map)
 
+
 const {
   contextMenu,
   handleRightClick,
@@ -78,23 +69,6 @@ const {
   handleTouchEnd,
   hideContextMenu
 } = useContextMenu(mapRef, map)
-
-// 현재 위치로 이동하는 함수 추가
-function moveToCurrentLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const { latitude: lat, longitude: lng } = pos.coords
-      if (map.value && map.value._loaded) {
-        map.value.flyTo([lat, lng], 16)
-      }
-    }, err => {
-      console.error('위치 정보를 가져오는데 실패했습니다:', err)
-      alert('현재 위치를 가져올 수 없습니다. 위치 권한을 확인해주세요.')
-    })
-  } else {
-    alert('이 브라우저에서는 위치 정보를 지원하지 않습니다.')
-  }
-}
 
 function selectAsStart(coords) {
   clearAutoMarkers()
@@ -204,17 +178,8 @@ function handleSelectedRoute(route) {
   const lng = parseFloat(transferStop.xPos ?? transferStop.xpos)
   if (isNaN(lat) || isNaN(lng)) return
 
-  const marker = L.marker([lat, lng], {
-    icon: L.icon({
-      iconUrl: transferIcon,
-      iconSize: [36, 36],
-      iconAnchor: [15, 30]
-    }),
-    title: '환승지점: ' + transferStop.bsNm
-  }).addTo(map.value)
-
+  const marker = drawTransferMarker({ lat, lng }, '환승지점: ' + transferStop.bsNm)
   transferMarker.value = marker
-  window.transferMarker = marker // 외부 참조 위해 유지
 
   const allStations = route.stationIds
   const transferIdx = allStations.findIndex(s =>
@@ -230,9 +195,36 @@ function handleSelectedRoute(route) {
 
   marker.on('click', async () => {
     try {
-      const arrivals = await getSortedArrivalsFromApi(transferStop.bsId)
-      const popup = renderPopupComponent(marker, transferStop, arrivals)
-      marker.bindPopup(popup).openPopup()
+      const res = await axios.get(`/api/bus/bus-arrival`, {params: {bsId: transferStop.bsId}})
+      const body = res.data.body
+      let content = `<div class="popup-wrapper"><div class="popup-title"><b>${transferStop.bsNm}</b> (🔁 환승지점)</div>`
+
+      if (!body.totalCount || !body.items) {
+        content += `<div class="no-info">도착 정보 없음</div></div>`
+        marker.bindPopup(content).openPopup()
+        return
+      }
+
+      const items = Array.isArray(body.items) ? body.items : [body.items]
+      const routeMap = new Map()
+
+      items.forEach(item => {
+        const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
+        arrList.forEach(arr => {
+          const existing = routeMap.get(item.routeNo)
+          if (!existing || arr.arrTime < existing.arrTime) {
+            routeMap.set(item.routeNo, {...arr, routeNo: item.routeNo, updn: item.updn})
+          }
+        })
+      })
+
+      const sortedArrivals = [...routeMap.values()]
+      content += `<div class="popup-scroll-area">`
+      sortedArrivals.forEach(arr => {
+        content += `<div class="bus-info"><div class="route-no">🚌 ${arr.routeNo}</div><div class="arr-time">${arr.arrState}</div><div class="direction">${arr.updn ?? ''}</div></div>`
+      })
+      content += `</div></div>`
+      marker.bindPopup(content).openPopup()
     } catch (err) {
       marker.bindPopup(`<b>${transferStop.bsNm}</b><br>도착 정보 조회 실패`).openPopup()
       console.error('도착 정보 실패:', err)
@@ -241,36 +233,22 @@ function handleSelectedRoute(route) {
 }
 
 onMounted(() => {
-  // 지도 초기화
   map.value = useMapInit(mapRef)
   window.leafletMap = map.value
 
-  // ✅ 마커 기능 로딩 (예: 환승 마커 등)
   const markerFns = useMapMarkers(map)
   drawTransferMarker = markerFns.drawTransferMarker
 
-  // ✅ 컨텍스트 메뉴 및 터치 관련 DOM 이벤트 리스너 등록
   mapRef.value.addEventListener('contextmenu', handleRightClick)
   mapRef.value.addEventListener('touchstart', handleTouchStart)
   mapRef.value.addEventListener('touchend', handleTouchEnd)
-
-  // ✅ 지도 클릭 시 컨텍스트 메뉴 숨기기 (Leaflet 방식 권장)
-  map.value.on('click', hideContextMenu)
+  mapRef.value.addEventListener('click', hideContextMenu)
 })
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value)
   clearAutoMarkers()
   clearManualMarkers()
-
-  // 이벤트 리스너 제거
-  mapRef.value.removeEventListener('contextmenu', handleRightClick)
-  mapRef.value.removeEventListener('touchstart', handleTouchStart)
-  mapRef.value.removeEventListener('touchend', handleTouchEnd)
-
-  if (map.value) {
-    map.value.off('click', hideContextMenu)
-  }
 
   if (window.transferMarker) {
     map.value.removeLayer(window.transferMarker)
@@ -324,15 +302,7 @@ watch(
 .leaflet-map {
   width: 100%;
   height: 100vh;
-  z-index: 0;
-}
-
-/* 리프렛 컨트롤 스타일 개선 */
-:deep(.leaflet-control-container .leaflet-top) {
-  z-index: 800;
-}
-
-:deep(.leaflet-control-container .leaflet-bottom) {
-  z-index: 800;
+  border: 1px solid #ccc;
+  position: relative;
 }
 </style>

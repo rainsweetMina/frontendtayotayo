@@ -1,13 +1,13 @@
 <template>
-  <div class="w-full p-2 bg-white sticky top-0 z-50 border-b border-gray-200">
+  <div class="search-wrapper p-2">
     <!-- ✅ 상단: 로고 + 토글 버튼 -->
-    <div class="flex items-center justify-between mx-2 mt-1 mb-2">
-      <router-link to="/" class="flex items-center">
-        <Logo class="logo-img" />
+    <div class="d-flex align-items-center justify-content-between mx-2 mt-1">
+      <router-link to="/" class="logo-link">
+        <Logo />
       </router-link>
       <button
           @click="toggleMode"
-          class="w-10 h-10 rounded-full border-none bg-gradient-to-tr from-white to-gray-100 shadow-md text-xl text-blue-500 flex justify-center items-center transition-transform hover:scale-105 hover:bg-gray-50"
+          class="mode-toggle-btn"
           :title="isRouteMode ? '일반 검색' : '경로 검색'"
       >
         <i :class="isRouteMode ? 'fas fa-magnifying-glass' : 'fas fa-location-dot'"></i>
@@ -75,10 +75,6 @@ watch(() => store.forceRouteMode, async (val) => {
 .logo-link {
   display: flex;
   align-items: center;
-}
-
-.logo-img {
-  max-height: 40px;
 }
 
 .mode-toggle-btn {

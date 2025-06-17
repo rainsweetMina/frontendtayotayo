@@ -1,17 +1,15 @@
 <template>
   <div class="search-box">
-    <div class="flex p-3">
+    <div class="d-flex flex-2 p-3">
       <input
           type="text"
           v-model="store.keyword"
           @keydown.enter="onSearch"
-          class="flex-1 h-10 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="form-control custom-input me-1"
           placeholder="버스 번호/정류장 검색"
+          style="flex: 5;"
       />
-      <button 
-          @click="onSearch" 
-          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-r-md transition-colors duration-200"
-      >검색</button>
+      <button @click="onSearch" class="btn btn-primary" style="flex:1;">검색</button>
     </div>
   </div>
 </template>
@@ -37,5 +35,10 @@ function onSearch() {
 </script>
 
 <style scoped>
-/* Tailwind CSS 클래스로 대체 */
+.custom-input {
+  height: 40px !important;
+  line-height: 38px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
 </style>

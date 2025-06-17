@@ -1,54 +1,22 @@
 <template>
-  <div class="w-52 font-sans">
+  <div class="popup-wrapper">
     <!-- 상단 영역: 정류장 이름 + 즐겨찾기 -->
-    <div class="flex justify-between items-center mb-2">
-      <div
-          class="text-base font-bold whitespace-nowrap overflow-hidden text-ellipsis"
-          :title="stopName"
-      >
-        {{ stopName }}
-      </div>
-      <button
-          class="text-yellow-400 hover:text-yellow-500 transition-colors text-lg"
-          @click="$emit('favorite')"
-          :aria-pressed="isFavorite.toString()"
-          title="즐겨찾기"
-      >
-        <span :class="['transition', isFavorite ? 'text-yellow-400' : 'text-gray-300']">
-          ★
-        </span>
-      </button>
+    <div class="popup-header">
+      <div class="stop-name" :title="stopName">{{ stopName }}</div>
+      <button class="fav-btn" @click="$emit('favorite')" title="즐겨찾기">★</button>
     </div>
-
     <!-- 도착 정보 -->
-    <div class="max-h-52 overflow-y-auto mb-2 custom-scroll">
-      <div
-          v-for="bus in arrivals"
-          :key="bus.routeNo"
-          class="flex justify-between items-center text-sm py-1 border-b border-gray-100"
-      >
-        <span class="font-semibold text-blue-500">{{ bus.routeNo }}</span>
-        <span class="font-semibold text-gray-700">{{ bus.arrState }}</span>
+    <div class="popup-scroll-area">
+      <div class="bus-info" v-for="bus in arrivals" :key="bus.routeNo">
+        <div class="route-no">{{ bus.routeNo }}</div>
+        <div class="arr-time">{{ bus.arrState }}</div>
       </div>
-      <div v-if="!arrivals.length" class="italic text-gray-400 text-xs text-center py-2">
-        도착 정보 없음
-      </div>
+      <div v-if="!arrivals.length" class="no-info">도착 정보 없음</div>
     </div>
-
     <!-- 하단 버튼 -->
-    <div class="flex gap-1">
-      <button
-          class="flex-1 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 transition"
-          @click="$emit('setStart')"
-      >
-        출발지
-      </button>
-      <button
-          class="flex-1 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600 transition"
-          @click="$emit('setEnd')"
-      >
-        도착지
-      </button>
+    <div class="footer-buttons">
+      <button class="start-btn" @click="$emit('setStart')">출발지</button>
+      <button class="end-btn" @click="$emit('setEnd')">도착지</button>
     </div>
   </div>
 </template>
@@ -56,20 +24,103 @@
 <script setup>
 defineProps({
   stopName: String,
-  arrivals: Array,
-  isFavorite: Boolean // 부모로부터 즐겨찾기 상태 전달
+  arrivals: Array
 })
-
 defineEmits(['setStart', 'setEnd', 'favorite'])
 </script>
 
 <style scoped>
-.custom-scroll {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+.popup-wrapper {
+  width: 200px;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.custom-scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 6px;
 }
+
+.stop-name {
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: gold;
+  cursor: pointer;
+  padding: 0;
+}
+
+.popup-scroll-area {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;
+}
+
+.bus-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 3px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.route-no {
+  font-weight: bold;
+  color: #0d82ff;
+}
+
+.arr-time {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.no-info {
+  font-style: italic;
+  color: #999;
+  font-size: 13px;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.footer-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer-buttons button {
+  flex: 1;
+  margin: 0 2px;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.start-btn {
+  background-color: #007bff;
+}
+.end-btn {
+  background-color: #fa4141;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #5e5d5d;
+  margin: 6px 0;
+}
+
 </style>

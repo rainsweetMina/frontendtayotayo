@@ -1,49 +1,43 @@
 <template>
-  <div class="px-5">
+  <div class="bus-stop-list">
     <div
         v-for="stop in stops"
         :key="stop.bsId"
-        class="p-4 border border-gray-300 mb-2 rounded-lg bg-white transition-colors hover:bg-gray-50 cursor-pointer"
+        class="bus-stop-item"
         @click="$emit('selectStop', stop)"
     >
       <!-- 이름 + 버튼 한 줄 정렬 -->
-      <div class="flex items-center justify-between">
-        <strong class="text-blue-500 font-bold text-lg whitespace-nowrap overflow-hidden text-ellipsis max-w-[calc(100%-120px)]" :title="stop.bsNm">
-          {{ stop.bsNm }}
-        </strong>
-        <div class="flex gap-2 flex-shrink-0">
-          <!-- 즐겨찾기 버튼 추가 -->
-          <button @click.stop="$emit('toggleFavorite', stop)" class="bg-transparent border-none p-0 cursor-pointer" :title="isFavorited(stop.bsId) ? '즐겨찾기 제거' : '즐겨찾기 추가'">
-            <span class="text-yellow-400" :class="{ 'opacity-100': isFavorited(stop.bsId), 'opacity-30': !isFavorited(stop.bsId) }">★</span>
+      <div class="header-row">
+        <strong class="stop-name" :title="stop.bsNm">{{ stop.bsNm }}</strong>
+        <div class="buttons">
+          <button @click.stop="toggleFavorite(stop)">
+            <span class="favorite-icon">
+              {{ isFavorited(stop.bsId) ? '★' : '☆' }}
+            </span>
           </button>
-
-          <!-- 출발지 선택 -->
-          <button @click.stop="$emit('selectAsStart', stop)" class="bg-transparent border-none p-0 cursor-pointer" title="출발지 선택">
-            <img :src="startIcon" alt="출발" class="w-6 h-6" />
+          <button @click.stop="$emit('selectAsStart', stop)" class="icon-button" title="출발지 선택">
+            <img :src="startIcon" alt="출발"/>
           </button>
-
-          <!-- 도착지 선택 -->
-          <button @click.stop="$emit('selectAsEnd', stop)" class="bg-transparent border-none p-0 cursor-pointer" title="도착지 선택">
-            <img :src="arrivalIcon" alt="도착" class="w-6 h-6" />
+          <button @click.stop="$emit('selectAsEnd', stop)" class="icon-button" title="도착지 선택">
+            <img :src="arrivalIcon" alt="도착"/>
           </button>
         </div>
       </div>
 
-
       <!-- 도착 정보 -->
-      <div v-if="openedStopId === stop.bsId" class="mt-3 pt-2 border-t border-dashed border-gray-300">
-        <ul class="list-none p-0 m-0">
+      <div v-if="openedStopId === stop.bsId" class="arrival-info">
+        <ul class="arrival-list">
           <li
               v-for="bus in arrivalDataMap[stop.bsId]"
               :key="bus.routeNo"
-              class="flex justify-between py-1 border-b border-gray-200 text-sm"
+              class="arrival-item"
           >
             <strong>{{ bus.routeNo }}</strong>
-            <span class="text-gray-600">
+            <span class="arrival-text">
               {{ bus.arrList?.[0]?.arrState || '도착 정보 없음' }}
             </span>
           </li>
-          <li v-if="arrivalDataMap[stop.bsId]?.length === 0" class="text-sm text-gray-400 pt-1">
+          <li v-if="arrivalDataMap[stop.bsId]?.length === 0" class="arrival-empty">
             도착 정보가 없습니다.
           </li>
         </ul>
@@ -56,14 +50,31 @@
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
+import {onMounted} from "vue";
+import {useFavoriteBusStop} from "@/modules/busSearch/composables/useFavoriteBusStop.js";
+import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+
+const userInfo = useUserInfo()
+
+const {
+  favoriteStops,
+  toggleFavorite,
+  isFavorited,
+  fetchFavorites
+} = useFavoriteBusStop()
+
+onMounted(() => {
+  if (userInfo?.value?.isLoggedIn) {
+    fetchFavorites()
+  }
+})
 defineProps({
   stops: Array,
   openedStopId: String,
-  arrivalDataMap: Object,
-  isFavorited: Function
+  arrivalDataMap: Object
 })
 
-defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd', 'toggleFavorite'])
+defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 </script>
 
 <style scoped>
@@ -89,26 +100,6 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd', 'toggleFavorite'])
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.favorite-button {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.favorite-icon {
-  font-size: 22px;
-  color: #ccc;
-  transition: color 0.3s;
-}
-
-.favorite-icon.active {
-  color: gold; /* 활성 상태 (즐겨찾기됨) */
 }
 
 .stop-name {
