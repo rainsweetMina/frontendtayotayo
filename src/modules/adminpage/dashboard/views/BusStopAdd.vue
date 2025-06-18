@@ -16,7 +16,7 @@
                 <input
                   type="text"
                   id="code"
-                  v-model="form.code"
+                  v-model="form.bsId"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -26,7 +26,7 @@
                 <input
                   type="text"
                   id="name"
-                  v-model="form.name"
+                  v-model="form.bsNm"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -92,7 +92,7 @@
                   <input
                     type="number"
                     id="latitude"
-                    v-model="form.latitude"
+                    v-model="form.ypos"
                     step="0.000001"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
@@ -103,7 +103,7 @@
                   <input
                     type="number"
                     id="longitude"
-                    v-model="form.longitude"
+                    v-model="form.xpos"
                     step="0.000001"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
@@ -186,23 +186,25 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { addBusStop } from '@/api/busStop'
 
 const router = useRouter()
 
 const form = ref({
-  code: '',
-  name: '',
+  bsId: '',
+  bsNm: '',
   type: '',
   direction: '',
   address: '',
-  latitude: '',
-  longitude: '',
+  xpos: '',
+  ypos: '',
   facilities: {
     shelter: false,
     bench: false,
     lcd: false
   },
-  notes: ''
+  notes: '',
+  status: 'active'
 })
 
 // 주소 검색 팝업 열기
@@ -224,8 +226,8 @@ const searchCoordinates = (address) => {
   
   geocoder.addressSearch(address, (result, status) => {
     if (status === window.kakao.maps.services.Status.OK) {
-      form.value.latitude = result[0].y
-      form.value.longitude = result[0].x
+      form.value.ypos = result[0].y
+      form.value.xpos = result[0].x
     } else {
       alert('좌표를 찾을 수 없습니다. 수동으로 입력해주세요.')
     }
@@ -235,24 +237,26 @@ const searchCoordinates = (address) => {
 // 폼 제출 처리
 const handleSubmit = async () => {
   try {
-    const response = await fetch('/api/admin/bus-stops', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(form.value)
-    })
-
-    if (response.ok) {
-      alert('정류장이 성공적으로 추가되었습니다.')
-      router.push('/admin/bus-stops')
-    } else {
-      const error = await response.json()
-      alert(`정류장 추가 실패: ${error.message}`)
+    // 백엔드 API 형식에 맞게 데이터 변환
+    const busStopData = {
+      bsId: form.value.bsId,
+      bsNm: form.value.bsNm,
+      xpos: form.value.xpos,
+      ypos: form.value.ypos,
+      address: form.value.address,
+      type: form.value.type,
+      direction: form.value.direction,
+      facilities: form.value.facilities,
+      notes: form.value.notes,
+      status: form.value.status
     }
+
+    await addBusStop(busStopData)
+    alert('정류장이 성공적으로 추가되었습니다.')
+    router.push('/admin/bus-stops')
   } catch (error) {
     console.error('정류장 추가 실패:', error)
-    alert('정류장 추가 중 오류가 발생했습니다.')
+    alert(`정류장 추가 실패: ${error.response?.data?.message || '서버 오류가 발생했습니다.'}`)
   }
 }
 </script> 

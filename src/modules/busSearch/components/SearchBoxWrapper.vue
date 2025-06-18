@@ -42,6 +42,8 @@ function handleSearch(keyword) {
 function toggleMode() {
   isRouteMode.value = !isRouteMode.value
 
+  store.isRouteSearchMode = isRouteMode.value
+
   // ✅ 모든 입력 필드 초기화
   store.keyword = ''
   store.departure = ''
@@ -57,11 +59,12 @@ function toggleMode() {
 watch(() => store.forceRouteMode, async (val) => {
   if (val === true) {
     isRouteMode.value = true
-
+    store.isRouteSearchMode = true
     await nextTick()
     store.forceRouteMode = null
   } else if (val === false) {
     isRouteMode.value = false
+    store.isRouteSearchMode = false
     store.forceRouteMode = null
   }
 })

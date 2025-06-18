@@ -72,6 +72,7 @@ const filteredRoutes = computed(() => {
   return props.routes
       .filter(route => !(route.type === '직통' && route.estimatedMinutes > 100))
       .sort((a, b) => a.estimatedMinutes - b.estimatedMinutes)
+      .slice(0, 5)
 })
 
 // ✅ 직통 소요시간 100분 초과 제거

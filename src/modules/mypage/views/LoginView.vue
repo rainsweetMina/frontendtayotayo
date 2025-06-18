@@ -80,7 +80,8 @@ const handleLogin = async () => {
     formData.append('password', password.value)
 
     await api.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      withCredentials: true
     })
 
     await new Promise(resolve => setTimeout(resolve, 100))

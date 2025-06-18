@@ -100,16 +100,16 @@
           </div>
           <ul class="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
             <li
-              v-for="stop in stops"
-              :key="stop.id"
+              v-for="stop in busStops"
+              :key="stop.bsId"
               class="p-4 hover:bg-gray-50 cursor-pointer"
               @click="selectStop(stop)"
-              :class="{ 'bg-blue-50': selectedStop?.id === stop.id }"
+              :class="{ 'bg-blue-50': selectedStop?.bsId === stop.bsId }"
             >
               <div class="flex justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-900">{{ stop.name }}</p>
-                  <p class="text-sm text-gray-500">{{ stop.code }}</p>
+                  <p class="text-sm font-medium text-gray-900">{{ stop.bsNm }}</p>
+                  <p class="text-sm text-gray-500">{{ stop.bsId }}</p>
                 </div>
                 <span
                   :class="[
@@ -122,22 +122,22 @@
                   {{ stop.status === 'active' ? '사용중' : '미사용' }}
                 </span>
               </div>
-              <p class="mt-1 text-sm text-gray-500">{{ stop.address }}</p>
+              <p class="mt-1 text-sm text-gray-500">{{ stop.address || '주소 정보 없음' }}</p>
               <div class="mt-2 flex flex-wrap gap-2">
                 <span
-                  v-if="stop.facilities.shelter"
+                  v-if="stop.facilities?.shelter"
                   class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
                 >
                   쉘터
                 </span>
                 <span
-                  v-if="stop.facilities.bench"
+                  v-if="stop.facilities?.bench"
                   class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
                 >
                   벤치
                 </span>
                 <span
-                  v-if="stop.facilities.lcd"
+                  v-if="stop.facilities?.lcd"
                   class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800"
                 >
                   LCD
@@ -210,12 +210,13 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { searchBusStops, getDistricts, getNeighborhoods, searchBusStopsByDistrict } from '@/api/busStop'
 
 const map = ref(null)
 const markers = ref([])
 const selectedStop = ref(null)
 
-const stops = ref([])
+const busStops = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
@@ -247,9 +248,10 @@ const createMarkers = () => {
   markers.value = []
 
   // 새로운 마커 생성
-  stops.value.forEach(stop => {
+  busStops.value.forEach(stop => {
+    const position = new window.kakao.maps.LatLng(stop.ypos, stop.xpos)
     const marker = new window.kakao.maps.Marker({
-      position: new window.kakao.maps.LatLng(stop.latitude, stop.longitude),
+      position,
       map: map.value
     })
 
@@ -260,39 +262,52 @@ const createMarkers = () => {
 
     markers.value.push(marker)
   })
+
+  // 지도 범위 재설정
+  if (markers.value.length > 0) {
+    const bounds = new window.kakao.maps.LatLngBounds()
+    markers.value.forEach(marker => bounds.extend(marker.getPosition()))
+    map.value.setBounds(bounds)
+  }
 }
 
 // 정류장 선택
 const selectStop = (stop) => {
   selectedStop.value = stop
-  
-  // 지도 중심 이동
+
+  // 선택한 정류장 위치로 지도 이동
   if (map.value) {
-    const moveLatLng = new window.kakao.maps.LatLng(stop.latitude, stop.longitude)
-    map.value.panTo(moveLatLng)
+    const position = new window.kakao.maps.LatLng(stop.ypos, stop.xpos)
+    map.value.setCenter(position)
+    map.value.setLevel(3)
   }
 }
 
-// 검색 처리
+// 정류장 검색
 const handleSearch = async (page = 1) => {
   try {
-    const params = new URLSearchParams({
-      page,
-      type: searchParams.value.type,
-      keyword: searchParams.value.keyword,
-      stopType: searchParams.value.stopType,
-      ...searchParams.value.facilities
-    })
+    let result
 
-    const response = await fetch(`/api/admin/bus-stops/search?${params}`)
-    const data = await response.json()
-    
-    stops.value = data.stops
-    totalPages.value = data.totalPages
-    totalItems.value = data.totalItems
+    // 검색 유형에 따라 다른 API 호출
+    if (searchParams.value.type === 'name' || searchParams.value.type === 'code') {
+      result = await searchBusStops(searchParams.value.keyword)
+    } else {
+      // 주소 또는 노선으로 검색 (기본 검색 사용)
+      result = await searchBusStops(searchParams.value.keyword)
+    }
+
+    // 검색 결과 처리
+    busStops.value = Array.isArray(result) ? result : []
+    totalItems.value = busStops.value.length
+    totalPages.value = Math.ceil(totalItems.value / itemsPerPage)
     currentPage.value = page
 
-    // 마커 업데이트
+    // 페이지네이션 적용
+    const startIndex = (page - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    busStops.value = busStops.value.slice(startIndex, endIndex)
+
+    // 마커 생성
     createMarkers()
   } catch (error) {
     console.error('정류장 검색 실패:', error)
@@ -306,19 +321,23 @@ const handlePageChange = (page) => {
   handleSearch(page)
 }
 
-// 검색 결과 변경 시 지도 범위 조정
-watch(stops, () => {
-  if (stops.value.length > 0 && map.value) {
-    const bounds = new window.kakao.maps.LatLngBounds()
-    stops.value.forEach(stop => {
-      bounds.extend(new window.kakao.maps.LatLng(stop.latitude, stop.longitude))
-    })
-    map.value.setBounds(bounds)
+// 컴포넌트 마운트 시 초기화
+onMounted(() => {
+  // 카카오맵 API 로드 확인
+  if (window.kakao && window.kakao.maps) {
+    initMap()
+    handleSearch()
+  } else {
+    console.error('카카오맵 API가 로드되지 않았습니다.')
+    alert('지도를 불러오는데 실패했습니다. 페이지를 새로고침해주세요.')
   }
 })
 
-onMounted(() => {
-  initMap()
-  handleSearch()
+// 선택한 정류장이 변경될 때 지도 업데이트
+watch(selectedStop, () => {
+  if (selectedStop.value && map.value) {
+    const position = new window.kakao.maps.LatLng(selectedStop.value.ypos, selectedStop.value.xpos)
+    map.value.setCenter(position)
+  }
 })
 </script> 

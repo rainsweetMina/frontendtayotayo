@@ -1,7 +1,7 @@
 <template>
   <div class="container-fluid p-0">
     <!-- /bus/map 경로가 아닐 때만 헤더 보이기 -->
-    <HeaderComponent v-if="route.path !== '/bus/map'" />
+    <HeaderComponent v-if="route.path !== '/bus/map'"/>
 
     <!-- /bus/map 경로일 때만 사이드바, 토글 버튼 보이기 -->
     <div v-if="route.path === '/bus/map'">
@@ -9,7 +9,7 @@
           class="sidebar-wrapper d-flex flex-column border-end searchBox"
           :class="{ 'sidebar-hidden': !store.sidebarOpen }"
       >
-        <BusSearchPage />
+        <BusSearchPage/>
       </div>
 
       <button
@@ -23,17 +23,17 @@
     </div>
 
     <!-- 본문 -->
-    <div class="main-content p-0" >
+    <div class="main-content p-0">
       <main>
-        <slot />
+        <slot/>
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
-import { useSearchStore } from '@/stores/searchStore'
+import {useRoute} from 'vue-router'
+import {useSearchStore} from '@/stores/searchStore'
 import HeaderComponent from '/src/modules/adminpage/dashboard/components/Header/HeaderComponent.vue'
 import BusSearchPage from '/src/modules/busSearch/views/BusSearchPage.vue'
 
@@ -64,6 +64,11 @@ const toggleSidebar = () => {
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
   top: 0;
   left: 0;
+}
+
+/* 상단 여백 */
+.sidebar-top-spacer {
+  height: 80px; /* 상단 검색창 높이만큼 여백 추가 */
 }
 
 .sidebar-wrapper::-webkit-scrollbar {
