@@ -16,6 +16,7 @@ import AdminBusRouteStops from '@/modules/adminpage/dashboard/views/BusRouteStop
 import AdminBusStops from '@/modules/adminpage/dashboard/views/BusStops.vue'
 import AdminBusStopAdd from '@/modules/adminpage/dashboard/views/BusStopAdd.vue'
 import AdminBusStopSearch from '@/modules/adminpage/dashboard/views/BusStopSearch.vue'
+import AdminBusStopDetail from '@/modules/adminpage/dashboard/views/BusStopDetail.vue'
 import NoticeManagement from '@/modules/adminpage/dashboard/views/notice/NoticeManagement.vue'
 import NoticeDetail from '@/modules/adminpage/dashboard/views/notice/NoticeDetail.vue'
 import NoticeWrite from '@/modules/adminpage/dashboard/views/notice/NoticeWrite.vue'
@@ -139,6 +140,18 @@ export const adminRoutes = {
       path: "bus-stops/search",
       name: "AdminBusStopSearch",
       component: AdminBusStopSearch
+    },
+    {
+      path: "bus-stops/:id",
+      name: "AdminBusStopDetail",
+      component: AdminBusStopDetail,
+      props: true
+    },
+    {
+      path: "bus-stops/:id/edit",
+      name: "AdminBusStopEdit",
+      component: () => import('@/modules/adminpage/dashboard/views/BusStopEdit.vue'),
+      props: true
     },
     {
       path: "found",

@@ -5,10 +5,68 @@ const BASE_URL = import.meta.env.VITE_APP_API_URL || 'https://localhost:8081'
 // 페이징과 검색이 적용된 전체 정류장 리스트 조회
 export const getAllBusStops = async (keyword = '', page = 0, size = 10) => {
   try {
+    // page가 NaN인 경우 기본값 0으로 설정
+    const validPage = isNaN(page) ? 0 : page;
+    const validSize = isNaN(size) ? 10 : size;
+    
+    console.log('API 호출 파라미터:', { keyword, page: validPage, size: validSize });
+    
     const response = await api.get(`${BASE_URL}/api/bus/AllBusStop`, {
-      params: { keyword, page, size }
+      params: { 
+        keyword, 
+        page: validPage, 
+        size: validSize 
+      }
     })
-    return response.data
+    
+    // 응답 데이터 로깅
+    console.log('정류장 목록 원본 응답:', response.data)
+    
+    // 데이터 형식 확인 및 가공
+    const result = response.data
+    
+    // 필요한 경우 데이터 구조 변환
+    if (result.content && Array.isArray(result.content)) {
+      console.log('정류장 목록 첫 번째 항목 원본:', result.content[0])
+      
+      result.content = result.content.map(stop => {
+        // 원본 데이터 로깅 (대소문자 차이 확인)
+        console.log(`정류장 ID ${stop.bsId}의 좌표 정보:`, { 
+          xPos: stop.xPos, 
+          yPos: stop.yPos,
+          xpos: stop.xpos,
+          ypos: stop.ypos,
+          type_xPos: typeof stop.xPos,
+          type_yPos: typeof stop.yPos
+        })
+        
+        // 좌표 정보가 문자열이면 숫자로 변환 시도
+        let xposValue = stop.xPos || stop.xpos // 대소문자 모두 확인
+        let yposValue = stop.yPos || stop.ypos // 대소문자 모두 확인
+        
+        if (typeof xposValue === 'string' && xposValue.trim() !== '') {
+          xposValue = parseFloat(xposValue)
+        }
+        
+        if (typeof yposValue === 'string' && yposValue.trim() !== '') {
+          yposValue = parseFloat(yposValue)
+        }
+        
+        return {
+          ...stop,
+          // 일관된 필드명으로 통일 (소문자 버전)
+          xpos: xposValue !== undefined && xposValue !== null ? xposValue : '',
+          ypos: yposValue !== undefined && yposValue !== null ? yposValue : '',
+          // 원본 필드도 유지
+          xPos: xposValue !== undefined && xposValue !== null ? xposValue : '',
+          yPos: yposValue !== undefined && yposValue !== null ? yposValue : ''
+        }
+      })
+      
+      console.log('정류장 목록 첫 번째 항목 가공 후:', result.content[0])
+    }
+    
+    return result
   } catch (error) {
     console.error('정류장 목록 조회 실패:', error)
     throw error
@@ -21,7 +79,21 @@ export const getBusStopDetail = async (bsId) => {
     const response = await api.get(`${BASE_URL}/api/bus/busStop`, {
       params: { bsId }
     })
-    return response.data
+    
+    // 응답 데이터 로깅
+    console.log('정류장 상세 정보 응답:', response.data)
+    
+    // 데이터 가공 - 필요한 필드가 없는 경우 기본값 설정
+    const data = response.data || {}
+    
+    // 주소 정보 처리
+    return {
+      ...data,
+      // 주소 정보 매핑 (백엔드 응답 구조에 따라 조정)
+      sido: data.si_do || data.sido || data.city || '',
+      gugun: data.gu_gun || data.gugun || data.gu || data.district || '',
+      dong: data.eup_myeon_dong || data.dong || data.neighborhood || ''
+    }
   } catch (error) {
     console.error('정류장 상세 정보 조회 실패:', error)
     throw error

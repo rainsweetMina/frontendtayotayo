@@ -25,11 +25,10 @@ const routes = [
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes,
-    ...lostFoundRoutes,      // 👈 여기로 바꿔주면 됨!
     ...filteredLostFoundRoutes,
     ...noticeRoutes, // 공지사항 라우트 추가
     ...userManagementRoutes,
-    ...boardRoutes
+    ...boardRoutes,
 ]
 
 const router = createRouter({
