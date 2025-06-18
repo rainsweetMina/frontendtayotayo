@@ -3,8 +3,6 @@ import AdminDashboard from '@/modules/adminpage/dashboard/views/AdminDashboard.v
 import AdminNotice from '@/modules/adminpage/dashboard/views/notice/Notice.vue'
 import AdminQna from '@/modules/adminpage/dashboard/views/Qna.vue'
 import AdminAdvertisement from '@/modules/adminpage/dashboard/views/Advertisement.vue'
-import AdminReportedLostItems from '@/modules/adminpage/dashboard/views/ReportedLostItems.vue'
-import AdminRegisteredLostItems from '@/modules/adminpage/dashboard/views/RegisteredLostItems.vue'
 import AdminOperationTime from '@/modules/adminpage/dashboard/views/OperationTime.vue'
 import AdminSystemLogs from '@/modules/adminpage/dashboard/views/SystemLogs.vue'
 import AdminRouteFinderSettings from '@/modules/adminpage/dashboard/views/RouteFinderSettings.vue'
@@ -74,16 +72,6 @@ export const adminRoutes = {
       path: "advertisement",
       name: "AdminAdvertisement",
       component: AdminAdvertisement
-    },
-    {
-      path: "reported-lost-items",
-      name: "AdminReportedLostItems",
-      component: AdminReportedLostItems
-    },
-    {
-      path: "registered-lost-items",
-      name: "AdminRegisteredLostItems",
-      component: AdminRegisteredLostItems
     },
     {
       path: "operation-time",

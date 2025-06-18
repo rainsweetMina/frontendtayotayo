@@ -9,6 +9,11 @@
         습득물 등록
       </button>
     </div>
+    <SearchBar
+        placeholder="물품명, 버스회사, 노선번호 검색"
+        @search="handleSearch"
+        @reset="fetchFoundItems"
+    />
 
     <!-- ✅ 목록 테이블 -->
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
@@ -78,11 +83,21 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getFoundItemsForAdmin, hideFoundItem, deleteFoundItem } from '@/modules/lostFound/api/foundAdmin'
+import SearchBar from "@/modules/lostFound/components/SearchBar.vue";
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 const router = useRouter()
 const foundItems = ref([])
+
+const handleSearch = async (keyword) => {
+  try {
+    const { data } = await getFoundItemsForAdmin({ keyword });
+    foundItems.value = data;
+  } catch (error) {
+    alert('검색 실패: ' + (error.response?.data?.message || error.message));
+  }
+}
 
 const fetchFoundItems = async () => {
   try {

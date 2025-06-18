@@ -6,6 +6,7 @@ import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
 import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
+import adRoutes from '@/modules/ad/router'
 import userManagementRoutes from '@/modules/usermanagement/router'
 
 import mainPageRoutes from '@/modules/mainpage/router'
@@ -25,7 +26,8 @@ const routes = [
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes,
-    ...lostFoundRoutes,      // 👈 여기로 바꿔주면 됨!
+    ...lostFoundRoutes,
+    ...adRoutes,
     ...noticeRoutes, // 공지사항 라우트 추가
     ...userManagementRoutes
 ]

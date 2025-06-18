@@ -4,7 +4,7 @@
     <table class="table-auto w-full mb-4">
       <tbody>
       <tr><th>ID</th><td>{{ item.id }}</td></tr>
-      <tr><th>제목</th><td>{{ item.title }}</td></tr>
+      <tr><th>물품명</th><td>{{ item.title }}</td></tr>
       <tr><th>버스 번호</th><td>{{ item.busNumber }}</td></tr>
       <tr><th>버스 회사</th><td>{{ item.busCompany }}</td></tr>
       <tr><th>신고자</th><td>{{ item.memberName }}</td></tr>
