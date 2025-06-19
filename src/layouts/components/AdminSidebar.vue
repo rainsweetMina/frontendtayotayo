@@ -34,6 +34,12 @@
             공지사항 관리
           </router-link>
           <router-link
+            to="/admin/lowfloorbus"
+            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+          >
+            저상버스 안내 관리
+          </router-link>
+          <router-link
             to="/admin/qna"
             class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >

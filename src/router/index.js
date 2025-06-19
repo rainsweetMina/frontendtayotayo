@@ -10,6 +10,7 @@ import boardRoutes from '@/modules/board/router'
 
 import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
+import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
 
 // 📌 Pinia에서 인증 상태 가져오기
 import { useAuthStore } from '@/stores/auth'
@@ -27,6 +28,7 @@ const routes = [
     ...myPageRoutes,
     ...filteredLostFoundRoutes,
     ...noticeRoutes, // 공지사항 라우트 추가
+    ...lowFloorBusRoutes, // 저상버스 대체 안내 라우트 추가
     ...userManagementRoutes,
     ...boardRoutes,
 ]

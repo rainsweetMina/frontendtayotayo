@@ -99,14 +99,18 @@
           </div>
           
           <!-- 저상버스 대체안내 -->
-          <div class="slider-item" @click="navigateTo('special-service')">
+          <div class="slider-item" @click="navigateTo('lowfloorbus')">
             <div class="slider-title">
               <h3>저상버스 대체안내</h3>
               <span class="more-link">더보기</span>
             </div>
-            <div class="update-info">
-              <h4>금일(6월 12일)<br>저상버스 3231호<br>(북구3번 노선)<br>대체운행 안내</h4>
-              <p class="update-date">2025.06.12.</p>
+            <div v-if="lowFloorBuses.length > 0" class="update-info" @click.stop="viewLowFloorBus(lowFloorBuses[0].id)">
+              <h4>{{ lowFloorBuses[0].title }}</h4>
+              <p class="update-date">{{ lowFloorBuses[0].date }}</p>
+            </div>
+            <div v-else class="update-info">
+              <h4>저상버스 대체안내 정보가 없습니다.</h4>
+              <p class="update-date">-</p>
             </div>
           </div>
         </div>
@@ -205,6 +209,8 @@ const searchHistory = ref(['730', '내당삼익맨션건너', '7', '중앙로'])
 
 // 공지사항 데이터
 const notices = ref([]);
+// 저상버스 대체안내 데이터
+const lowFloorBuses = ref([]);
 const isLoading = ref(false);
 const error = ref('');
 
@@ -282,6 +288,61 @@ const fetchNotices = async () => {
   }
 };
 
+// 저상버스 대체안내 데이터 불러오기
+const fetchLowFloorBuses = async () => {
+  try {
+    console.log('메인 페이지: 저상버스 대체안내 로드 시도...');
+    
+    // 실제 API 연동 시도
+    try {
+      // 일반 사용자용 저상버스 대체안내 API 호출
+      const response = await axios.get('https://localhost:8081/api/public/lowfloorbuses');
+      console.log('저상버스 대체안내 API 응답:', response.data);
+      
+      // 서버에서 받은 저상버스 대체안내 데이터 처리
+      if (response.data && Array.isArray(response.data)) {
+        // 일반 배열 형태로 응답이 오는 경우
+        lowFloorBuses.value = response.data.map(bus => ({
+          id: bus.id,
+          title: bus.title,
+          content: bus.content || '',
+          date: formatDate(bus.createdAt || bus.createdDate)
+        })).slice(0, 1); // 최근 1개만 표시
+      } else if (response.data && response.data.content) {
+        // 페이징된 응답 구조 처리
+        lowFloorBuses.value = response.data.content.map(bus => ({
+          id: bus.id,
+          title: bus.title,
+          content: bus.content || '',
+          date: formatDate(bus.createdAt || bus.createdDate)
+        })).slice(0, 1); // 최근 1개만 표시
+      } else {
+        // 기타 다른 형식인 경우 (단일 객체 등)
+        console.log('응답 형식이 예상과 다릅니다.');
+        throw new Error('응답 형식이 지원되지 않습니다.');
+      }
+    } catch (apiError) {
+      console.log('API 호출 실패:', apiError);
+      throw apiError; // 상위 catch 블록으로 오류 전달
+    }
+  } catch (err) {
+    console.error('저상버스 대체안내 로드 실패:', err);
+    console.error('응답 데이터:', err.response?.data);
+    console.error('응답 상태:', err.response?.status);
+    
+    // 에러 발생 시 목업 데이터 표시
+    console.log('목업 저상버스 대체안내 데이터 사용');
+    lowFloorBuses.value = [
+      {
+        id: 1,
+        title: '금일(6월 12일) 저상버스 3231호(북구3번 노선) 대체운행 안내',
+        content: '금일 저상버스 3231호 차량 정비로 인해 일반 버스로 대체 운행됩니다.',
+        date: '2025.06.12'
+      }
+    ];
+  }
+};
+
 // 날짜 포맷팅 함수
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -349,7 +410,8 @@ const navigateTo = (route) => {
     'notices': '/notice',
     'bus-stops-update': '/bus/stops/update',
     'homepage-guide': '/guide/homepage',
-    'mobile-guide': '/guide/mobile'
+    'mobile-guide': '/guide/mobile',
+    'lowfloorbus': '/lowfloorbus'
   };
   
   router.push(routeMap[route] || '/');
@@ -359,6 +421,12 @@ const viewNotice = (noticeId) => {
   // 공지사항 상세 페이지로 라우팅
   console.log(`공지사항 클릭: ID=${noticeId}`);
   router.push(`/notice/${noticeId}`);
+};
+
+const viewLowFloorBus = (busId) => {
+  // 저상버스 대체안내 상세 페이지로 라우팅
+  console.log(`저상버스 대체안내 클릭: ID=${busId}`);
+  router.push(`/lowfloorbus/${busId}`);
 };
 
 const downloadFile = (fileType) => {
@@ -377,9 +445,10 @@ const downloadFile = (fileType) => {
   }
 };
 
-// 컴포넌트 마운트 시 공지사항 데이터 로드
+// 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
   fetchNotices();
+  fetchLowFloorBuses();
 });
 </script>
 

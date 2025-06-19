@@ -27,6 +27,9 @@ import FoundAdminDetail from "@/modules/lostFound/views/admin/FoundAdminDetail.v
 import FoundAdminEdit from "@/modules/lostFound/views/admin/FoundAdminEdit.vue";
 import LostAdminDetail from "@/modules/lostFound/views/admin/LostAdminDetail.vue";
 import LostAdminList from "@/modules/lostFound/views/admin/LostAdminList.vue";
+import LowFloorBusManagement from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusManagement.vue'
+import LowFloorBusDetail from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusDetail.vue'
+import LowFloorBusWrite from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusWrite.vue'
 
 export const adminRoutes = {
   path: "/admin",
@@ -65,6 +68,26 @@ export const adminRoutes = {
       path: "notices/:id/edit",
       name: "NoticeEdit",
       component: NoticeWrite
+    },
+    {
+      path: "lowfloorbus",
+      name: "LowFloorBusManagement",
+      component: LowFloorBusManagement
+    },
+    {
+      path: "lowfloorbus/new",
+      name: "LowFloorBusWrite",
+      component: LowFloorBusWrite
+    },
+    {
+      path: "lowfloorbus/:id",
+      name: "LowFloorBusDetail",
+      component: LowFloorBusDetail
+    },
+    {
+      path: "lowfloorbus/:id/edit",
+      name: "LowFloorBusEdit",
+      component: LowFloorBusWrite
     },
     {
       path: "qna",

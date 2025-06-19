@@ -1,8 +1,8 @@
 <template>
   <div class="p-5">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">공지사항 관리</h2>
-      <router-link to="/admin/notices/new" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">글쓰기</router-link>
+      <h2 class="text-2xl font-bold text-gray-800">저상버스 대체 안내 관리</h2>
+      <router-link to="/admin/lowfloorbus/new" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">글쓰기</router-link>
     </div>
 
     <div v-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
@@ -29,28 +29,28 @@
           </tr>
         </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-if="!notices || notices.length === 0">
-              <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">등록된 공지사항이 없습니다.</td>
+          <tr v-if="!lowFloorBuses || lowFloorBuses.length === 0">
+              <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">등록된 저상버스 대체 안내가 없습니다.</td>
           </tr>
-            <tr v-for="notice in notices" :key="notice.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.id }}</td>
+            <tr v-for="lowFloorBus in lowFloorBuses" :key="lowFloorBus.id" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lowFloorBus.id }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <router-link :to="`/admin/notices/${notice.id}`" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
-                {{ notice.title }}
+                <router-link :to="`/admin/lowfloorbus/${lowFloorBus.id}`" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                {{ lowFloorBus.title }}
               </router-link>
             </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.author }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(notice.createdDate) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lowFloorBus.author }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(lowFloorBus.createdDate) }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <router-link :to="`/admin/notices/${notice.id}/edit`" class="text-indigo-600 hover:text-indigo-900 mr-3">수정</router-link>
-                <button @click="deleteNotice(notice.id)" class="text-red-600 hover:text-red-900">삭제</button>
+                <router-link :to="`/admin/lowfloorbus/${lowFloorBus.id}/edit`" class="text-indigo-600 hover:text-indigo-900 mr-3">수정</router-link>
+                <button @click="deleteLowFloorBus(lowFloorBus.id)" class="text-red-600 hover:text-red-900">삭제</button>
             </td>
           </tr>
         </tbody>
       </table>
       </div>
       
-      <div v-if="!isLoading && notices && notices.length > 0" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div v-if="!isLoading && lowFloorBuses && lowFloorBuses.length > 0" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
           <div>
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
@@ -102,42 +102,48 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useNoticeApi } from '../../composables/useNoticeApi.js';
+import { useLowFloorBusApi } from '../../composables/useLowFloorBusApi.js';
 
 export default {
-  name: 'NoticeManagement',
+  name: 'LowFloorBusManagement',
   setup() {
     const router = useRouter();
-    const notices = ref([]);
+    const lowFloorBuses = ref([]);
     const currentPage = ref(1);
     const totalPages = ref(1);
     const pageSize = 10;
     const isLoading = ref(false);
     const error = ref('');
 
-    const { getNotices, deleteNotice: apiDeleteNotice } = useNoticeApi();
+    const { getLowFloorBuses, deleteLowFloorBus: apiDeleteLowFloorBus } = useLowFloorBusApi();
 
-    const fetchNotices = async (page = 1) => {
+    const fetchLowFloorBuses = async (page = 1) => {
       try {
         isLoading.value = true;
         error.value = '';
-        const response = await getNotices(page, pageSize);
-        console.log('Fetched notices:', response.data);
+        const response = await getLowFloorBuses(page, pageSize);
+        console.log('Fetched lowFloorBuses:', response.data);
         
         // 백엔드 응답 구조에 맞게 수정
-        if (Array.isArray(response.data)) {
-          notices.value = response.data;
+        if (response.data && Array.isArray(response.data)) {
+          // 배열 형태로 응답이 오는 경우
+          lowFloorBuses.value = response.data;
           totalPages.value = Math.ceil(response.data.length / pageSize);
+        } else if (response.data && response.data.content) {
+          // 페이징 처리된 응답이 오는 경우
+          lowFloorBuses.value = response.data.content;
+          totalPages.value = response.data.totalPages || 1;
+          currentPage.value = response.data.number + 1;
         } else {
-          notices.value = [];
+          // 기타 응답 형식
+          lowFloorBuses.value = [];
           totalPages.value = 1;
         }
-        
-        currentPage.value = page;
       } catch (err) {
-        console.error('공지사항 목록 조회 실패:', err);
-        error.value = '공지사항 목록을 불러오는데 실패했습니다.';
-        notices.value = [];
+        console.error('저상버스 대체 안내 목록 조회 실패:', err);
+        error.value = '저상버스 대체 안내 목록을 불러오는데 실패했습니다.';
+        lowFloorBuses.value = [];
+        totalPages.value = 1;
       } finally {
         isLoading.value = false;
       }
@@ -145,30 +151,30 @@ export default {
 
     const changePage = (page) => {
       if (page < 1 || page > totalPages.value) return;
-      fetchNotices(page);
+      fetchLowFloorBuses(page);
     };
 
-    const deleteNotice = async (id) => {
+    const deleteLowFloorBus = async (id) => {
       if (confirm('정말 삭제하시겠습니까?')) {
         try {
-          await apiDeleteNotice(id);
-          await fetchNotices(currentPage.value);
+          await apiDeleteLowFloorBus(id);
+          await fetchLowFloorBuses(currentPage.value);
         } catch (err) {
-          console.error('공지사항 삭제 실패:', err);
-          alert('공지사항 삭제에 실패했습니다.');
+          console.error('저상버스 대체 안내 삭제 실패:', err);
+          alert('저상버스 대체 안내 삭제에 실패했습니다.');
         }
       }
     };
 
-    onMounted(() => fetchNotices(1));
+    onMounted(() => fetchLowFloorBuses(1));
 
     return {
-      notices,
+      lowFloorBuses,
       currentPage,
       totalPages,
       isLoading,
       error,
-      deleteNotice,
+      deleteLowFloorBus,
       changePage,
       formatDate: (date) => {
         if (!date) return '';
@@ -183,4 +189,4 @@ export default {
     };
   }
 };
-</script>
+</script> 
