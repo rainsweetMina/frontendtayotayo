@@ -1,14 +1,18 @@
 <template>
   <div v-if="stops.length" class="recent-favorites">
-    <h4 class="title">⭐ 최근 즐겨찾기한 정류장</h4>
+    <h4 class="title">최근 즐겨찾기한 정류장</h4>
+
     <BusStopList
         :stops="stops"
         :openedStopId="openedStopId"
         :arrivalDataMap="arrivalDataMap"
+        :isFavorited="isFavorited"
+        :toggleFavorite="toggleFavorite"
         @selectStop="$emit('selectStop', $event)"
         @selectAsStart="$emit('selectAsStart', $event)"
         @selectAsEnd="$emit('selectAsEnd', $event)"
     />
+  <hr>
   </div>
 </template>
 
@@ -16,9 +20,14 @@
 import BusStopList from './BusStopList.vue'
 
 defineProps({
-  stops: Array,
+  stops: {
+    type: Array,
+    default: () => []
+  },
   openedStopId: String,
-  arrivalDataMap: Object
+  arrivalDataMap: Object,
+  isFavorited: Function,
+  toggleFavorite: Function
 })
 
 defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
@@ -26,17 +35,22 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 
 <style scoped>
 .recent-favorites {
-  padding: 12px 0;
-  margin-bottom: 12px;
-  background: #fdf6e3;
+  padding: 8px 0;
   border-radius: 8px;
 }
 
 .title {
-  padding: 5px 20px;
+  padding: 5px 25px;
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 6px;
   color: #444;
+}
+
+hr {
+  border: none;
+  border-top: 2px dashed #808080;
+  height: 0; /* 점선일 때는 height 0 */
+  margin: 16px 25px 8px; /* 좌우 5px, 아래쪽 8px */
 }
 </style>

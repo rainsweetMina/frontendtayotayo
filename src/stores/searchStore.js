@@ -21,6 +21,7 @@ export const useSearchStore = defineStore('searchStore', {
         routeResults: [],
         selectedRoute: null,
         forceRouteMode: false,
+        isRouteSearchMode: false,
 
         // ✅ 자동완성 및 목록 관련 상태 추가
         busStops: [],

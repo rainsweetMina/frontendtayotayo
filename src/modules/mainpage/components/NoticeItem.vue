@@ -78,16 +78,16 @@ defineEmits(['click']);
   .notice-item {
     padding: 15px 0;
   }
-  
+
   .notice-content h3 {
     font-size: 1.1rem;
     margin-bottom: 5px;
   }
-  
+
   .notice-date {
     font-size: 0.9rem;
   }
-  
+
   .notice-arrow {
     font-size: 1.5rem;
   }

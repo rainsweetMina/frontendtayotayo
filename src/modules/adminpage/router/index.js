@@ -14,6 +14,7 @@ import AdminBusRouteStops from '@/modules/adminpage/dashboard/views/BusRouteStop
 import AdminBusStops from '@/modules/adminpage/dashboard/views/BusStops.vue'
 import AdminBusStopAdd from '@/modules/adminpage/dashboard/views/BusStopAdd.vue'
 import AdminBusStopSearch from '@/modules/adminpage/dashboard/views/BusStopSearch.vue'
+import AdminBusStopDetail from '@/modules/adminpage/dashboard/views/BusStopDetail.vue'
 import NoticeManagement from '@/modules/adminpage/dashboard/views/notice/NoticeManagement.vue'
 import NoticeDetail from '@/modules/adminpage/dashboard/views/notice/NoticeDetail.vue'
 import NoticeWrite from '@/modules/adminpage/dashboard/views/notice/NoticeWrite.vue'
@@ -24,6 +25,9 @@ import FoundAdminDetail from "@/modules/lostFound/views/admin/FoundAdminDetail.v
 import FoundAdminEdit from "@/modules/lostFound/views/admin/FoundAdminEdit.vue";
 import LostAdminDetail from "@/modules/lostFound/views/admin/LostAdminDetail.vue";
 import LostAdminList from "@/modules/lostFound/views/admin/LostAdminList.vue";
+import LowFloorBusManagement from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusManagement.vue'
+import LowFloorBusDetail from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusDetail.vue'
+import LowFloorBusWrite from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusWrite.vue'
 
 export const adminRoutes = {
   path: "/admin",
@@ -62,6 +66,26 @@ export const adminRoutes = {
       path: "notices/:id/edit",
       name: "NoticeEdit",
       component: NoticeWrite
+    },
+    {
+      path: "lowfloorbus",
+      name: "LowFloorBusManagement",
+      component: LowFloorBusManagement
+    },
+    {
+      path: "lowfloorbus/new",
+      name: "LowFloorBusWrite",
+      component: LowFloorBusWrite
+    },
+    {
+      path: "lowfloorbus/:id",
+      name: "LowFloorBusDetail",
+      component: LowFloorBusDetail
+    },
+    {
+      path: "lowfloorbus/:id/edit",
+      name: "LowFloorBusEdit",
+      component: LowFloorBusWrite
     },
     {
       path: "qna",
@@ -127,6 +151,18 @@ export const adminRoutes = {
       path: "bus-stops/search",
       name: "AdminBusStopSearch",
       component: AdminBusStopSearch
+    },
+    {
+      path: "bus-stops/:id",
+      name: "AdminBusStopDetail",
+      component: AdminBusStopDetail,
+      props: true
+    },
+    {
+      path: "bus-stops/:id/edit",
+      name: "AdminBusStopEdit",
+      component: () => import('@/modules/adminpage/dashboard/views/BusStopEdit.vue'),
+      props: true
     },
     {
       path: "found",

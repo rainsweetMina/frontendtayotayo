@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>
-    </div>
+<!--    <div class="mb-6">-->
+<!--      <h1 class="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>-->
+<!--    </div>-->
 
     <!-- 인증 에러 메시지 -->
     <div v-if="!isAuthenticated && authError" class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
@@ -147,6 +147,38 @@
                       </p>
                       <p class="text-xs text-gray-500">
                         {{ activity.timestamp }}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 저상버스 대체 안내 관리 메뉴 -->
+    <div class="mt-6">
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-3 py-4">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">저상버스 안내 관리</h3>
+          <div class="mt-3">
+            <div class="flow-root">
+              <ul class="-my-3 divide-y divide-gray-200">
+                <li v-for="notice in notices" :key="notice.id" class="py-3">
+                  <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                      <span class="inline-flex items-center justify-center h-7 w-7 rounded-full" :class="getActivityTypeClass(notice.type)">
+                        <span class="text-sm font-medium leading-none text-white">{{ getActivityEmoji(notice.type) }}</span>
+                      </span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        {{ notice.title }}
+                      </p>
+                      <p class="text-xs text-gray-500">
+                        {{ notice.timestamp }}
                       </p>
                     </div>
                   </div>

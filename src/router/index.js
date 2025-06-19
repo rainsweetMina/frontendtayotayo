@@ -1,6 +1,5 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 import busSearchRoutes from '@/modules/busSearch/router'
 import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
@@ -8,9 +7,11 @@ import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
 import adRoutes from '@/modules/ad/router'
 import userManagementRoutes from '@/modules/usermanagement/router'
+import boardRoutes from '@/modules/board/router'
 
 import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
+import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
 
 // 📌 Pinia에서 인증 상태 가져오기
 import { useAuthStore } from '@/stores/auth'
@@ -29,7 +30,9 @@ const routes = [
     ...lostFoundRoutes,
     ...adRoutes,
     ...noticeRoutes, // 공지사항 라우트 추가
-    ...userManagementRoutes
+    ...lowFloorBusRoutes, // 저상버스 대체 안내 라우트 추가
+    ...userManagementRoutes,
+    ...boardRoutes,
 ]
 
 const router = createRouter({

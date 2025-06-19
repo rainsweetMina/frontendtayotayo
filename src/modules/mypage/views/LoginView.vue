@@ -84,10 +84,16 @@ const handleLogin = async () => {
     formData.append('username', userId.value)
     formData.append('password', password.value)
 
-    await api.post('/auth/login', formData, {
+    const response = await api.post('/auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       withCredentials: true
     })
+
+    // ✅ 백엔드에서 JSON 형태로 accessToken을 전송받을 때 처리
+    if (response.data && response.data.accessToken) {
+      // auth store를 통해 accessToken 관리
+      auth.setAccessToken(response.data.accessToken)
+    }
 
     // ✅ 로그인 후 사용자 정보 강제 재요청
     const success = await fetchUserInfo(true)

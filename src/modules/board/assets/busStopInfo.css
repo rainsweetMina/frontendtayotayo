@@ -1,0 +1,127 @@
+/* ✅ 페이지 컨테이너 및 제목 */
+.search-box {
+    margin: 1rem 0;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px; /* 줄 사이 + 열 사이 */
+    align-items: center;
+}
+
+.search-box label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    gap: 6px;
+
+    /* ✅ 줄바꿈 방지 + 너비 안정 */
+    white-space: nowrap;
+    min-width: 260px;
+    flex-shrink: 0;
+}
+
+.search-box select,
+.search-box input {
+    padding: 6px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 160px;         /* ✅ 고정 폭으로 정렬 일관성 */
+    max-width: 240px;
+}
+
+.page-container {
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+/* ✅ 박스 레이아웃 (선택 영역, 결과 등) */
+.section-box {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* ✅ 탭 버튼 */
+.tab-selector button {
+    margin-right: 8px;
+    padding: 6px 16px;
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.tab-selector button.active {
+    background-color: #1e60c7;
+    color: white;
+    font-weight: 600;
+}
+
+/* ✅ 검색 필드 영역 */
+.search-box label {
+    margin-right: 1.5rem;
+    font-size: 14px;
+}
+
+.search-box input,
+.search-box select {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-left: 6px;
+}
+
+/* ✅ 결과 테이블 */
+.bus-stop-result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+.bus-stop-result-table th,
+.bus-stop-result-table td {
+    border: 1px solid #ccc;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 14px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.bus-stop-result-table th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+}
+
+.bus-stop-result-table tbody tr:hover {
+    background-color: #f5faff;
+}
+
+/* ✅ 지도 버튼 */
+.bus-stop-result-table a {
+    color: #1e60c7;
+    text-decoration: underline;
+    font-weight: 500;
+    font-size: 13px;
+}

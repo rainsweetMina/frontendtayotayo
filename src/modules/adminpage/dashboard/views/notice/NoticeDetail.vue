@@ -1,90 +1,138 @@
 <template>
-  <div class="notice-detail">
-    <div v-if="isLoading" class="text-center my-5">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
+  <div class="p-6 max-w-7xl mx-auto">
+    <div v-if="isLoading" class="flex justify-center items-center py-20">
+      <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm">{{ error }}</p>
+        </div>
       </div>
     </div>
 
-    <div v-else-if="error" class="alert alert-danger">
-      {{ error }}
-    </div>
-
-    <div v-else-if="notice" class="notice-content">
-      <div class="notice-header">
-        <h2>{{ notice.title }}</h2>
-        <div class="notice-meta">
-          <span class="badge bg-secondary me-2">{{ notice.author }}</span>
-          <span class="text-muted">{{ formatDate(notice.createdDate) }}</span>
+    <div v-else-if="notice" class="bg-white shadow overflow-hidden rounded-lg">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-900">{{ notice.title }}</h2>
+        <div class="mt-2 flex items-center text-sm text-gray-500">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+            {{ notice.author }}
+          </span>
+          <span>{{ formatDate(notice.createdDate) }}</span>
         </div>
       </div>
 
-      <div class="notice-body">
-        <div v-if="notice.showPopup" class="alert alert-info mb-3">
-          <strong>팝업 표시:</strong> 
+      <div class="px-6 py-5">
+        <div v-if="notice.showPopup" class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-blue-700">
+                <span class="font-medium">팝업 표시:</span> 
           {{ formatDate(notice.popupStart) }} ~ {{ formatDate(notice.popupEnd) }}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div class="content-area">
+        <div class="prose max-w-none">
           <!-- HTML 콘텐츠 렌더링 -->
           <div v-html="notice.content"></div>
         </div>
 
-        <div v-if="notice.files && notice.files.length > 0" class="attachment mt-4">
-          <h5>첨부파일</h5>
-          <div v-for="(file, index) in notice.files" :key="index" class="mb-3">
+        <div v-if="notice.files && notice.files.length > 0" class="mt-8 border-t border-gray-200 pt-6">
+          <h5 class="text-lg font-medium text-gray-900 mb-4">첨부파일</h5>
+          <div v-for="(file, index) in notice.files" :key="index" class="mb-4">
             <!-- 이미지 파일인 경우 직접 표시 -->
-            <div v-if="isImageFile(file)" class="mb-2">
-              <div class="image-preview mb-2">
+            <div v-if="isImageFile(file)" class="mb-3">
+              <div class="bg-gray-100 p-2 rounded-lg mb-2">
                 <img 
                   :src="getImageUrl(file, index)" 
                   :alt="file.originalName"
-                  class="img-fluid rounded"
-                  style="max-height: 300px;"
+                  class="max-h-64 mx-auto rounded-md"
                 />
               </div>
-              <div class="d-flex align-items-center">
-                <span class="me-2">{{ file.originalName }}</span>
-                <small class="text-muted me-2">({{ formatFileSize(file.fileSize) }})</small>
-                <button @click="downloadFile(file, index)" 
-                        class="btn btn-sm btn-outline-primary">
-                  <i class="bi bi-download"></i> 다운로드
+              <div class="flex items-center">
+                <span class="text-sm text-gray-700 mr-2">{{ file.originalName }}</span>
+                <span class="text-xs text-gray-500 mr-3">({{ formatFileSize(file.fileSize) }})</span>
+                <button 
+                  @click="downloadFile(file, index)" 
+                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  다운로드
                 </button>
               </div>
             </div>
             
             <!-- 이미지 파일이 아닌 경우 다운로드 버튼만 표시 -->
-            <div v-else class="d-flex align-items-center">
-              <button @click="downloadFile(file, index)" 
-                      class="btn btn-sm btn-outline-primary me-2">
-                <i class="bi bi-download"></i> {{ file.originalName }}
-                <small class="text-muted">({{ formatFileSize(file.fileSize) }})</small>
+            <div v-else class="flex items-center">
+              <button 
+                @click="downloadFile(file, index)" 
+                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {{ file.originalName }}
+                <span class="text-xs text-gray-500 ml-1">({{ formatFileSize(file.fileSize) }})</span>
               </button>
             </div>
           </div>
         </div>
         
-        <div v-else-if="notice.fileUrl || notice.fileDownloadUrl || notice.filePath" class="attachment mt-4">
-          <h5>첨부파일</h5>
-          <button @click="downloadSingleFile()" 
-                  class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-download"></i> {{ notice.fileName || '파일 다운로드' }}
+        <div v-else-if="notice.fileUrl || notice.fileDownloadUrl || notice.filePath" class="mt-8 border-t border-gray-200 pt-6">
+          <h5 class="text-lg font-medium text-gray-900 mb-4">첨부파일</h5>
+          <button 
+            @click="downloadSingleFile()" 
+            class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {{ notice.fileName || '파일 다운로드' }}
           </button>
         </div>
         
-        <div v-else-if="notice.fileName" class="attachment mt-4">
-          <h5>첨부파일</h5>
-          <button @click="downloadByFileName()" 
-                  class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-download"></i> {{ notice.fileName }}
+        <div v-else-if="notice.fileName" class="mt-8 border-t border-gray-200 pt-6">
+          <h5 class="text-lg font-medium text-gray-900 mb-4">첨부파일</h5>
+          <button 
+            @click="downloadByFileName()" 
+            class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <svg class="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {{ notice.fileName }}
           </button>
         </div>
       </div>
 
-      <div class="notice-actions mt-4">
-        <router-link to="/admin/notices" class="btn btn-secondary">목록</router-link>
-        <router-link :to="`/admin/notices/${notice.id}/edit`" class="btn btn-warning ms-2">수정</router-link>
-        <button @click="handleDelete" class="btn btn-danger ms-2">삭제</button>
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+        <router-link to="/admin/notices" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          목록
+        </router-link>
+        <router-link :to="`/admin/notices/${notice.id}/edit`" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+          수정
+        </router-link>
+        <button @click="handleDelete" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+          삭제
+        </button>
       </div>
     </div>
   </div>
@@ -332,62 +380,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.notice-detail {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.notice-content {
-  background: white;
-  border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.notice-header {
-  border-bottom: 1px solid #e9ecef;
-  padding-bottom: 20px;
-  margin-bottom: 30px;
-}
-
-.notice-header h2 {
-  margin-bottom: 10px;
-}
-
-.notice-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.content-area {
-  min-height: 300px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.content-area pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-  font-family: inherit;
-}
-
-.attachment {
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.image-preview {
-  display: flex;
-  justify-content: center;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  padding: 10px;
-}
-</style> 
