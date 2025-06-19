@@ -10,8 +10,8 @@
             <input type="text" v-model="form.userId" required />
             <button type="button" class="btn-id-check" @click="checkDuplicateId">중복 확인</button>
           </div>
-          <p class="error" v-if="idDuplicate === true">이미 사용 중인 아이디입니다</p>
-          <p class="success" v-if="idDuplicate === false">사용 가능한 아이디입니다</p>
+          <p class="error" v-if="idChecked && idDuplicate === true">이미 사용 중인 아이디입니다</p>
+          <p class="success" v-if="idChecked && idDuplicate === false">사용 가능한 아이디입니다</p>
         </div>
 
         <div class="form-group">
@@ -81,6 +81,7 @@ const passwordCheck = ref('')
 const passwordValid = ref(false)
 const passwordsMatch = ref(true)
 const idDuplicate = ref(null)
+const idChecked = ref(false)
 
 const emailLocal = ref('')
 const emailDomain = ref('')
@@ -101,11 +102,15 @@ const checkPasswordMatch = () => {
 }
 
 const checkDuplicateId = async () => {
+  idChecked.value = false // 먼저 false로 초기화
+
   try {
     const res = await api.get(`/api/user/check-id?userId=${form.value.userId}`)
-    idDuplicate.value = res.data.duplicate // true: 중복, false: 사용 가능
+    idDuplicate.value = res.data.duplicate
   } catch (err) {
     idDuplicate.value = true
+  } finally {
+    idChecked.value = true // ✅ 버튼 누른 후에만 메시지 표시
   }
 }
 
@@ -120,11 +125,16 @@ const handleEmailSelect = () => {
 const sendVerificationCode = async () => {
   form.value.email = `${emailLocal.value}@${emailDomain.value}`
   try {
-    await api.post('/api/email/send', { email: form.value.email })
+    console.log("📧 이메일 전송 대상:", form.value.email)
+    await api.post('/api/user/email/send', null, {
+      params: { email: form.value.email }
+    })
+    console.log('✅ 이메일 전송 요청 성공')
     codeSent.value = true
     startTimer()
   } catch (err) {
-    error.value = '이메일 전송 실패'
+    console.error('❌ 이메일 전송 실패', err)
+    error.value = '이메일 전송에 실패했습니다.'
   }
 }
 
@@ -151,7 +161,8 @@ const handleRegister = async () => {
     alert('회원가입 완료! 로그인해주세요.')
     window.location.href = '/login'
   } catch (err) {
-    error.value = err.response?.data?.message || '회원가입 실패'
+    console.error('❌ 회원가입 실패:', err)
+    alert('❌ 회원가입 실패: ' + (err.response?.data?.message || '알 수 없는 오류'))
   }
 }
 </script>
