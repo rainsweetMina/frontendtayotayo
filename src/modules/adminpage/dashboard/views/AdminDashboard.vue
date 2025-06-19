@@ -605,12 +605,14 @@ const loadDashboardData = async () => {
 
 // 컴포넌트 마운트 시 데이터 로드 및 WebSocket 연결
 onMounted(() => {
+
   // URL 파라미터에서 accessToken과 refreshToken 추출하여 localStorage에 저장
   const urlParams = new URLSearchParams(window.location.search)
   const accessToken = urlParams.get('accessToken')
   const refreshToken = urlParams.get('refreshToken')
+  console.log("onMounted->   {}", accessToken)
   
-  if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
+  if (accessToken && accessToken !== 'null') {
     localStorage.setItem('accessToken', accessToken)
     console.log('AccessToken이 localStorage에 저장되었습니다.')
   }

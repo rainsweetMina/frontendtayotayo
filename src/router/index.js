@@ -55,6 +55,34 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
+    // 전역 가드: /admin 하위 라우트에서 accessToken 체크 및 저장
+    if (to.path.startsWith('/admin') && to.path !== '/admin/login') {
+        const urlParams = new URLSearchParams(window.location.search)
+        const accessToken = urlParams.get('accessToken')
+        const refreshToken = urlParams.get('refreshToken')
+
+        // accessToken/refreshToken이 쿼리로 오면 localStorage에 저장
+        if (accessToken && accessToken !== 'null') {
+            localStorage.setItem('accessToken', accessToken)
+        }
+        if (refreshToken && refreshToken !== 'null') {
+            localStorage.setItem('refreshToken', refreshToken)
+        }
+
+        // URL에서 토큰 파라미터 제거
+        if (accessToken || refreshToken) {
+            const newUrl = new URL(window.location.href)
+            newUrl.searchParams.delete('accessToken')
+            newUrl.searchParams.delete('refreshToken')
+            window.history.replaceState({}, document.title, newUrl.toString())
+        }
+
+        // localStorage에 accessToken이 없으면 로그인 페이지로 이동
+        if (!localStorage.getItem('accessToken')) {
+            return next('/admin/login')
+        }
+    }
+
     next()
 })
 

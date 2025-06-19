@@ -4,7 +4,7 @@
       <i class="bi bi-exclamation-triangle me-2"></i>
       관리자 로그인이 필요한 기능입니다.
     </div>
-    <form v-else @submit.prevent="handleSubmit">
+    <form v-else @submit="handleSubmit">
       <div class="row">
         <!-- 이미지 영역 -->
         <div class="col-md-4 text-center mb-3">
@@ -145,7 +145,9 @@
 import { reactive, ref, watch, onMounted } from 'vue';
 import {
   getBusCompanies,
-  getBusRoutesByCompany
+  getBusRoutesByCompany,
+  registerFoundItem,
+  updateFoundItem
 } from '@/modules/lostFound/api/foundAdmin';
 import { useAuthStore } from '@/stores/auth';
 
@@ -199,7 +201,7 @@ watch(() => props.item, async (val) => {
   if (val) {
     form.id = val.id;
     form.itemName = val.itemName || '';
-    form.foundTime = val.foundTime?.split('T')[0] ?? '';
+    form.foundTime = val.foundTime ? val.foundTime.split('T')[0] : '';
     form.foundPlace = val.foundPlace || '';
     form.content = val.content || '';
     form.storageLocation = val.storageLocation || '';
@@ -244,7 +246,26 @@ const handleFileChange = (e) => {
   }
 };
 
-const handleSubmit = () => {
+const resetForm = () => {
+  Object.assign(form, {
+    id: null,
+    itemName: '',
+    busCompanyId: '',
+    busNumber: '',
+    foundTime: '',
+    foundPlace: '',
+    content: '',
+    storageLocation: '',
+    handlerContact: '',
+    handlerEmail: '',
+    status: 'IN_STORAGE'
+  });
+  imageFile.value = null;
+  if (fileInput.value) fileInput.value.value = '';
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
   if (!form.itemName || !form.busCompanyId || !form.busNumber || !form.foundTime) {
     alert('필수 항목을 모두 입력해주세요.');
     return;
@@ -260,28 +281,75 @@ const handleSubmit = () => {
     return;
   }
 
-  // ✅ FormData로 만들어서 emit!
-  const formData = new FormData();
-  formData.append('itemName', form.itemName);
-  formData.append('busCompany', selected.companyName);
-  formData.append('busNumber', form.busNumber);
-  formData.append('foundTime', form.foundTime);
-  formData.append('foundPlace', form.foundPlace || '');
-  formData.append('content', form.content || '');
-  formData.append('storageLocation', form.storageLocation || '');
-  formData.append('handlerContact', form.handlerContact || '');
-  formData.append('handlerEmail', form.handlerEmail || '');
-  formData.append('status', form.status || 'IN_STORAGE');
-  formData.append('handlerId', handlerId);
-  if (props.item && props.item.id) {
-    formData.append('id', props.item.id);
+  // 날짜 포맷 변환
+  let foundTime = form.foundTime;
+  if (foundTime && !foundTime.includes('T')) {
+    foundTime = foundTime + 'T00:00:00';
   }
+
+  // dto 객체 생성
+  const dto = {
+    itemName: form.itemName,
+    busCompany: selected.companyName,
+    busNumber: form.busNumber,
+    foundTime: form.foundTime + 'T00:00:00',
+    foundPlace: form.foundPlace || '',
+    content: form.content || '',
+    storageLocation: form.storageLocation || '',
+    handlerContact: form.handlerContact || '',
+    handlerEmail: form.handlerEmail || '',
+    status: form.status || 'IN_STORAGE',
+    handlerId: handlerId,
+  };
+  if (props.item && props.item.id) {
+    dto.id = props.item.id;
+  }
+
+  // FormData 생성 및 전송
+  const formData = new FormData();
+  formData.append('dto', new Blob([JSON.stringify(dto)], { type: 'application/json' }));
   if (imageFile.value) {
     formData.append('image', imageFile.value);
   }
 
-  emit('submitted', formData);
+  try {
+    if (props.item && props.item.id) {
+      // 수정
+      
+      console.log('formData----------수정>', dto, formData)
+      await updateFoundItem(props.item.id, formData);
+      alert('수정 완료!');
+    } else {
+      // 등록
+      await registerFoundItem(formData);
+      alert('등록 완료!');
+      resetForm();
+    }
+    emit('submitted');
+  } catch (e) {
+    alert('저장 실패: ' + (e.response?.data?.message || e.message));
+  }
 };
+
+
+// 날짜 포맷
+const formatDate = (date) => {
+  if (!date) return '-'
+  
+  try {
+    // LocalDateTime 형식 (YYYY-MM-DDTHH:mm:ss) 처리
+    const dateStr = date.includes('T') ? date.split('T')[0] : date
+    return new Date(dateStr).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (error) {
+    console.error('날짜 포맷 오류:', error)
+    return date
+  }
+}
+
 </script>
 
 <style scoped>
