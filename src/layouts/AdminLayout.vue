@@ -1,20 +1,20 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
-    <!-- 상단 네비게이션 바 -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex">
-            <div class="flex-shrink-0 flex items-center">
-              <h1 class="text-xl font-bold">관리자 대시보드</h1>
-            </div>
-          </div>
-          <div class="flex items-center">
-            <AdminUserMenu />
-          </div>
-        </div>
-      </div>
-    </nav>
+  <div class="min-h-screen bg-gray-100 ">
+<!--    &lt;!&ndash; 상단 네비게이션 바 &ndash;&gt;-->
+<!--    <nav class="bg-white shadow-sm">-->
+<!--      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">-->
+<!--        <div class="flex justify-between h-16">-->
+<!--          <div class="flex">-->
+<!--            <div class="flex-shrink-0 flex items-center">-->
+<!--              <h1 class="text-xl font-bold">관리자 대시보드</h1>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="flex items-center">-->
+<!--            <AdminUserMenu />-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </nav>-->
 
     <div class="flex">
       <!-- 사이드바 -->
@@ -30,8 +30,10 @@
 
 <script setup>
 import AdminSidebar from './components/AdminSidebar.vue'
-import AdminUserMenu from '../components/AdminUserMenu.vue'
+// import AdminUserMenu from '../components/AdminUserMenu.vue'
 </script>
+
+<style src="@/assets/tailwind.css"></style>
 
 <style scoped>
 .min-h-screen {

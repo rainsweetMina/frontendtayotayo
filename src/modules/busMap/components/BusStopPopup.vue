@@ -3,7 +3,6 @@
     <!-- 상단 영역: 정류장 이름 + 즐겨찾기 -->
     <div class="popup-header">
       <div class="stop-name" :title="stopName">{{ stopName }}</div>
-      <button class="fav-btn" @click="$emit('favorite')" title="즐겨찾기">★</button>
     </div>
     <!-- 도착 정보 -->
     <div class="popup-scroll-area">
@@ -50,13 +49,28 @@ defineEmits(['setStart', 'setEnd', 'favorite'])
   text-overflow: ellipsis;
 }
 
-.fav-btn {
+.favorite-button {
   background: none;
   border: none;
-  font-size: 18px;
-  color: gold;
-  cursor: pointer;
   padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-icon {
+  font-size: 20px;
+  color: #ccc;
+  transition: color 0.3s;
+}
+
+.favorite-icon:hover {
+  color: #999;
+}
+
+.favorite-icon.active {
+  color: gold;
 }
 
 .popup-scroll-area {
@@ -64,7 +78,7 @@ defineEmits(['setStart', 'setEnd', 'favorite'])
   overflow-y: auto;
   margin-bottom: 8px;
 
-  scrollbar-width: none;       /* Firefox */
+  scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
@@ -122,5 +136,4 @@ hr {
   border-top: 1px solid #5e5d5d;
   margin: 6px 0;
 }
-
 </style>

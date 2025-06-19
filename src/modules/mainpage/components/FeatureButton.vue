@@ -100,12 +100,12 @@ defineEmits(['click']);
     padding: 25px 15px;
     text-align: center;
   }
-  
+
   .feature-icon {
     margin-right: 0;
     margin-bottom: 15px;
   }
-  
+
   .feature-button::before {
     width: 100%;
     height: 4px;
@@ -119,13 +119,13 @@ defineEmits(['click']);
   .feature-button {
     min-height: 100px;
   }
-  
+
   .feature-icon {
     font-size: 2.2rem;
     width: 50px;
     height: 50px;
   }
-  
+
   .feature-text {
     font-size: 1.1rem;
   }

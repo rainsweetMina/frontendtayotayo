@@ -8,13 +8,17 @@
     >
       <!-- 이름 + 버튼 한 줄 정렬 -->
       <div class="header-row">
-        <strong class="stop-name" :title="stop.bsNm">{{ stop.bsNm }}</strong>
-        <div class="buttons">
-          <button @click.stop="toggleFavorite(stop)">
-            <span class="favorite-icon">
-              {{ isFavorited(stop.bsId) ? '★' : '☆' }}
-            </span>
+        <div class="left-info">
+          <button
+              @click.stop="toggleFavorite(stop)"
+              class="favorite-button"
+              :title="isFavorited(stop.bsId) ? '즐겨찾기 제거' : '즐겨찾기 추가'"
+          >
+            <span class="favorite-icon" :class="{ active: isFavorited(stop.bsId) }">★</span>
           </button>
+          <strong class="stop-name" :title="stop.bsNm">{{ stop.bsNm }}</strong>
+        </div>
+        <div class="buttons">
           <button @click.stop="$emit('selectAsStart', stop)" class="icon-button" title="출발지 선택">
             <img :src="startIcon" alt="출발"/>
           </button>
@@ -50,28 +54,12 @@
 import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
-import {onMounted} from "vue";
-import {useFavoriteBusStop} from "@/modules/busSearch/composables/useFavoriteBusStop.js";
-import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
-
-const userInfo = useUserInfo()
-
-const {
-  favoriteStops,
-  toggleFavorite,
-  isFavorited,
-  fetchFavorites
-} = useFavoriteBusStop()
-
-onMounted(() => {
-  if (userInfo?.value?.isLoggedIn) {
-    fetchFavorites()
-  }
-})
 defineProps({
   stops: Array,
   openedStopId: String,
-  arrivalDataMap: Object
+  arrivalDataMap: Object,
+  isFavorited: Function,
+  toggleFavorite: Function
 })
 
 defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
@@ -83,7 +71,7 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 }
 
 .bus-stop-item {
-  padding: 18px 18px;
+  padding: 18px;
   border: 1px solid #ddd;
   margin-bottom: 10px;
   border-radius: 8px;
@@ -102,6 +90,14 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   justify-content: space-between;
 }
 
+.left-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 150px); /* 버튼 영역 고려 - 더 넓게 조정 */
+  overflow: hidden;
+}
+
 .stop-name {
   font-size: 17px;
   color: #4889cd;
@@ -109,32 +105,44 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100% - 80px); /* 버튼 영역 확보 */
 }
 
 .buttons {
   display: flex;
-  gap: 8px;
+  gap: 10px; /* 버튼 간격 늘림 */
   flex-shrink: 0;
+}
+
+.favorite-button,
+.icon-button {
+  background: none;
+  border: none;
+  padding: 4px; /* 패딩 추가 */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .favorite-icon {
   font-size: 22px;
-  color: gold;
+  color: #ddd;
+  transition: color 0.3s;
   line-height: 1;
   vertical-align: middle;
 }
 
-.icon-button {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.favorite-icon:hover {
+  color: #bbb;
+}
+
+.favorite-icon.active {
+  color: gold;
 }
 
 .icon-button img {
-  width: 26px;
-  height: 26px;
+  width: 30px; /* 아이콘 크기 증가 */
+  height: 30px; /* 아이콘 크기 증가 */
 }
 
 .arrival-info {
@@ -166,4 +174,5 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   color: #999;
   padding-top: 5px;
 }
+
 </style>

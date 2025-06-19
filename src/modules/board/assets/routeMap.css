@@ -1,0 +1,237 @@
+/* routeMap.css */
+.fare-page-container {
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.fare-title {
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.fare-box,
+.section-box,
+.notice-box {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.notice-box {
+    background-color: #f0f6ff;
+    border-color: #c3e0ff;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.fare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+.fare-table th,
+.fare-table td {
+    border: 1px solid #ccc;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.fare-table th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+}
+
+.fare-table tbody tr:hover {
+    background-color: #f5faff;
+}
+
+.fare-note {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* 전체 공통 스타일 */
+* {
+    color: #333;
+    box-sizing: border-box;
+}
+
+.page-container {
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+/* 박스 공통 */
+.section-box,
+.notice-box {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.notice-box {
+    background-color: #f0f6ff;
+    border-color: #c3e0ff;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* 페이지 내부 제목 */
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+/* 요금 테이블 */
+.fare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+.fare-table th,
+.fare-table td {
+    border: 1px solid #ccc;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.fare-table th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+}
+
+.fare-table tbody tr:hover {
+    background-color: #f5faff;
+}
+
+.fare-note {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* bullet 스타일 */
+.bullet-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.bullet-list li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+}
+
+.bullet-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #1e60c7;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* 강조 텍스트 */
+.highlight {
+    color: #1e60c7;
+    font-weight: 600;
+}
+
+.phone {
+    color: #333;
+    font-weight: 500;
+}
+
+/* 버스 회사 테이블 전용 */
+.company-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    table-layout: auto;
+}
+
+.company-table th {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    padding: 12px 8px;
+    font-size: 15px;
+}
+
+.company-table td {
+    border: 1px solid #ccc;
+    padding: 12px 8px;
+    text-align: left;
+    vertical-align: middle;
+    word-break: break-word;
+    font-size: 15px;
+}
+
+.company-table td.company-name {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.company-table td.phone {
+    white-space: nowrap;
+}
+
+/* 운행 노선 뱃지 */
+.route-cell {
+    max-width: 360px;
+    white-space: normal;
+    word-break: break-word;
+    padding: 8px 0;
+}
+
+.route-badge {
+    display: inline-block;
+    background-color: #e8f0ff;
+    color: #1e60c7;
+    font-size: 12px;
+    padding: 3px 8px;
+    margin: 2px 4px 2px 0;
+    border-radius: 12px;
+    line-height: 1.4;
+    max-width: 100%;
+}
+

@@ -3,19 +3,21 @@
     <SearchBoxWrapper/>
 
     <RouteResultList
-        v-if="store.routeResults.length"
+        v-if="store.routeResults.length && !isLoadingRoutes"
         :routes="store.routeResults"
         @selectRoute="selectRouteFromPath"
         @drawRoutePath="drawOrsPolyline"
     />
 
     <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
-    <div v-else>
+    <div v-else-if="!isLoadingRoutes">
       <RecentFavorites
-          v-if="isLoggedIn"
+          v-if="isLoggedIn && !store.routeResults.length && !store.isRouteSearchMode"
           :stops="recentStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
+          :isFavorited="isFavorited"
+          :toggleFavorite="handleToggleFavorite"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
@@ -26,12 +28,15 @@
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
           :isFavorited="isFavorited"
-          @toggleFavorite="handleToggleFavorite"
+          :toggleFavorite="toggleFavorite"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
       />
       <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
+    </div>
+    <div v-else>
+      <p class="text-center text-gray-500 mt-4">🔄 경로 탐색 중입니다...</p>
     </div>
   </div>
 </template>
@@ -41,6 +46,7 @@ import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
 import {ref, watch, onMounted, computed} from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
@@ -49,7 +55,8 @@ import {renderPopupComponent} from '@/utils/popup-mount'
 import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
 import {useStopArrival} from '../composables/useStopArrival.js'
 import {useFavoriteBusStop} from '../composables/useFavoriteBusStop.js'
-import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
+import {getSortedArrivalsFromApi} from "@/composables/arrival-utils.js";
 
 import BusStopList from '../components/BusStopList.vue'
 import BusRouteList from '../components/BusRouteList.vue'
@@ -57,12 +64,14 @@ import RouteResultList from '../components/RouteResultList.vue'
 import SearchBoxWrapper from "../components/SearchBoxWrapper.vue";
 import RecentFavorites from "../components/RecentFavorites.vue";
 
+const router = useRouter()
 const store = useSearchStore()
 
+const isLoadingRoutes = ref(false)
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
 const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
-const { isLoggedIn, fetchUserInfo } = useUserInfo()
+const {isLoggedIn, fetchUserInfo2, isLoading} = useUserInfo(false)
 
 const map = ref(window.leafletMap)
 const markerFns = useMapMarkers(map)
@@ -74,27 +83,45 @@ const {
   toggleFavorite,
   isFavorited,
   fetchFavorites,
-  getRecentFavorites
+  getRecentFavorites,
+  favoriteStops
 } = useFavoriteBusStop()
 
 onMounted(async () => {
-  await fetchUserInfo() // 👈 무조건 호출해야 로그인 상태 갱신됨
+  await fetchUserInfo2()
+  await waitUntilUserLoaded()
+
   if (isLoggedIn.value) {
-    fetchFavorites()
+    await fetchFavorites()
   }
 })
 
+const waitUntilUserLoaded = async () => {
+  while (isLoading.value) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  return true
+}
+
 const handleToggleFavorite = async (stop) => {
+  if (!isLoggedIn.value) {
+    if (confirm('로그인이 필요한 기능입니다. 로그인하시겠습니까?')) {
+      window.location.href = '/login'
+    }
+    return
+  }
   await toggleFavorite(stop)
 }
 
-const recentStops = computed(() => {
-  return getRecentFavorites(3).map(fav => ({
-    bsId: fav.bsId,
-    bsNm: fav.bsNm ?? '(정류장 이름 없음)'
-  }))
-})
+const recentStops = ref([])
 
+watch(favoriteStops, (newVal) => {
+  recentStops.value = [...(newVal || [])]
+      .sort((b, a) => new Date(b.createdAt) - new Date(a.createdAt))
+      .reverse()
+      .slice(0, 3)
+})
 /*-----여기까지 즐겨찾기------*/
 function isSamePoint(p1, p2, epsilon = 0.00015) {
   const dx = Math.abs(parseFloat(p1.xPos ?? p1.xpos) - parseFloat(p2.xPos ?? p2.xpos))
@@ -303,26 +330,9 @@ function selectRoute(route) {
 
 async function bindArrivalPopup(marker, bsId, bsNm) {
   try {
-    const res = await axios.get('/api/bus/bus-arrival', {
-      params: {bsId}
-    })
-    const body = res.data.body
-    const items = Array.isArray(body?.items) ? body.items : body?.items ? [body.items] : []
-
-    const arrivals = []
-
-    items.forEach(item => {
-      const arrList = Array.isArray(item.arrList) ? item.arrList : [item.arrList]
-      arrList.forEach(arr => {
-        arrivals.push({
-          routeNo: item.routeNo,
-          arrState: arr.arrState,
-          updn: arr.updn
-        })
-      })
-    })
-
-    const container = renderPopupComponent(marker, {bsId, bsNm}, arrivals)
+    const arrivals = await getSortedArrivalsFromApi(bsId)
+    const stop = store.busStops.find(s => s.bsId === bsId) || { bsId, bsNm }
+    const container = renderPopupComponent(marker, stop, arrivals)
     marker.bindPopup(container).openPopup()
   } catch (err) {
     console.error('도착 정보 조회 실패:', err)

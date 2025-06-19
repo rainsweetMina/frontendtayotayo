@@ -1,45 +1,30 @@
 <template>
-  <div class="notice-write">
-    <div class="page-header">
-      <h2>{{ isEdit ? '공지사항 수정' : '새 공지사항 작성' }}</h2>
+  <div class="p-6 max-w-3xl mx-auto">
+    <div class="mb-8 border-b pb-4">
+      <h2 class="text-2xl font-bold text-gray-800">{{ isEdit ? '공지사항 수정' : '새 공지사항 작성' }}</h2>
     </div>
 
-    <div class="notice-form-container">
+    <div class="bg-white rounded-lg shadow p-8">
       <form @submit.prevent="handleSubmit">
-        <div v-if="errorMessage" class="alert alert-danger mb-3">
+        <div v-if="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
           {{ errorMessage }}
         </div>
 
-        <div class="form-group mb-3">
-          <label for="title" class="form-label">제목</label>
+        <div class="mb-6">
+          <label for="title" class="block text-sm font-medium text-gray-700 mb-2">제목</label>
           <input
             id="title"
             v-model="form.title"
             type="text"
-            class="form-control"
+            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base px-4 py-2"
             required
             placeholder="제목을 입력하세요"
             :disabled="isSubmitting"
           />
         </div>
         
-        <div class="form-group mb-3">
-          <label for="content" class="form-label">내용</label>
-          
-          <!-- 이미지 업로드 버튼 추가 -->
-          <div class="image-upload-wrapper mb-2">
-            <button type="button" class="btn btn-outline-primary btn-sm" @click="openImageUpload">
-              <i class="bi bi-image"></i> 이미지 추가
-            </button>
-            <input
-              ref="imageUploadInput"
-              type="file"
-              accept="image/*"
-              class="d-none"
-              @change="handleImageUpload"
-            />
-          </div>
-          
+        <div class="mb-6">
+          <label for="content" class="block text-sm font-medium text-gray-700 mb-2">내용</label>
           <QuillEditor
             v-model:content="form.content"
             contentType="html"
@@ -47,74 +32,69 @@
             theme="snow"
             :disabled="isSubmitting"
             ref="quillEditor"
-            class="quill-editor"
+            class="quill-editor border rounded-md"
           />
         </div>
 
-        <div class="form-group mb-3">
-          <label for="file" class="form-label">첨부파일</label>
+        <div class="mb-6">
+          <label for="file" class="block text-sm font-medium text-gray-700 mb-2">첨부파일</label>
           <input
             id="file"
             type="file"
-            class="form-control"
+            class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
             @change="handleFileChange"
             multiple
             :disabled="isSubmitting"
           />
-          <small class="text-muted">* 파일은 선택사항입니다</small>
-          <div v-if="form.files.length > 0" class="mt-2">
-            <div v-for="(file, index) in form.files" :key="index" class="d-flex align-items-center mb-2">
-              <span class="me-2">{{ file.name }}</span>
-              <button type="button" class="btn btn-sm btn-danger" @click="removeFile(index)">
+          <small class="text-gray-400">* 파일은 선택사항입니다</small>
+          <div v-if="form.files.length > 0" class="mt-2 space-y-2">
+            <div v-for="(file, index) in form.files" :key="index" class="flex items-center space-x-2">
+              <span class="text-gray-700">{{ file.name }}</span>
+              <button type="button" class="text-xs text-red-600 hover:underline" @click="removeFile(index)">
                 삭제
               </button>
             </div>
           </div>
         </div>
 
-        <div class="form-group mb-3">
-          <label class="form-check-label">
+        <div class="mb-6 flex items-center">
+          <input
+            v-model="form.showPopup"
+            type="checkbox"
+            class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+            :disabled="isSubmitting"
+            id="showPopup"
+          />
+          <label for="showPopup" class="text-sm text-gray-700">팝업으로 표시</label>
+        </div>
+
+        <div v-if="form.showPopup" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="popupStart" class="block text-sm font-medium text-gray-700 mb-2">팝업 시작일</label>
             <input
-              v-model="form.showPopup"
-              type="checkbox"
-              class="form-check-input me-2"
+              id="popupStart"
+              v-model="form.popupStart"
+              type="datetime-local"
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
               :disabled="isSubmitting"
             />
-            팝업으로 표시
-          </label>
-        </div>
-
-        <div v-if="form.showPopup" class="row mb-3">
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="popupStart" class="form-label">팝업 시작일</label>
-              <input
-                id="popupStart"
-                v-model="form.popupStart"
-                type="datetime-local"
-                class="form-control"
-                :disabled="isSubmitting"
-              />
-            </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              <label for="popupEnd" class="form-label">팝업 종료일</label>
-              <input
-                id="popupEnd"
-                v-model="form.popupEnd"
-                type="datetime-local"
-                class="form-control"
-                :disabled="isSubmitting"
-              />
-            </div>
+          <div>
+            <label for="popupEnd" class="block text-sm font-medium text-gray-700 mb-2">팝업 종료일</label>
+            <input
+              id="popupEnd"
+              v-model="form.popupEnd"
+              type="datetime-local"
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+              :disabled="isSubmitting"
+            />
           </div>
         </div>
 
-        <div class="d-flex justify-content-end">
+        <div class="flex justify-end space-x-3 mt-8">
           <button
             type="button"
-            class="btn btn-secondary me-2"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             @click="$router.push('/admin/notices')"
             :disabled="isSubmitting"
           >
@@ -122,7 +102,7 @@
           </button>
           <button
             type="submit"
-            class="btn btn-primary"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             :disabled="isSubmitting"
           >
             {{ isSubmitting ? '저장 중...' : (isEdit ? '수정' : '등록') }}
@@ -163,6 +143,7 @@ class QuillPasteHandler {
     this.options = options;
     this.imageHandler = options.imageHandler || this.imageHandler.bind(this);
     this.quill.root.addEventListener('paste', this.pasteHandler.bind(this));
+    this.addFileToAttachments = options.addFileToAttachments;
   }
 
   pasteHandler(event) {
@@ -188,13 +169,24 @@ class QuillPasteHandler {
     compressImage(blob, 800, 800, 0.6).then(compressedFile => {
       console.log(`붙여넣기 - 원본: ${blob.size}바이트, 압축 후: ${compressedFile.size}바이트`);
       
+      // 이미지 파일 업로드 및 에디터에 삽입
+      const fileName = `pasted-image-${new Date().getTime()}.png`;
+      const imageFile = new File([compressedFile], fileName, { type: compressedFile.type });
+      
       const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      axios.post('/api/admin/upload/image', formData)
+      formData.append('file', imageFile);
+      
+      axios.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
+          
+          // 첨부파일에도 추가 (첨부파일 표시용)
+          if (typeof this.addFileToAttachments === 'function') {
+            this.addFileToAttachments(imageFile);
+          } else {
+            console.error('addFileToAttachments 함수를 찾을 수 없습니다.');
+          }
         })
         .catch(err => {
           console.error('이미지 업로드 실패:', err);
@@ -220,6 +212,7 @@ class QuillDragDropHandler {
     this.imageHandler = options.imageHandler || this.imageHandler.bind(this);
     this.quill.root.addEventListener('drop', this.dropHandler.bind(this));
     this.quill.root.addEventListener('dragover', e => e.preventDefault());
+    this.addFileToAttachments = options.addFileToAttachments;
   }
 
   dropHandler(event) {
@@ -243,13 +236,24 @@ class QuillDragDropHandler {
     compressImage(file, 800, 800, 0.6).then(compressedFile => {
       console.log(`드래그앤드롭 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
       
+      // 이미지 파일 업로드 및 에디터에 삽입
+      const fileName = file.name || `dropped-image-${new Date().getTime()}.png`;
+      const imageFile = new File([compressedFile], fileName, { type: compressedFile.type });
+      
       const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      axios.post('/api/admin/upload/image', formData)
+      formData.append('file', imageFile);
+      
+      axios.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
+          
+          // 첨부파일에도 추가 (첨부파일 표시용)
+          if (typeof this.addFileToAttachments === 'function') {
+            this.addFileToAttachments(imageFile);
+          } else {
+            console.error('addFileToAttachments 함수를 찾을 수 없습니다.');
+          }
         })
         .catch(err => {
           console.error('이미지 업로드 실패:', err);
@@ -356,7 +360,9 @@ export default {
             // 기본 이미지 핸들러 비활성화
             image: function() {}
           }
-        }
+        },
+        pasteHandler: true,
+        dragDropHandler: true
       },
       placeholder: '내용을 입력하세요...'
     };
@@ -373,6 +379,18 @@ export default {
         console.log('이미지 붙여넣기 시도가 감지되었습니다. 별도 이미지 업로드 버튼을 사용해주세요.');
         return delta;
       });
+
+      // 붙여넣기 및 드래그앤드롭 핸들러에 addFileToAttachments 함수 전달
+      const pasteHandler = quill.getModule('pasteHandler');
+      const dragDropHandler = quill.getModule('dragDropHandler');
+      
+      if (pasteHandler) {
+        pasteHandler.addFileToAttachments = addFileToAttachments;
+      }
+      
+      if (dragDropHandler) {
+        dragDropHandler.addFileToAttachments = addFileToAttachments;
+      }
     };
 
     const handleFileChange = (event) => {
@@ -415,17 +433,19 @@ export default {
         const compressedFile = await compressImage(file, 800, 800, 0.6);
         console.log(`이미지 업로드 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
         
+        // 이미지 파일 업로드 후 에디터에 삽입 (본문에 표시)
         const formData = new FormData();
         formData.append('file', compressedFile);
         
-        // 업로드 중 UI 표시
-        // TODO: 로딩 인디케이터 추가
-        
-        const response = await axios.post('/api/admin/upload/image', formData);
+        const response = await axios.post('/api/admin/notices/upload/image', formData);
         const imageUrl = response.data.url;
         
         // 에디터에 이미지 삽입
         insertImage(imageUrl);
+        
+        // 첨부파일에 이미지 추가 (첨부파일 표시용)
+        const imageFile = new File([compressedFile], file.name, { type: compressedFile.type });
+        addFileToAttachments(imageFile);
         
         // 파일 인풋 초기화
         event.target.value = null;
@@ -433,6 +453,11 @@ export default {
         console.error('이미지 업로드 실패:', error);
         alert('이미지 업로드에 실패했습니다.');
       }
+    };
+
+    // 파일을 첨부파일 목록에 추가하는 헬퍼 함수
+    const addFileToAttachments = (file) => {
+      form.value.files = [...form.value.files, file];
     };
 
     const handleSubmit = async () => {
@@ -445,12 +470,57 @@ export default {
           return;
         }
 
+        // 에디터 내용에서 이미지 태그 검색
+        const imgRegex = /<img[^>]+src="([^">]+)"/g;
+        let match;
+        let hasInlineImages = false;
+        let processedContent = form.value.content;
+        
+        // 모든 base64 이미지를 서버에 업로드하고 URL로 변경
+        while ((match = imgRegex.exec(form.value.content)) !== null) {
+          const imageUrl = match[1];
+          hasInlineImages = true;
+          
+          // 이미 서버 URL인 경우에는 변환하지 않음
+          if (imageUrl.startsWith('https://localhost:8081/api/admin/notices/')) {
+            continue;
+          }
+          
+          // Base64 이미지인 경우 서버에 업로드하고 URL로 변환
+          if (imageUrl.startsWith('data:image/')) {
+            try {
+              // Base64 이미지를 서버에 업로드하고 URL로 변환
+              const blob = dataURLtoBlob(imageUrl);
+              const imgFormData = new FormData();
+              imgFormData.append('file', blob, 'embedded-image.png');
+              
+              // 동기적으로 업로드 처리
+              const uploadResponse = await axios.post('/api/admin/notices/upload/image', imgFormData);
+              const newUrl = uploadResponse.data.url;
+              
+              // 원본 URL을 새 URL로 교체
+              processedContent = processedContent.replace(imageUrl, newUrl);
+              console.log('이미지 업로드 성공:', newUrl);
+            } catch (imgError) {
+              console.error('이미지 업로드 실패:', imgError);
+              throw imgError; // 이미지 업로드 실패 시 전체 과정 중단
+            }
+          }
+        }
+        
+        // 인라인 이미지가 있을 경우 더미 첨부파일 추가 (첨부파일 표시용)
+        if (hasInlineImages && form.value.files.length === 0) {
+          // 이미 첨부파일이 없는 경우에만 더미 파일 추가
+          const dummyFile = new File([new Blob([''])], '이미지.png', { type: 'image/png' });
+          form.value.files.push(dummyFile);
+        }
+
         const formData = new FormData();
         
-        // notice 데이터를 JSON으로 변환
+        // 이미지가 URL로 변환된 content를 사용
         const noticeData = {
           title: form.value.title.trim(),
-          content: form.value.content.trim(),
+          content: processedContent, // 변환된 content 사용
           author: '관리자',  // 기본값으로 설정
           showPopup: form.value.showPopup,
           popupStart: form.value.showPopup ? form.value.popupStart : null,
@@ -489,60 +559,8 @@ export default {
           if (isEdit.value) {
             console.log('Updating notice ID:', route.params.id);
             
-            // 이미지 URL을 로컬 서버 URL로 변환하여 서버에서 처리할 수 있도록 수정
-            let processedContent = form.value.content;
-            const regex = /<img[^>]+src="([^">]+)"/g;
-            let match;
-            
-            // content에서 이미지 URL을 추출하여 서버에서 인식할 수 있는 형태로 변환
-            while ((match = regex.exec(processedContent)) !== null) {
-              const imageUrl = match[1];
-              // 이미 서버 URL인 경우에는 변환하지 않음
-              if (imageUrl.startsWith('https://localhost:8081/api/admin/upload/')) {
-                continue;
-              }
-              
-              if (imageUrl.startsWith('data:image/')) {
-                try {
-                  // Base64 이미지를 서버에 업로드하고 URL로 변환
-                  const blob = dataURLtoBlob(imageUrl);
-                  const imgFormData = new FormData();
-                  imgFormData.append('file', blob, 'embedded-image.png');
-                  
-                  const uploadResponse = await axios.post('/api/admin/upload/image', imgFormData);
-                  const newUrl = uploadResponse.data.url;
-                  
-                  // 원본 URL을 새 URL로 교체
-                  processedContent = processedContent.replace(imageUrl, newUrl);
-                } catch (imgError) {
-                  console.error('이미지 업로드 실패:', imgError);
-                }
-              }
-            }
-            
-            // 처리된 content로 noticeData 업데이트
-            const updatedNoticeData = {
-              ...noticeData,
-              content: processedContent
-            };
-            
-            // 업데이트된 noticeData로 Blob 재생성
-            const updatedNoticeBlob = new Blob([JSON.stringify(updatedNoticeData)], {
-              type: 'application/json'
-            });
-            
-            // FormData 재생성
-            const updatedFormData = new FormData();
-            updatedFormData.append('notice', updatedNoticeBlob);
-            
-            // 파일 재추가
-            if (form.value.files.length > 0) {
-              form.value.files.forEach(file => {
-                updatedFormData.append('files', file);
-              });
-            }
-            
-            response = await updateNotice(route.params.id, updatedFormData);
+            // 이미 모든 이미지가 처리되었으므로 추가 변환 작업 필요 없음
+            response = await updateNotice(route.params.id, formData);
           } else {
             console.log('Creating new notice');
             response = await createNotice(formData);
@@ -614,10 +632,18 @@ export default {
       }
     };
 
-    onMounted(() => {
-      fetchNotice();
-      // 에디터 초기화 후 설정
+    onMounted(async () => {
+      // 에디터 초기화
       initQuillEditor();
+      
+      if (isEdit.value) {
+        try {
+          await fetchNotice();
+        } catch (error) {
+          console.error('공지사항 불러오기 실패:', error);
+          errorMessage.value = '공지사항을 불러오는데 실패했습니다.';
+        }
+      }
     });
 
     return {
@@ -633,41 +659,22 @@ export default {
       handleFileChange,
       removeFile,
       insertImage,
-      handleSubmit
+      handleSubmit,
+      addFileToAttachments
     };
   }
 };
 </script>
 
 <style>
-.notice-write {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 20px;
-}
-
-.notice-form-container {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Quill 에디터 스타일 */
 .quill-editor {
   height: 300px;
   margin-bottom: 20px;
 }
-
 .ql-editor {
   font-size: 16px;
   line-height: 1.6;
 }
-
 .ql-editor img {
   max-width: 100%;
   height: auto;

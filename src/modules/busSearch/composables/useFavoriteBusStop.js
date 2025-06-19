@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {ref} from 'vue'
-
+import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
 
 export function useFavoriteBusStop() {
     const favoriteSet = ref(new Set())
@@ -9,41 +9,45 @@ export function useFavoriteBusStop() {
 
     const fetchFavorites = async () => {
         try {
-            const res = await axios.get('/api/mypage/favorite/bus-stop')
+            const res = await axios.get('/api/mypage/favorite/bus-stop', {withCredentials: true})
             favoriteStops.value = res.data
+            favoriteSet.value = new Set(res.data.map(f => f.bsId))
         } catch (e) {
-            console.error(e)
+            const status = e?.response?.status
+            if (status !== 401) {
+                console.error('❌ 즐겨찾기 불러오기 실패:', e)
+            }
         }
     }
 
     const addFavoriteStop = async (stop) => {
+        if (!stop?.bsId) {
+            console.warn('❌ 유효하지 않은 stop 객체:', stop)
+            alert('정류장 정보가 올바르지 않습니다.')
+            return
+        }
+
         try {
             await axios.post('/api/mypage/favorite/bus-stop',
                 {bsId: stop.bsId},
-                {withCredentials: true},)
-            alert(`'${stop.bsNm}' 정류장이 즐겨찾기에 추가되었습니다.`)
+                {withCredentials: true})
             await fetchFavorites()
         } catch (e) {
-            console.error('🔥 추가 실패 - 응답 상태:', e?.response?.status)
-            console.error('🔥 추가 실패 - 응답 메시지:', e?.response?.data)
-            handleAuthError(e, '정류장 즐겨찾기 추가에 실패했습니다.')
+            handleAuthError(e, '로그인이 필요합니다')
         }
     }
 
     const deleteFavoriteStop = async (bsId) => {
-        const confirmed = confirm('정말 해당 정류장을 즐겨찾기에서 삭제하시겠습니까?')
-        if (!confirmed) return
-
         try {
-            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`)
+            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`, {withCredentials: true})
             favoriteStops.value = favoriteStops.value.filter(s => s.bsId !== bsId)
-            alert('정류장 즐겨찾기가 삭제되었습니다.')
         } catch (e) {
             handleAuthError(e, '정류장 즐겨찾기 삭제에 실패했습니다.')
         }
     }
 
-    const isFavorited = (bsId) => favoriteSet.value.has(bsId)
+    const isFavorited = (bsId) =>
+        favoriteStops.value.some(stop => stop.bsId === bsId)
 
     const toggleFavorite = async (stop) => {
         if (isFavorited(stop.bsId)) {
@@ -54,7 +58,7 @@ export function useFavoriteBusStop() {
     }
 
     const getRecentFavorites = (count = 3) => {
-        return [...favoriteStops.value]
+        return [...(favoriteStops.value || [])]
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, count)
     }
