@@ -54,6 +54,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/axiosInstance'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import { useAuthStore } from '@/stores/auth'
 
 function formatDate(dateString) {
   if (!dateString) return ''
@@ -68,6 +69,7 @@ function formatDate(dateString) {
 }
 
 const router = useRouter()
+const auth = useAuthStore()
 const { user, isLoading, isLoggedIn, fetchUserInfo } = useUserInfo()
 
 const favorites = ref({ busCount: 0, stopCount: 0 })
@@ -76,9 +78,11 @@ const qnaCount = ref(0)
 const apiKeyStatusText = ref('정보 없음')
 const notificationCount = ref(0)
 
+
 const handleLogout = async () => {
   try {
-    await api.post('/api/logout')
+    await api.post('/api/logout', {}, { withCredentials: true })
+    auth.logout() // ✅ Pinia 상태 초기화
     await router.push('/login')
   } catch (error) {
     alert('로그아웃에 실패했습니다.')

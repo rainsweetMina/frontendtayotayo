@@ -1,6 +1,6 @@
 <template>
-  <div class="notification-wrapper">
-    <h2>🔔 알림 목록</h2>
+  <div class="notification-wrapper" v-if="userReady && user">
+  <h2>🔔 알림 목록</h2>
 
     <div class="actions">
       <button @click="markAllAsRead" :disabled="!hasUnread">✅ 전체 읽음</button>
@@ -19,9 +19,7 @@
           <small>{{ formatDate(notification.createdAt) }}</small>
         </div>
         <div class="buttons">
-          <button v-if="!notification.read" @click="markAsRead(notification.id)">
-            읽음
-          </button>
+          <button v-if="!notification.read" @click="markAsRead(notification.id)">읽음</button>
           <button @click="deleteOne(notification.id)">삭제</button>
         </div>
       </li>
@@ -30,7 +28,6 @@
     <!-- 페이지네이션 -->
     <div class="pagination" v-if="totalPages > 1">
       <button @click="goPage(currentPage - 1)" :disabled="currentPage === 1">이전</button>
-
       <button
           v-for="page in totalPages"
           :key="page"
@@ -39,39 +36,46 @@
       >
         {{ page }}
       </button>
-
       <button @click="goPage(currentPage + 1)" :disabled="currentPage === totalPages">다음</button>
     </div>
 
     <router-link to="/mypage" class="back-button">← 마이페이지로 돌아가기</router-link>
+  </div>
+
+  <!-- 로딩 또는 유저 없음 대응 -->
+  <div v-else class="notification-wrapper">
+    ⏳ 사용자 정보를 불러오는 중입니다...
   </div>
 </template>
 
 <script setup>
 import api from '@/api/axiosInstance'
 import { ref, onMounted, computed } from 'vue'
-
+import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
-const { user } = useUserInfo()
+const router = useRouter()
+const { user, fetchUserInfo, isLoading } = useUserInfo()
 
-const notifications = ref([])  // 빈 배열 초기화
+const userReady = ref(false) // ✅ 사용자 정보 준비 여부
+
+const notifications = ref([])
 const currentPage = ref(1)
 const pageSize = 10
 const totalPages = ref(1)
 
 const fetchNotifications = async (page = 1) => {
+  if (!user.value?.userId) return
+
   try {
-    // 서버에서 페이징을 지원한다고 가정 (page, size 파라미터 전달)
     const res = await api.get('/api/mypage/notifications', {
       params: {
         userId: user.value.userId,
-        page: page - 1, // 보통 0부터 시작하는 경우 많음
+        page: page - 1,
         size: pageSize
       }
     })
 
-    // 페이징 응답 구조에 맞게 조정 필요 (예시: content, totalPages)
     notifications.value = res.data.content || res.data || []
     totalPages.value = res.data.totalPages || 1
     currentPage.value = page
@@ -92,10 +96,10 @@ const markAsRead = async (id) => {
 
 const markAllAsRead = async () => {
   try {
-    await api.post(`/api/mypage/notifications/readAll`, null, {
-      params: { userId: user.value.userId }
+    await api.post('/api/mypage/notifications/readAll', null, {
+      params: { userId: user.value?.userId }
     })
-    notifications.value.forEach(n => n.read = true)
+    notifications.value.forEach(n => (n.read = true))
   } catch (e) {
     alert('전체 읽음 실패')
   }
@@ -112,8 +116,8 @@ const deleteOne = async (id) => {
 
 const deleteAll = async () => {
   try {
-    await api.delete(`/api/mypage/notifications`, {
-      params: { userId: user.value.userId }
+    await api.delete('/api/mypage/notifications', {
+      params: { userId: user.value?.userId }
     })
     notifications.value = []
   } catch (e) {
@@ -122,7 +126,6 @@ const deleteAll = async () => {
 }
 
 const hasUnread = computed(() => {
-  // notifications.value가 배열인지 체크해서 안전하게 처리
   return Array.isArray(notifications.value) && notifications.value.some(n => !n.read)
 })
 
@@ -136,7 +139,14 @@ const goPage = (page) => {
   fetchNotifications(page)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const success = await fetchUserInfo(true) // 강제 새로 로딩
+  if (!success) {
+    router.push('/login')
+    return
+  }
+
+  userReady.value = true
   fetchNotifications(currentPage.value)
 })
 </script>
@@ -176,7 +186,6 @@ onMounted(() => {
 .content p {
   margin: 0.3rem 0;
 }
-/* 버튼 영역 flex 적용 */
 .buttons {
   display: flex;
   gap: 0.5rem;
@@ -185,7 +194,7 @@ onMounted(() => {
   flex-wrap: nowrap;
 }
 .buttons button {
-  white-space: nowrap; /* 버튼 내부 텍스트 줄넘김 방지 */
+  white-space: nowrap;
   padding: 4px 8px;
   font-size: 13px;
   cursor: pointer;
@@ -216,4 +225,3 @@ onMounted(() => {
   opacity: 0.5;
 }
 </style>
-

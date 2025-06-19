@@ -5,14 +5,14 @@
     <!-- 검색 영역 -->
     <div class="mb-4 flex gap-2 flex-wrap">
       <input v-model="searchKeyword" type="text" placeholder="아이디, 이름, 이메일, 전화번호 검색" class="border rounded px-2 py-1 w-72" />
-      <button @click="fetchUsers" class="px-4 py-1 bg-blue-600 text-white rounded">검색</button>
     </div>
 
     <table class="w-full border border-gray-300 text-sm">
       <thead class="bg-gray-100 text-center">
       <tr>
-        <th v-for="col in columns" :key="col.key" class="px-2 py-2 cursor-pointer" @click="toggleSort(col.key)">
-          {{ col.label }} <span v-if="sortKey === col.key">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+        <th v-for="col in columns" :key="col.key" class="px-2 py-2" :class="{ 'cursor-pointer': col.sortable }" @click="col.sortable && toggleSort(col.key)">
+          {{ col.label }}
+          <span v-if="sortKey === col.key">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
         </th>
       </tr>
       </thead>
@@ -53,31 +53,30 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from '@/api/axiosInstance'
-import { formatDate, formatDateOnly  } from '@/utils/dateUtils'
+import { formatDate, formatDateOnly } from '@/utils/dateUtils'
 
 const users = ref([])
 const selectedRoles = ref({})
 const roles = ['USER', 'ADMIN', 'BUS']
 const searchKeyword = ref('')
 const sortKey = ref('id')
-sortKey.value = 'id'
 const sortOrder = ref('asc')
 const currentPage = ref(1)
 const pageSize = 10
 
 const columns = [
-  { label: '회원번호', key: 'id' },
-  { label: '아이디', key: 'userId' },
-  { label: '이름', key: 'username' },
-  { label: '이메일', key: 'email' },
-  { label: '전화번호', key: 'phoneNumber' },
-  { label: '가입일', key: 'signupDate' },
-  { label: '최근 로그인', key: 'lastLoginAt' },
-  { label: '가입유형', key: 'signupType' },
-  { label: '권한', key: 'role' },
-  { label: '권한변경', key: 'roleChange' },
-  { label: '계정상태', key: 'withdraw' },
-  { label: '탈퇴처리', key: 'withdrawAction' },
+  { label: '회원번호', key: 'id', sortable: true },
+  { label: '아이디', key: 'userId', sortable: true },
+  { label: '이름', key: 'username', sortable: true },
+  { label: '이메일', key: 'email', sortable: false },
+  { label: '전화번호', key: 'phoneNumber', sortable: false },
+  { label: '가입일', key: 'signupDate', sortable: true },
+  { label: '최근 로그인', key: 'lastLoginAt', sortable: false },
+  { label: '가입유형', key: 'signupType', sortable: true },
+  { label: '권한', key: 'role', sortable: true },
+  { label: '권한변경', key: 'roleChange', sortable: false },
+  { label: '계정상태', key: 'withdraw', sortable: true },
+  { label: '탈퇴처리', key: 'withdrawAction', sortable: false },
 ]
 
 const fetchUsers = async () => {
