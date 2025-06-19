@@ -54,7 +54,9 @@
         <div class="form-group" v-if="codeSent">
           <label>인증 코드 입력</label>
           <input v-model="form.verificationCode" placeholder="인증 코드 입력" />
+          <button type="button" class="btn-small" @click="verifyCode">인증 확인</button>
           <p class="info">남은 시간: {{ remainingTime }}초</p>
+          <p class="success" v-if="form.emailVerified">✅ 인증 완료</p>
         </div>
 
         <button type="submit" :disabled="!canSubmit" class="submit-btn">가입하기</button>
@@ -72,10 +74,14 @@ import { ref, computed } from 'vue'
 const form = ref({
   userId: '',
   password: '',
-  verificationCode: '',
+  passwordCheck: '',
   username: '',
   email: '',
+  emailVerificationCode: '',
+  emailVerified: false,
+  phoneNumber: ''
 })
+
 
 const passwordCheck = ref('')
 const passwordValid = ref(false)
@@ -157,12 +163,34 @@ const canSubmit = computed(() =>
 
 const handleRegister = async () => {
   try {
-    await api.post('/api/user/join', form.value)
-    alert('회원가입 완료! 로그인해주세요.')
+    const res = await api.post('/api/user/join', form.value)
+    const message = res.data?.message || '회원가입 완료! 로그인해주세요.'
+    alert('✅ ' + message)
     window.location.href = '/login'
   } catch (err) {
     console.error('❌ 회원가입 실패:', err)
-    alert('❌ 회원가입 실패: ' + (err.response?.data?.message || '알 수 없는 오류'))
+    const errorMessage = err.response?.data?.message || '알 수 없는 오류가 발생했습니다.'
+    alert('❌ 회원가입 실패: ' + errorMessage)
+  }
+
+  const verifyCode = async () => {
+    try {
+      const res = await api.post('/api/user/email/verify', {
+        email: form.value.email,
+        code: form.value.verificationCode
+      })
+
+      if (res.data.success) {
+        form.value.emailVerified = true
+        alert('✅ 이메일 인증이 완료되었습니다.')
+      } else {
+        form.value.emailVerified = false
+        alert('❌ 인증 코드가 올바르지 않습니다.')
+      }
+    } catch (err) {
+      form.value.emailVerified = false
+      alert('❌ 인증 실패: ' + (err.response?.data?.message || '오류가 발생했습니다.'))
+    }
   }
 }
 </script>
