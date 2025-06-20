@@ -71,7 +71,7 @@ const isLoadingRoutes = ref(false)
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
 const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
-const {isLoggedIn, fetchUserInfo2, isLoading} = useUserInfo(false)
+const {isLoggedIn, fetchUserInfo, isLoading} = useUserInfo()
 
 const map = ref(window.leafletMap)
 const markerFns = useMapMarkers(map)
@@ -88,7 +88,7 @@ const {
 } = useFavoriteBusStop()
 
 onMounted(async () => {
-  await fetchUserInfo2()
+  await fetchUserInfo()
   await waitUntilUserLoaded()
 
   if (isLoggedIn.value) {

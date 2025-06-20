@@ -1,13 +1,13 @@
 <template>
-  <div class="search-wrapper p-2">
+  <div class="w-full p-2">
     <!-- ✅ 상단: 로고 + 토글 버튼 -->
-    <div class="d-flex align-items-center justify-content-between mx-2 mt-1">
-      <router-link to="/" class="logo-link">
+    <div class="flex items-center justify-between mx-2 mt-1">
+      <router-link to="/" class="flex items-center">
         <Logo />
       </router-link>
       <button
           @click="toggleMode"
-          class="mode-toggle-btn"
+          class="w-[42px] h-[42px] rounded-full border-none bg-gradient-to-br from-white to-gray-100 shadow-md text-xl text-blue-600 flex justify-center items-center transition-all hover:bg-gray-50 hover:scale-105"
           :title="isRouteMode ? '일반 검색' : '경로 검색'"
       >
         <i :class="isRouteMode ? 'fas fa-magnifying-glass' : 'fas fa-location-dot'"></i>

@@ -1,15 +1,14 @@
 <template>
   <div class="search-box">
-    <div class="d-flex flex-2 p-3">
+    <div class="flex p-2 bg-white rounded-lg shadow-md">
       <input
           type="text"
           v-model="store.keyword"
           @keydown.enter="onSearch"
-          class="form-control custom-input me-1"
+          class="flex-[5] h-10 px-3 py-2 border border-gray-300 rounded-l-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="버스 번호/정류장 검색"
-          style="flex: 5;"
       />
-      <button type="button" @click="onSearch" class="btn btn-primary" style="flex:1;">검색</button>
+      <button type="button" @click="onSearch" class="flex-1 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition-colors">검색</button>
     </div>
   </div>
 </template>
@@ -33,12 +32,3 @@ function onSearch() {
   store.toggleSidebar(true)
 }
 </script>
-
-<style scoped>
-.custom-input {
-  height: 40px !important;
-  line-height: 38px;
-  padding: 6px 12px;
-  font-size: 14px;
-}
-</style>

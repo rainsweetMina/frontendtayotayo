@@ -1,6 +1,6 @@
 <template>
-  <div v-if="stops.length" class="recent-favorites">
-    <h4 class="title">최근 즐겨찾기한 정류장</h4>
+  <div v-if="stops.length" class="py-2 rounded-lg">
+    <h4 class="px-6 py-1 text-base font-bold mb-1.5 text-gray-700">최근 즐겨찾기한 정류장</h4>
 
     <BusStopList
         :stops="stops"
@@ -12,7 +12,7 @@
         @selectAsStart="$emit('selectAsStart', $event)"
         @selectAsEnd="$emit('selectAsEnd', $event)"
     />
-  <hr>
+  <hr class="border-none border-t-2 border-dashed border-gray-400 h-0 mx-6 mt-4 mb-2">
   </div>
 </template>
 

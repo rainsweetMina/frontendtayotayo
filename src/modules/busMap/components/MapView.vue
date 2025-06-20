@@ -208,16 +208,31 @@ function handleSelectedRoute(route) {
 }
 
 onMounted(() => {
+  console.log('MapView mounted, initializing map');
   map.value = useMapInit(mapRef)
   window.leafletMap = map.value
+  console.log('Map initialized:', map.value);
 
   const markerFns = useMapMarkers(map)
   drawTransferMarker = markerFns.drawTransferMarker
 
-  mapRef.value.addEventListener('contextmenu', handleRightClick)
-  mapRef.value.addEventListener('touchstart', handleTouchStart)
-  mapRef.value.addEventListener('touchend', handleTouchEnd)
-  mapRef.value.addEventListener('click', hideContextMenu)
+  console.log('Adding event listeners to mapRef:', mapRef.value);
+  if (mapRef.value) {
+    mapRef.value.addEventListener('contextmenu', (e) => {
+      console.log('Context menu event triggered');
+      if (map.value) {
+        handleRightClick(e);
+      } else {
+        console.error('Map is not initialized for context menu');
+      }
+    });
+    mapRef.value.addEventListener('touchstart', handleTouchStart);
+    mapRef.value.addEventListener('touchend', handleTouchEnd);
+    mapRef.value.addEventListener('click', hideContextMenu);
+    console.log('Event listeners added successfully');
+  } else {
+    console.error('mapRef is not available');
+  }
 })
 
 onBeforeUnmount(() => {

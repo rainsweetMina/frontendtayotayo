@@ -1,47 +1,48 @@
 <template>
-  <div class="bus-stop-list">
+  <div class="px-5">
     <div
         v-for="stop in stops"
         :key="stop.bsId"
-        class="bus-stop-item"
+        class="p-[18px] border border-gray-200 mb-2.5 rounded-lg bg-white transition-colors cursor-pointer hover:bg-gray-50"
         @click="$emit('selectStop', stop)"
     >
       <!-- 이름 + 버튼 한 줄 정렬 -->
-      <div class="header-row">
-        <div class="left-info">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5 max-w-[calc(100%-110px)] overflow-hidden">
           <button
               @click.stop="toggleFavorite(stop)"
-              class="favorite-button"
+              class="bg-transparent border-none p-0 cursor-pointer flex items-center justify-center"
               :title="isFavorited(stop.bsId) ? '즐겨찾기 제거' : '즐겨찾기 추가'"
           >
-            <span class="favorite-icon" :class="{ active: isFavorited(stop.bsId) }">★</span>
+            <span class="text-[22px] leading-none align-middle transition-colors" 
+                  :class="isFavorited(stop.bsId) ? 'text-amber-400' : 'text-gray-300 hover:text-gray-400'">★</span>
           </button>
-          <strong class="stop-name" :title="stop.bsNm">{{ stop.bsNm }}</strong>
+          <strong class="text-[17px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis" :title="stop.bsNm">{{ stop.bsNm }}</strong>
         </div>
-        <div class="buttons">
-          <button @click.stop="$emit('selectAsStart', stop)" class="icon-button" title="출발지 선택">
-            <img :src="startIcon" alt="출발"/>
+        <div class="flex gap-2 flex-shrink-0">
+          <button @click.stop="$emit('selectAsStart', stop)" class="bg-transparent border-none p-0 cursor-pointer flex items-center justify-center" title="출발지 선택">
+            <img :src="startIcon" alt="출발" class="w-[26px] h-[26px]"/>
           </button>
-          <button @click.stop="$emit('selectAsEnd', stop)" class="icon-button" title="도착지 선택">
-            <img :src="arrivalIcon" alt="도착"/>
+          <button @click.stop="$emit('selectAsEnd', stop)" class="bg-transparent border-none p-0 cursor-pointer flex items-center justify-center" title="도착지 선택">
+            <img :src="arrivalIcon" alt="도착" class="w-[26px] h-[26px]"/>
           </button>
         </div>
       </div>
 
       <!-- 도착 정보 -->
-      <div v-if="openedStopId === stop.bsId" class="arrival-info">
-        <ul class="arrival-list">
+      <div v-if="openedStopId === stop.bsId" class="mt-3 pt-2.5 border-t border-dashed border-gray-300">
+        <ul class="list-none p-0 m-0">
           <li
               v-for="bus in arrivalDataMap[stop.bsId]"
               :key="bus.routeNo"
-              class="arrival-item"
+              class="flex justify-between py-1 border-b border-gray-100 text-[15px]"
           >
             <strong>{{ bus.routeNo }}</strong>
-            <span class="arrival-text">
+            <span class="text-gray-600">
               {{ bus.arrList?.[0]?.arrState || '도착 정보 없음' }}
             </span>
           </li>
-          <li v-if="arrivalDataMap[stop.bsId]?.length === 0" class="arrival-empty">
+          <li v-if="arrivalDataMap[stop.bsId]?.length === 0" class="text-sm text-gray-500 pt-1.5">
             도착 정보가 없습니다.
           </li>
         </ul>

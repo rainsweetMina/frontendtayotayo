@@ -1,16 +1,18 @@
 <template>
   <div class="bus-map-page">
-    <!-- ✅ 로고 + 검색창 맵 위에 띄우기 -->
-    <div class="floating-search top-0 start-1">
-      <router-link to="/" class="logo-link">
+    <!-- 로고 + 검색창 맵 위에 띄우기 (네비게이션 바가 열리지 않았을 때만 표시) -->
+    <div v-show="!store.sidebarOpen" 
+         class="fixed top-4 left-4 z-[9999] flex items-center flex-nowrap gap-2.5">
+      <router-link to="/" class="flex items-center">
         <Logo />
       </router-link>
-      <div class="search-box-wrapper">
+      <div class="flex-1 w-[300px] max-w-none">
         <SearchBox v-model="searchKeyword" @search="handleSearch" />
       </div>
     </div>
 
-    <div class="map-container" :class="{ 'shifted': store.sidebarOpen }">
+    <div class="flex-grow w-full transition-[margin-left] duration-300 ease-in-out" 
+         :class="{ 'ml-[200px]': store.sidebarOpen }">
       <MapView
           ref="mapRef"
           :onUpdateStart="coord => startCoordText = coord"
@@ -21,7 +23,7 @@
 </template>
 
 <script setup>
-import {ref, watch, onMounted} from 'vue'
+import {ref, watch, onMounted, onBeforeUnmount} from 'vue'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
 import {clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
@@ -29,7 +31,7 @@ import {useRoute} from 'vue-router'
 
 import MapView from '../components/MapView.vue'
 import SearchBox from '../../busSearch/components/SearchBox.vue'
-import Logo from "@/modules/adminpage/dashboard/components/Header/Logo.vue";
+import Logo from "@/modules/adminpage/dashboard/components/Header/Logo.vue"
 
 // 상태 및 스토어
 const store = useSearchStore()
@@ -52,7 +54,7 @@ function handleSearch({ keyword, newStart, newEnd }) {
 
   clearMapElements(window.leafletMap)
 
-  // ✅ 지도 클리어
+  // 지도 클리어
   mapRef.value?.clearMapElementsForSearch?.()
   mapRef.value?.clearStartMarker?.()
   mapRef.value?.clearManualStartMarkers?.()
@@ -64,7 +66,7 @@ function handleSearch({ keyword, newStart, newEnd }) {
   if (newStart) store.setStartCoord(newStart)
   if (newEnd) store.setEndCoord(newEnd)
 
-  // ✅ 검색 수행
+  // 검색 수행
   store.setKeyword(keyword)
   store.toggleSidebar(true)
 
@@ -125,7 +127,7 @@ watch(() => store.selectedRoute, (route) => {
   const newStart = { lat: startLat, lng: startLng }
   const newEnd = { lat: endLat, lng: endLng }
 
-  // ✅ 현재 값과 비교해서 다를 때만 세팅
+  // 현재 값과 비교해서 다를 때만 세팅
   if (
       !store.startCoord ||
       store.startCoord.lat !== newStart.lat ||
@@ -175,40 +177,6 @@ onMounted(() => {
 
 <style scoped>
 .bus-map-page {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-}
-
-.map-container {
-  flex-grow: 1;
-  width: 100%;
-  transition: margin-left 0.3s ease;
-}
-
-.map-container.shifted {
-  margin-left: 200px;
-}
-
-.floating-search {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;         /* ✅ 줄바꿈 방지 */
-  gap: 10px;                 /* ✅ 간격 부여 */
-}
-
-.logo-link {
-  margin-right: -20px;  /* ❗ 인접 요소와 붙이기 위함 */
-}
-
-.search-box-wrapper {
-  flex: 1;
-  width: 300px;
-  max-width: none;           /* ✅ 너비 제한 해제 */
+  @apply flex h-screen overflow-hidden relative;
 }
 </style>
