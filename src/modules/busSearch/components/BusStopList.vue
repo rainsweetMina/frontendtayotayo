@@ -94,7 +94,7 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: calc(100% - 150px); /* 버튼 영역 고려 - 더 넓게 조정 */
+  max-width: calc(100% - 110px); /* 버튼 영역 고려 */
   overflow: hidden;
 }
 
@@ -109,7 +109,7 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 
 .buttons {
   display: flex;
-  gap: 10px; /* 버튼 간격 늘림 */
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -117,7 +117,7 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 .icon-button {
   background: none;
   border: none;
-  padding: 4px; /* 패딩 추가 */
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -141,8 +141,8 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
 }
 
 .icon-button img {
-  width: 30px; /* 아이콘 크기 증가 */
-  height: 30px; /* 아이콘 크기 증가 */
+  width: 26px;
+  height: 26px;
 }
 
 .arrival-info {

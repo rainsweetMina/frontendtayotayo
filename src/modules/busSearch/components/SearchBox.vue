@@ -16,11 +16,7 @@
 
 <script setup>
 import { useSearchStore } from '@/stores/searchStore'
-import { onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-
 const store = useSearchStore()
-const route = useRoute()
 const emit = defineEmits(['search'])
 
 function onSearch() {
@@ -36,14 +32,6 @@ function onSearch() {
   store.commitSearch()
   store.toggleSidebar(true)
 }
-
-// URL 쿼리 파라미터에서 검색어를 가져와 검색창에 표시
-onMounted(() => {
-  const keyword = route.query.keyword
-  if (keyword) {
-    store.setKeyword(keyword)
-  }
-})
 </script>
 
 <style scoped>
