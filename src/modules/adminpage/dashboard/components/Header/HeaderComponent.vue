@@ -58,6 +58,7 @@ const lostMenu = [
 
 const noticeMenu = [
   {label: '공지사항', to: '/notice'},
+  {label: '저상버스 대체안내', to: '/lowfloorbus'},
   {label: 'Q&A', to: '/qna/list'}
 ]
 </script>

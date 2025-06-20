@@ -361,9 +361,9 @@ const searchCoordinatesByNominatim = async (address) => {
     // 한글 주소를 인코딩
     const encodedAddress = encodeURIComponent(address)
     
-    // Nominatim API 호출 (CORS 우회를 위해 프록시 사용)
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`)
-    const data = await response.json()
+    // 백엔드 프록시 API 사용
+    const { geocode } = await import('@/api/axiosInstance')
+    const data = await geocode(address)
     
     if (data && data.length > 0) {
       const lat = parseFloat(data[0].lat)
@@ -388,9 +388,9 @@ const searchCoordinatesByNominatim = async (address) => {
 // 역방향 지오코딩 (좌표 → 주소)
 const reverseGeocode = async (lat, lng) => {
   try {
-    // OpenStreetMap Nominatim API 호출
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
-    const data = await response.json()
+    // 백엔드 프록시 API 사용
+    const { reverseGeocode } = await import('@/api/axiosInstance')
+    const data = await reverseGeocode(lat, lng)
     
     if (data && data.display_name) {
       // 주소 정보 저장

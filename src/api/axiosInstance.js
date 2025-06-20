@@ -74,5 +74,67 @@ api.interceptors.response.use(
     }
 )
 
+// 역지오코딩 API 함수 추가 (좌표 → 주소)
+export const reverseGeocode = async (lat, lon) => {
+    try {
+        // 최대 2번까지 재시도
+        let retries = 2;
+        let lastError = null;
+        
+        while (retries >= 0) {
+            try {
+                const response = await api.get('/api/reverse-geocode', {
+                    params: { lat, lon },
+                    timeout: 3000 // 3초 타임아웃 설정
+                });
+                return response.data;
+            } catch (error) {
+                lastError = error;
+                console.warn(`역지오코딩 API 호출 실패 (남은 재시도: ${retries}):`, error);
+                retries--;
+                
+                // 서버 오류(5xx)인 경우에만 재시도
+                if (!error.response || error.response.status < 500) {
+                    break;
+                }
+                
+                // 재시도 전 잠시 대기
+                if (retries >= 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+        
+        // 모든 재시도 실패 시 오류 발생
+        throw lastError || new Error('역지오코딩 API 호출 실패');
+    } catch (error) {
+        console.error('역지오코딩 API 호출 실패:', error);
+        
+        // 간결한 메시지를 포함한 기본 응답 반환
+        return {
+            error: true,
+            display_name: '주소 정보 없음',
+            lat,
+            lon,
+            address: {
+                state: '주소 정보 없음',
+                city: ''
+            }
+        };
+    }
+};
+
+// 정방향 지오코딩 API 함수 추가 (주소 → 좌표)
+export const geocode = async (address) => {
+    try {
+        const response = await api.get('/api/geocode', {
+            params: { q: address, limit: 1 }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('정방향 지오코딩 API 호출 실패:', error);
+        throw error;
+    }
+};
 
 export default api
