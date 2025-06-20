@@ -11,45 +11,55 @@ export const getAllBusStops = async (keyword = '', page = 0, size = 10) => {
     
     console.log('API 호출 파라미터:', { keyword, page: validPage, size: validSize });
     
+    // 대량의 데이터를 요청하는 경우 서버에 부하가 가지 않도록 경고 로그 추가
+    if (validSize > 1000) {
+      console.warn(`대용량 데이터 요청: ${validSize}개의 정류장을 요청합니다. 서버 부하와 성능에 영향을 줄 수 있습니다.`);
+    }
+    
     const response = await api.get(`${BASE_URL}/api/bus/AllBusStop`, {
       params: { 
         keyword, 
         page: validPage, 
         size: validSize 
-      }
+      },
+      // 대량의 데이터를 요청하는 경우 타임아웃 시간 증가
+      timeout: validSize > 1000 ? 30000 : 10000
     })
     
-    // 응답 데이터 로깅
-    console.log('정류장 목록 원본 응답:', response.data)
+    // 응답 데이터 로깅 (대용량 데이터인 경우 일부만 로깅)
+    if (response.data && response.data.content) {
+      console.log(`정류장 목록 응답: 총 ${response.data.totalElements || response.data.content.length}개 정류장 중 ${response.data.content.length}개 로드됨`);
+      if (response.data.content.length > 0) {
+        console.log('정류장 목록 첫 번째 항목 원본:', response.data.content[0]);
+      }
+    } else {
+      console.log('정류장 목록 원본 응답:', response.data);
+    }
     
     // 데이터 형식 확인 및 가공
-    const result = response.data
+    const result = response.data;
     
     // 필요한 경우 데이터 구조 변환
     if (result.content && Array.isArray(result.content)) {
-      console.log('정류장 목록 첫 번째 항목 원본:', result.content[0])
+      // 대용량 데이터 처리 시 로깅 최소화
+      const shouldLogDetails = result.content.length <= 100;
       
+      if (shouldLogDetails && result.content.length > 0) {
+        console.log('정류장 목록 첫 번째 항목 원본:', result.content[0]);
+      }
+      
+      // 데이터 변환 최적화 (불필요한 로깅 제거)
       result.content = result.content.map(stop => {
-        // 원본 데이터 로깅 (대소문자 차이 확인)
-        console.log(`정류장 ID ${stop.bsId}의 좌표 정보:`, { 
-          xPos: stop.xPos, 
-          yPos: stop.yPos,
-          xpos: stop.xpos,
-          ypos: stop.ypos,
-          type_xPos: typeof stop.xPos,
-          type_yPos: typeof stop.yPos
-        })
-        
         // 좌표 정보가 문자열이면 숫자로 변환 시도
-        let xposValue = stop.xPos || stop.xpos // 대소문자 모두 확인
-        let yposValue = stop.yPos || stop.ypos // 대소문자 모두 확인
+        let xposValue = stop.xPos !== undefined ? stop.xPos : stop.xpos; // 대소문자 모두 확인
+        let yposValue = stop.yPos !== undefined ? stop.yPos : stop.ypos; // 대소문자 모두 확인
         
         if (typeof xposValue === 'string' && xposValue.trim() !== '') {
-          xposValue = parseFloat(xposValue)
+          xposValue = parseFloat(xposValue);
         }
         
         if (typeof yposValue === 'string' && yposValue.trim() !== '') {
-          yposValue = parseFloat(yposValue)
+          yposValue = parseFloat(yposValue);
         }
         
         return {
@@ -60,16 +70,18 @@ export const getAllBusStops = async (keyword = '', page = 0, size = 10) => {
           // 원본 필드도 유지
           xPos: xposValue !== undefined && xposValue !== null ? xposValue : '',
           yPos: yposValue !== undefined && yposValue !== null ? yposValue : ''
-        }
-      })
+        };
+      });
       
-      console.log('정류장 목록 첫 번째 항목 가공 후:', result.content[0])
+      if (shouldLogDetails && result.content.length > 0) {
+        console.log('정류장 목록 첫 번째 항목 가공 후:', result.content[0]);
+      }
     }
     
-    return result
+    return result;
   } catch (error) {
-    console.error('정류장 목록 조회 실패:', error)
-    throw error
+    console.error('정류장 목록 조회 실패:', error);
+    throw error;
   }
 }
 

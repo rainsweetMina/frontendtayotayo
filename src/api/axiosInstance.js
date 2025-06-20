@@ -60,5 +60,30 @@ api.interceptors.response.use(
     }
 )
 
+// 역지오코딩 API 함수 추가 (좌표 → 주소)
+export const reverseGeocode = async (lat, lon) => {
+    try {
+        const response = await api.get('/api/reverse-geocode', {
+            params: { lat, lon }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('역지오코딩 API 호출 실패:', error);
+        throw error;
+    }
+};
+
+// 정방향 지오코딩 API 함수 추가 (주소 → 좌표)
+export const geocode = async (address) => {
+    try {
+        const response = await api.get('/api/geocode', {
+            params: { q: address, limit: 1 }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('정방향 지오코딩 API 호출 실패:', error);
+        throw error;
+    }
+};
 
 export default api

@@ -377,25 +377,19 @@ const handleSearch = (searchData) => {
     }
   }
   
-  // 숫자로만 이루어져 있거나 숫자로 시작하는 경우 노선으로 간주
-  if (/^\d+/.test(keyword)) {
-    // 노선 검색
-    router.push({ 
-      path: '/bus/routes', 
-      query: { keyword } 
-    });
-  } else {
-    // 정류소 검색
-    router.push({ 
-      path: '/bus/stops', 
-      query: { keyword } 
-    });
-  }
+  // 버스 맵 페이지로 이동하면서 검색어 전달
+  router.push({ 
+    path: '/bus/map', 
+    query: { keyword } 
+  });
 };
 
 const useHistoryItem = (keyword) => {
   // 히스토리 아이템으로 검색
-  handleSearch({ keyword });
+  router.push({ 
+    path: '/bus/map', 
+    query: { keyword } 
+  });
 };
 
 const navigateTo = (route) => {

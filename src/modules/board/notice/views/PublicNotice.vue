@@ -33,7 +33,7 @@
       </div>
       
       <!-- HTML 콘텐츠 렌더링 -->
-      <div v-if="selectedNotice.content" v-html="selectedNotice.content" class="html-content prose max-w-none mb-8"></div>
+      <div v-if="selectedNotice.content" v-html="selectedNotice.content" class="html-content max-w-none mb-8"></div>
       <div v-else class="text-gray-500 italic mb-8">본문 내용이 없습니다.</div>
       
       <!-- 첨부파일 다운로드 섹션 -->
@@ -91,36 +91,52 @@
       </div>
     </div>
 
-    <!-- 공지사항 목록 -->
-    <div v-else-if="notices.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul class="divide-y divide-gray-200">
-        <li v-for="notice in notices" :key="notice.id">
-          <router-link
-            :to="'/notice/' + notice.id"
-            class="block hover:bg-gray-50"
-          >
-            <div class="px-4 py-4 sm:px-6">
-              <div class="flex items-center justify-between">
-                <div class="flex-1">
-                  <p class="text-lg font-medium text-gray-900 truncate">
-                    {{ notice.title }}
-                  </p>
-                  <div class="mt-2 flex items-center text-sm text-gray-500">
-                    <span>{{ formatDate(notice.createdAt) }}</span>
-                    <span class="mx-2">•</span>
-                    <span>조회 {{ notice.viewCount || 0 }}</span>
-                    <span v-if="notice.hasAttachment" class="ml-2">
-                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </router-link>
-        </li>
-      </ul>
+    <!-- 공지사항 목록 테이블 -->
+    <div v-else-if="notices.length > 0" class="bg-white shadow overflow-hidden rounded-lg">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+              번호
+            </th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              제목
+            </th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+              등록일
+            </th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+              조회수
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr v-for="(notice, index) in notices" :key="notice.id" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+              {{ notices.length - index }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+              <router-link
+                :to="'/notice/' + notice.id"
+                class="text-gray-900 hover:text-blue-600"
+              >
+                {{ notice.title }}
+                <span v-if="notice.hasAttachment" class="ml-2 inline-block">
+                  <svg class="h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </span>
+              </router-link>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+              {{ formatDate(notice.createdAt) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+              {{ notice.viewCount || 0 }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     
     <!-- 공지사항 없음 -->

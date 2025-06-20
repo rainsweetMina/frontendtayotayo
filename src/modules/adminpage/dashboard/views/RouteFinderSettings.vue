@@ -186,6 +186,48 @@
         </div>
       </div>
 
+      <!-- 백엔드 설정 (정류장 탐색 설정) -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">정류장 탐색 설정 (백엔드 동기화)</h2>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div>
+            <label for="startDistance" class="block text-sm font-medium text-gray-700">출발지 반경 (미터)</label>
+            <input
+              type="number"
+              id="startDistance"
+              v-model="settings.startDistance"
+              min="100"
+              max="2000"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="endDistance" class="block text-sm font-medium text-gray-700">도착지 반경 (미터)</label>
+            <input
+              type="number"
+              id="endDistance"
+              v-model="settings.endDistance"
+              min="100"
+              max="2000"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="timeFactor" class="block text-sm font-medium text-gray-700">정류장당 예상 시간 (분)</label>
+            <input
+              type="number"
+              id="timeFactor"
+              v-model="settings.timeFactor"
+              min="1"
+              max="10"
+              step="0.1"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <p class="mt-2 text-sm text-gray-500">* 기본값: 출발지 300미터, 도착지 300미터, 정류장당 예상 시간 2.5분</p>
+      </div>
+
       <!-- 저장 버튼 -->
       <div class="flex justify-end space-x-4">
         <button
@@ -230,15 +272,23 @@ const settings = ref({
     showAlternativeRoutes: true,
     showRealtime: true,
     maxAlternatives: 3
-  }
+  },
+  startDistance: 300,
+  endDistance: 300,
+  timeFactor: 2.5
 })
 
 // 설정 불러오기
 const loadSettings = async () => {
   try {
-    const response = await fetch('/api/admin/route-finder/settings')
+    const response = await fetch('/api/bus/path-settings')
     const data = await response.json()
-    settings.value = { ...settings.value, ...data }
+    
+    settings.value.startDistance = data.startDistance
+    settings.value.endDistance = data.endDistance
+    settings.value.timeFactor = data.timeFactor
+    
+    console.log('설정 로딩 성공:', data)
   } catch (error) {
     console.error('설정 로딩 실패:', error)
     alert('설정을 불러오는 중 오류가 발생했습니다.')
@@ -248,15 +298,22 @@ const loadSettings = async () => {
 // 설정 저장
 const saveSettings = async () => {
   try {
-    const response = await fetch('/api/admin/route-finder/settings', {
+    const backendData = {
+      startDistance: settings.value.startDistance,
+      endDistance: settings.value.endDistance,
+      timeFactor: settings.value.timeFactor
+    }
+    
+    const response = await fetch('/api/bus/path-settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(settings.value)
+      body: JSON.stringify(backendData)
     })
 
     if (response.ok) {
+      console.log('설정 저장 성공')
       alert('설정이 성공적으로 저장되었습니다.')
     } else {
       const error = await response.json()
@@ -292,7 +349,10 @@ const resetSettings = () => {
       showAlternativeRoutes: true,
       showRealtime: true,
       maxAlternatives: 3
-    }
+    },
+    startDistance: 300,
+    endDistance: 300,
+    timeFactor: 2.5
   }
 }
 
