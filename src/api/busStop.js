@@ -234,4 +234,17 @@ export const getStopsByRouteNo = async (routeNo) => {
     console.error('노선별 정류소 목록 조회 실패:', error)
     throw error
   }
+}
+
+// 지도 영역 내 정류장 조회
+export const getBusStopsInBounds = async (minX, minY, maxX, maxY) => {
+  try {
+    const response = await api.get(`${BASE_URL}/api/bus/user-busStopsInBounds`, {
+      params: { minX, minY, maxX, maxY }
+    })
+    return response.data
+  } catch (error) {
+    console.error('지도 영역 내 정류장 조회 실패:', error)
+    throw error
+  }
 } 

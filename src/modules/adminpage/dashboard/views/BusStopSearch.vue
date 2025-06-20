@@ -62,24 +62,12 @@
               @click="fetchBusStopDetail(stop.bsId)"
               :class="{ 'bg-blue-50': selectedStop?.bsId === stop.bsId }"
             >
-              <div class="flex justify-between">
+                            <div class="flex justify-between">
                 <div>
                   <p class="text-sm font-medium text-gray-900">{{ stop.bsNm }}</p>
                   <p class="text-sm text-gray-500">{{ stop.bsId }}</p>
                 </div>
               </div>
-              <p class="mt-1 text-sm text-gray-500">
-                <span v-if="stop.geocodedAddress || stop.city || stop.district || stop.neighborhood">
-                  {{ getStopAddress(stop) }}
-                </span>
-                <span v-else class="flex items-center">
-                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  주소 정보 로딩 중111...
-                </span>
-              </p>
             </li>
             <li v-if="busStops.length === 0" class="p-4 text-center text-gray-500">
               검색 결과가 없습니다
@@ -335,8 +323,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick, onBeforeUnmount, computed } from 'vue'
-import { searchBusStops as searchBusStopsApi, getAllBusStops, getBusStopDetail, deleteBusStop as deleteBusStopApi } from '@/api/busStop'
+import { ref, onMounted, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/api/axiosInstance'
+import { searchBusStops as searchBusStopsApi, getAllBusStops, getBusStopDetail, deleteBusStop as deleteBusStopApi, getBusStopsInBounds } from '@/api/busStop'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -423,6 +413,9 @@ const initMap = async () => {
       markerZoomAnimation: true
     })
     
+    // 지도 초기화 상태 설정 (처음에는 false로 설정하여 첫 마커 생성 시에만 범위 재설정)
+    map._mapInitialized = false;
+    
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -450,7 +443,8 @@ const initMap = async () => {
           const { latitude, longitude } = position.coords;
           console.log('현재 위치:', latitude, longitude);
           
-          // 지도 중심 변경
+          // 지도 중심 변경 (자동 이동임을 표시)
+          map._isAutomaticMove = true;
           map.setView([latitude, longitude], 15);
           
           // 현재 위치 마커 추가
@@ -502,134 +496,39 @@ const initMap = async () => {
 // 현재 위치 주변 정류장 검색
 const searchNearbyBusStops = async (latitude, longitude, radius) => {
   try {
-    console.log(`현재 위치(${latitude}, ${longitude}) 반경 ${radius}m 내 정류장 검색`);
+    console.log(`현재 위치(${latitude}, ${longitude}) 반경 ${radius}m 내 정류장 검색 (백엔드 API 사용)`);
     
     // 정류장 데이터 로딩 표시
     busStops.value = [];
     totalItems.value = 0;
     
-    // 전체 정류장 데이터 가져오기 (페이지 크기를 늘려서 더 많은 정류장 가져오기)
-    console.log('정류장 데이터 요청 중...');
-    const response = await getAllBusStops('', 0, 5000);
+    // 백엔드 API를 통해 반경 내 정류장 검색
+    const apiUrl = `/api/bus/nearbyBusStops?lat=${latitude}&lon=${longitude}&radius=${radius}`;
+    console.log('API 요청:', apiUrl);
     
-    if (!response || !response.content) {
+    const response = await api.get(apiUrl);
+    
+    if (!response || !response.data) {
       console.error('정류장 데이터를 가져오는데 실패했습니다:', response);
       alert('정류장 데이터를 가져오는데 실패했습니다.');
       return;
     }
     
-    const allStops = response.content || [];
+    const stopsFromApi = response.data || [];
     
-    console.log(`전체 정류장 ${allStops.length}개 중 반경 ${radius}m 내 정류장 필터링 중...`);
-    console.log('정류장 데이터 샘플:', allStops.slice(0, 2));
+    console.log(`백엔드에서 반환된 정류장: ${stopsFromApi.length}개`);
+    console.log('정류장 데이터 샘플:', stopsFromApi.slice(0, 2));
     
-    // 좌표 변환 및 거리 계산을 위한 정류장 데이터 전처리
-    const stopsWithCoords = allStops.map(stop => {
-    // 좌표 정보 확인 (대소문자 모두 확인)
-      let xpos = stop.xPos !== undefined ? stop.xPos : stop.xpos;
-      let ypos = stop.yPos !== undefined ? stop.yPos : stop.ypos;
-      
-      if (!ypos || !xpos) return { ...stop, validCoords: false };
-      
-      // 좌표가 문자열이면 숫자로 변환
-      const lat = typeof ypos === 'string' ? parseFloat(ypos) : ypos;
-      const lng = typeof xpos === 'string' ? parseFloat(xpos) : xpos;
-      
-      if (isNaN(lat) || isNaN(lng)) return { ...stop, validCoords: false };
-      
-      // 거리 계산 (Haversine 공식)
-      const distance = calculateDistance(latitude, longitude, lat, lng);
-      
-      return {
-        ...stop,
-        validCoords: true,
-        lat,
-        lng,
-        distance
-      };
-    });
-    
-    // 유효한 좌표를 가진 정류장만 필터링
-    const validStops = stopsWithCoords.filter(stop => stop.validCoords);
-    
-    console.log(`유효한 좌표를 가진 정류장: ${validStops.length}개`);
-    
-    // 반경 내 정류장 필터링
-    const nearbyStops = validStops.filter(stop => stop.distance <= radius);
-    
-    console.log(`반경 ${radius}m 내 정류장 ${nearbyStops.length}개 찾음`);
-    
-    // 디버깅을 위해 가장 가까운 정류장 5개 출력
-    const closestStops = [...validStops]
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 5);
-    
-    console.log('가장 가까운 정류장 5개:');
-    closestStops.forEach(stop => {
-      console.log(`- ${stop.bsNm || '이름 없음'} (ID: ${stop.bsId}): 거리 ${Math.round(stop.distance)}m, 좌표: [${stop.lat}, ${stop.lng}]`);
-    });
-    
-    if (nearbyStops.length === 0) {
-      console.warn('반경 내 정류장이 없습니다. 반경을 1km로 늘려서 다시 검색합니다.');
-      
-      // 반경을 늘려서 다시 검색
-      const extendedNearbyStops = validStops.filter(stop => stop.distance <= 1000);
-      
-      console.log(`확장된 반경 1km 내 정류장 ${extendedNearbyStops.length}개 찾음`);
-      
-      if (extendedNearbyStops.length > 0) {
-        // 결과 업데이트
-        busStops.value = extendedNearbyStops;
-        totalItems.value = extendedNearbyStops.length;
-        totalPages.value = Math.ceil(extendedNearbyStops.length / itemsPerPage) || 1;
-        currentPage.value = 1;
-        
-        // 반경 표시 원 업데이트 (1km)
-        if (map) {
-          // 기존 원 제거
-          map.eachLayer(layer => {
-            if (layer instanceof L.Circle) {
-              map.removeLayer(layer);
-            }
-          });
-          
-          // 새 원 추가
-          L.circle([latitude, longitude], {
-            radius: 1000,
-            color: '#2563eb',
-            fillColor: '#3b82f6',
-            fillOpacity: 0.1,
-            weight: 2,
-            opacity: 0.5
-          }).addTo(map);
-        }
-        
-        // 마커 생성
-        await createMarkers();
-        return;
-      } else {
-        console.warn('1km 반경 내에도 정류장이 없습니다. 가장 가까운 정류장 10개를 표시합니다.');
-        
-        // 가장 가까운 정류장 10개 선택
-        const closest10Stops = [...validStops]
-          .sort((a, b) => a.distance - b.distance)
-          .slice(0, 10);
-        
-        busStops.value = closest10Stops;
-        totalItems.value = closest10Stops.length;
-        totalPages.value = Math.ceil(closest10Stops.length / itemsPerPage) || 1;
-        currentPage.value = 1;
-        
-        // 마커 생성
-        await createMarkers();
-        return;
-      }
+    if (stopsFromApi.length === 0) {
+      console.warn('반경 내 정류장이 없습니다. 기본 검색을 수행합니다.');
+      handleSearch();
+      return;
     }
     
     // 결과 업데이트
-    busStops.value = nearbyStops;
-    totalItems.value = nearbyStops.length;
-    totalPages.value = Math.ceil(nearbyStops.length / itemsPerPage) || 1;
+    busStops.value = stopsFromApi;
+    totalItems.value = stopsFromApi.length;
+    totalPages.value = Math.ceil(stopsFromApi.length / itemsPerPage) || 1;
     currentPage.value = 1;
     
     // 반경 표시 원 추가
@@ -641,9 +540,13 @@ const searchNearbyBusStops = async (latitude, longitude, radius) => {
         }
       });
       
-      // 새 원 추가
+      // 새 원 추가 (백엔드에서 확장된 반경을 사용했을 수 있으므로 최대 반경 표시)
+      // 첫 번째 정류장의 거리를 확인하여 반경 결정
+      const maxDistance = Math.max(...stopsFromApi.map(stop => stop.distance || 0));
+      const displayRadius = Math.max(radius, maxDistance, 500); // 최소 500m, 최대 검색된 정류장 거리
+      
       L.circle([latitude, longitude], {
-        radius: radius,
+        radius: displayRadius,
         color: '#2563eb',
         fillColor: '#3b82f6',
         fillOpacity: 0.1,
@@ -652,7 +555,9 @@ const searchNearbyBusStops = async (latitude, longitude, radius) => {
       }).addTo(map);
     }
     
-    // 마커 생성
+    // 마커 생성 (처음 로드 시에는 지도 범위 재설정 허용)
+    // 현재 위치 기반 검색은 초기 로드로 간주
+    map._mapInitialized = false;
     await createMarkers();
     
   } catch (error) {
@@ -693,18 +598,22 @@ const getStopAddress = (stop) => {
   
   // 역지오코딩으로 가져온 주소가 있는 경우
   if (stop.geocodedAddress) {
+    // 좌표 형식의 주소는 표시하지 않음
+    if (stop.geocodedAddress.startsWith('좌표:') || stop.geocodedAddress.startsWith('위도:')) {
+      return '주소 정보 없음'
+    }
     return stop.geocodedAddress
   }
   
   // 좌표 정보 확인
-    let xpos = stop.xPos !== undefined ? stop.xPos : stop.xpos
-    let ypos = stop.yPos !== undefined ? stop.yPos : stop.ypos
+  let xpos = stop.xPos !== undefined ? stop.xPos : stop.xpos
+  let ypos = stop.yPos !== undefined ? stop.yPos : stop.ypos
     
   if (!ypos || !xpos) return '주소 정보 없음'
     
-    // 좌표가 문자열이면 숫자로 변환
-    const lat = typeof ypos === 'string' ? parseFloat(ypos) : ypos
-    const lng = typeof xpos === 'string' ? parseFloat(xpos) : xpos
+  // 좌표가 문자열이면 숫자로 변환
+  const lat = typeof ypos === 'string' ? parseFloat(ypos) : ypos
+  const lng = typeof xpos === 'string' ? parseFloat(xpos) : xpos
     
   if (isNaN(lat) || isNaN(lng)) return '주소 정보 없음'
   
@@ -713,25 +622,36 @@ const getStopAddress = (stop) => {
   
   // 캐시에 있으면 캐시된 값 반환
   if (addressCache.value[cacheKey]) {
+    // 좌표 형식의 주소는 표시하지 않음
+    if (addressCache.value[cacheKey].startsWith('좌표:') || addressCache.value[cacheKey].startsWith('위도:')) {
+      return '주소 정보 없음'
+    }
     return addressCache.value[cacheKey]
   }
   
-  // 선택된 정류장인 경우 주소 즉시 로드 시도
-  if (selectedStop.value && selectedStop.value.bsId === stop.bsId) {
+  // 이미 로드 시도 중인지 확인하기 위한 플래그
+  if (!stop.addressLoading) {
+    // 로딩 중 플래그 설정
+    stop.addressLoading = true;
+    
+    // 주소 정보가 없는 모든 정류장에 대해 주소 로드 시도
     getAddressFromCoordinates(lat, lng).then(address => {
       if (address) {
-        stop.geocodedAddress = address;
-        // 선택된 정류장 객체에도 주소 정보 적용
-        if (selectedStop.value && selectedStop.value.bsId === stop.bsId) {
-          selectedStop.value.geocodedAddress = address;
-        }
+        // 플래그 해제
+        stop.addressLoading = false;
+        Object.assign(stop, { geocodedAddress: address });
       }
     }).catch(error => {
+      // 플래그 해제
+      stop.addressLoading = false;
       console.warn('주소 로드 실패:', error);
+      // 오류 시 주소 정보 없음으로 표시
+      Object.assign(stop, { geocodedAddress: '주소 정보 없음' });
     });
   }
   
-  return '주소 정보 로딩 중...'
+  // 로딩 중인 경우 간결한 메시지 표시
+  return '주소 정보 로딩 중';
 }
 
 // 좌표로 주소 가져오기 (캐싱 적용)
@@ -747,7 +667,17 @@ const getAddressFromCoordinates = async (lat, lng) => {
   }
   
   try {
-    const result = await geocoder.reverseGeocode(lat, lng);
+    // API 호출 시간 제한 설정 (3초)
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('역지오코딩 API 타임아웃')), 3000)
+    );
+    
+    // API 호출과 타임아웃 중 먼저 완료되는 것 처리
+    const result = await Promise.race([
+      geocoder.reverseGeocode(lat, lng),
+      timeoutPromise
+    ]);
+    
     if (result && result.display_name) {
       // 주소 형식 변환 (대한민국, 우편번호 제거 및 한국 표기 방식으로 변경)
       let address = result.display_name;
@@ -788,6 +718,14 @@ const getAddressFromCoordinates = async (lat, lng) => {
     }
   } catch (error) {
     console.error('주소 변환 오류:', error);
+    
+    // 오류 발생 시 기본 메시지 사용
+    const fallbackAddress = '주소 정보 없음';
+    
+    // 오류 발생 시에도 캐시에 저장 (반복적인 API 호출 방지)
+    addressCache.value[cacheKey] = fallbackAddress;
+    
+    return fallbackAddress;
   }
   
   return null;
@@ -869,13 +807,18 @@ const handleKeywordSearch = async () => {
           
           // 캐시된 주소가 있으면 적용
           if (addressCache.value[cacheKey]) {
-            stop.geocodedAddress = addressCache.value[cacheKey]
+            Object.assign(stop, { geocodedAddress: addressCache.value[cacheKey] })
           }
         }
       }
     })
     
     busStops.value = result
+    
+    // 검색 결과가 업데이트되면 바로 주소 정보 로드 시도
+    nextTick(() => {
+      loadAddressesForVisibleStops();
+    });
     totalItems.value = totalCount
     totalPages.value = Math.ceil(busStops.value.length / itemsPerPage) || 1 // 실제 불러온 데이터 기준으로 페이지 계산
     currentPage.value = 1
@@ -926,7 +869,7 @@ const handleSearch = async () => {
             
             // 캐시된 주소가 있으면 적용
             if (addressCache.value[cacheKey]) {
-              stop.geocodedAddress = addressCache.value[cacheKey]
+              Object.assign(stop, { geocodedAddress: addressCache.value[cacheKey] })
             }
           }
         }
@@ -939,6 +882,8 @@ const handleSearch = async () => {
       currentPage.value = 1
       
       if (map) {
+        // 검색 버튼으로 검색 시에는 처음 로드로 간주하여 지도 범위 재설정 허용
+        map._mapInitialized = false;
         await createMarkers()
       }
       
@@ -1003,7 +948,7 @@ const fetchBusStopDetail = async (bsId) => {
                 // 주소 정보를 검색 결과 목록의 해당 정류장에도 적용
                 const stopInList = busStops.value.find(stop => stop.bsId === data.bsId);
                 if (stopInList) {
-                  stopInList.geocodedAddress = address;
+                  Object.assign(stopInList, { geocodedAddress: address });
                 }
                 
                 // 마커 팝업 내용도 업데이트
@@ -1053,7 +998,8 @@ const fetchBusStopDetail = async (bsId) => {
         return
       }
       
-      // 지도 이동
+      // 지도 이동 (자동 이동임을 표시)
+      map._isAutomaticMove = true;
       map.setView([lat, lng], 16)
       
       // 선택한 정류장의 마커 찾기
@@ -1268,19 +1214,28 @@ const createMarkers = async () => {
     }
   }
 
-  // 지도 범위 재설정
-  if (validStops.length > 0) {
+  // 지도 범위 재설정 - 초기 로드 시에만 적용 (지도 이동 시에는 적용하지 않음)
+  if (validStops.length > 0 && !map._mapInitialized) {
     try {
       const bounds = L.latLngBounds(validStops.map(coord => [coord.lat, coord.lng]))
+      // 자동 이동임을 표시
+      map._isAutomaticMove = true;
       map.fitBounds(bounds.pad(0.1))
+      // 지도 초기화 완료 표시
+      map._mapInitialized = true;
     } catch (error) {
       console.error('지도 범위 설정 오류:', error)
+      map._isAutomaticMove = true;
       map.setView(defaultCenter, 12)
+      map._mapInitialized = true;
     }
-  } else {
+  } else if (!map._mapInitialized) {
     console.warn('표시할 마커가 없습니다.')
+    map._isAutomaticMove = true;
     map.setView(defaultCenter, 12)
+    map._mapInitialized = true;
   }
+  // 이미 초기화된 지도는 범위를 재설정하지 않음
   
   // 현재 화면에 표시되는 정류장의 주소 정보 로드
   loadAddressesForVisibleStops();
@@ -1309,14 +1264,22 @@ const loadAddressesForVisibleStops = async () => {
       
       if (cachedAddress) {
         // 캐시된 주소가 있으면 바로 적용
-        stop.geocodedAddress = cachedAddress;
+        Object.assign(stop, { geocodedAddress: cachedAddress });
         continue; // 캐시에서 가져왔으므로 API 호출 불필요
       }
+      
+      // 이미 로드 시도 중인지 확인
+      if (stop.addressLoading) continue;
+      
+      // 로드 중 플래그 설정
+      stop.addressLoading = true;
       
       try {
         const address = await getAddressFromCoordinates(lat, lng);
         if (address) {
-          stop.geocodedAddress = address;
+          // 플래그 해제
+          stop.addressLoading = false;
+          Object.assign(stop, { geocodedAddress: address });
           console.log(`정류장 ${stop.bsId} 역지오코딩 주소:`, address);
           
           // 마커 팝업 내용도 업데이트
@@ -1333,10 +1296,32 @@ const loadAddressesForVisibleStops = async () => {
                 <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">${address}</p>
               </div>
             `);
-  }
+          }
         }
       } catch (geoError) {
+        // 플래그 해제
+        stop.addressLoading = false;
         console.warn('역지오코딩 실패:', geoError);
+        
+                 // 오류 시 주소 정보 없음으로 표시
+         const fallbackAddress = '주소 정보 없음';
+         Object.assign(stop, { geocodedAddress: fallbackAddress });
+        
+        // 마커 팝업 내용도 업데이트
+        const marker = markers.value.find(m => {
+          const pos = m.getLatLng()
+          return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001
+        });
+        
+        if (marker && marker.getPopup()) {
+          marker.getPopup().setContent(`
+            <div class="popup-content">
+              <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #2563eb;">${stop.bsNm}</h3>
+              <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">ID: ${stop.bsId}</p>
+              <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">주소 정보 없음</p>
+            </div>
+          `);
+        }
       }
     }
   }
@@ -1370,6 +1355,61 @@ onBeforeUnmount(() => {
   }
 })
 
+// 지도 영역 내 정류장 불러오기
+const loadBusStopsInView = async () => {
+  if (!map) return;
+  
+  // 현재 줌 레벨 확인 - 너무 작은 줌 레벨에서는 정류장을 불러오지 않음
+  const currentZoom = map.getZoom();
+  if (currentZoom < 14) {
+    console.log(`줌 레벨(${currentZoom})이 너무 작아 정류장을 불러오지 않습니다. (최소 14 이상)`);
+    return;
+  }
+  
+  // 현재 지도 화면의 좌표 범위 구하기
+  const bounds = map.getBounds();
+  const sw = bounds.getSouthWest();
+  const ne = bounds.getNorthEast();
+  
+  // 영역이 너무 넓은 경우 검색하지 않음 (무한 루프 방지)
+  const latDiff = Math.abs(ne.lat - sw.lat);
+  const lngDiff = Math.abs(ne.lng - sw.lng);
+  
+  if (latDiff > 0.1 || lngDiff > 0.1) {
+    console.log('검색 영역이 너무 넓습니다. 더 확대해주세요.');
+    return;
+  }
+  
+  try {
+    console.log(`지도 영역 내 정류장 검색: (${sw.lng}, ${sw.lat}) ~ (${ne.lng}, ${ne.lat})`);
+    
+    // API 호출해서 정류장 데이터 받아오기
+    const stopsFromApi = await getBusStopsInBounds(sw.lng, sw.lat, ne.lng, ne.lat);
+    console.log(`지도 영역 내 정류장: ${stopsFromApi.length}개`);
+    
+    // 결과가 너무 많은 경우 처리하지 않음 (무한 루프 방지)
+    if (stopsFromApi.length > 300) {
+      console.log(`정류장이 너무 많습니다(${stopsFromApi.length}개). 더 확대해주세요.`);
+      return;
+    }
+    
+    // 결과 업데이트
+    busStops.value = stopsFromApi;
+    totalItems.value = stopsFromApi.length;
+    totalPages.value = Math.ceil(stopsFromApi.length / itemsPerPage) || 1;
+    currentPage.value = 1;
+    
+    // 마커 생성 - 지도 범위 재설정 없이 마커만 생성
+    map._isAutomaticMove = true;
+    // 지도 이동 시에는 초기화된 상태로 설정하여 범위 재설정 방지
+    map._mapInitialized = true;
+    await createMarkers();
+    
+  } catch (error) {
+    console.error('지도 영역 내 정류장 검색 실패:', error);
+  }
+};
+
 // 컴포넌트 마운트 시 초기화
 onMounted(async () => {
   await initMap()
@@ -1393,6 +1433,12 @@ onMounted(async () => {
 
     map.on('moveend', () => {
       console.log('지도 이동 완료')
+      // 사용자가 직접 지도를 이동한 경우에만 정류장 로드
+      if (!map._isAutomaticMove) {
+        loadBusStopsInView();
+      }
+      // 자동 이동 플래그 초기화
+      map._isAutomaticMove = false;
     })
 
     // 지도 로드 완료 후 마커 재배치
