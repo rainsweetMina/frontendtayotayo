@@ -6,6 +6,20 @@ const api = axios.create({
     withCredentials: true // ✅ 세션 인증 유지에 필요
 })
 
+// ✅ Request 인터셉터: accessToken을 자동으로 헤더에 추가
+api.interceptors.request.use(
+    config => {
+        const accessToken = localStorage.getItem('accessToken')
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`
+        }
+        return config
+    },
+    error => {
+        return Promise.reject(error)
+    }
+)
+
 // 여기에 인터셉터 명시적으로 붙이기 -> (/bus/map에 필요)
 api.interceptors.response.use(
     response => {
@@ -19,7 +33,7 @@ api.interceptors.response.use(
         const isAdmin = path.startsWith('/admin')
         const isPublic = path.startsWith('/bus/map') || path.startsWith('/bus/search')
         const isLoginRequest =
-            url?.includes('/auth/login') || url?.includes('auth/login') || url?.endsWith('/auth/login')
+            url?.includes('/login') || url?.startsWith('/login')
 
         // ✅ 여기에 예외 URL 리스트 정의
         const EXCLUDE_REDIRECT_URLS = [

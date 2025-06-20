@@ -7,10 +7,16 @@ axios.defaults.withCredentials = true;
 // 요청 인터셉터
 axios.interceptors.request.use(
     config => {
-        // 여기에 토큰 등을 추가할 수 있습니다
-        // console.log('요청 URL:', config.url);
-        // console.log('요청 메소드:', config.method);
-        return config;
+      // localStorage에서 accessToken 가져와서 Authorization 헤더에 추가
+      const accessToken = localStorage.getItem('accessToken')
+      if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
+        config.headers.Authorization = `Bearer ${accessToken}`
+      }
+
+      // 여기에 토큰 등을 추가할 수 있습니다
+      // console.log('요청 URL:', config.url);
+      // console.log('요청 메소드:', config.method);
+      return config;
     },
     error => {
         console.error('요청 인터셉터 오류:', error);
@@ -29,7 +35,7 @@ axios.interceptors.response.use(
         if (isApiRequest && isHtml && isLoginPage) {
             const url = response.config?.url;
             const path = window.location.pathname;
-            const isLoginRequest = url?.includes('/auth/login');
+            const isLoginRequest = url?.includes('/login');
             const isAdminPage = path.startsWith('/admin');
             const isPublicPage = path.startsWith('/bus/map') || path.startsWith('/bus/search');
 
@@ -76,9 +82,44 @@ axios.interceptors.response.use(
         if (status === 401) {
             console.log('🔐 401 Unauthorized');
 
-            if (window.location.pathname.includes('/admin')) {
-                return Promise.reject(new Error('Authentication required'));
+        // refreshToken을 사용하여 새로운 accessToken 요청
+        const refreshToken = localStorage.getItem('refreshToken')
+        if (refreshToken && refreshToken !== 'undefined' && refreshToken !== 'null') {
+          console.log('🔄 RefreshToken을 사용하여 새로운 AccessToken 요청 중...')
+
+          return axios.post('/auth/refresh', {
+            refreshToken: refreshToken
+          }, {
+            headers: {
+              'Content-Type': 'application/json'
             }
+          }).then(response => {
+            const newAccessToken = response.data.accessToken
+            if (newAccessToken) {
+              localStorage.setItem('accessToken', newAccessToken)
+              console.log('✅ 새로운 AccessToken이 저장되었습니다.')
+
+              // 원래 요청을 새로운 토큰으로 재시도
+              config.headers.Authorization = `Bearer ${newAccessToken}`
+              return axios(config)
+            }
+          }).catch(refreshError => {
+            console.error('❌ Token 갱신 실패:', refreshError)
+            // refreshToken도 만료된 경우 localStorage에서 토큰들 제거
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+
+            if (window.location.pathname.includes('/admin')) {
+              return Promise.reject(new Error('Authentication required'))
+            }
+
+            window.location.href = '/login'
+          })
+        }
+
+        if (window.location.pathname.includes('/admin')) {
+          return Promise.reject(new Error('Authentication required'));
+        }
 
             // window.location.href = '/login';
         } else if (status === 403) {

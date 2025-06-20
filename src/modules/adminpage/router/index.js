@@ -2,9 +2,6 @@ import AdminLayout from '@/layouts/AdminLayout.vue'
 import AdminDashboard from '@/modules/adminpage/dashboard/views/AdminDashboard.vue'
 import AdminNotice from '@/modules/adminpage/dashboard/views/notice/Notice.vue'
 import AdminQna from '@/modules/adminpage/dashboard/views/Qna.vue'
-import AdminAdvertisement from '@/modules/adminpage/dashboard/views/Advertisement.vue'
-import AdminReportedLostItems from '@/modules/adminpage/dashboard/views/ReportedLostItems.vue'
-import AdminRegisteredLostItems from '@/modules/adminpage/dashboard/views/RegisteredLostItems.vue'
 import AdminOperationTime from '@/modules/adminpage/dashboard/views/OperationTime.vue'
 import AdminSystemLogs from '@/modules/adminpage/dashboard/views/SystemLogs.vue'
 import AdminRouteFinderSettings from '@/modules/adminpage/dashboard/views/RouteFinderSettings.vue'
@@ -30,6 +27,9 @@ import LostAdminList from "@/modules/lostFound/views/admin/LostAdminList.vue";
 import LowFloorBusManagement from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusManagement.vue'
 import LowFloorBusDetail from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusDetail.vue'
 import LowFloorBusWrite from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusWrite.vue'
+import AdminAdList from '@/modules/ad/views/ad/adList.vue'
+import AdminAdCreate from '@/modules/ad/views/ad/adCreate.vue'
+
 
 export const adminRoutes = {
   path: "/admin",
@@ -95,19 +95,14 @@ export const adminRoutes = {
       component: AdminQna
     },
     {
-      path: "advertisement",
-      name: "AdminAdvertisement",
-      component: AdminAdvertisement
+      path: "ad",
+      name: "AdminAdList",
+      component: AdminAdList
     },
     {
-      path: "reported-lost-items",
-      name: "AdminReportedLostItems",
-      component: AdminReportedLostItems
-    },
-    {
-      path: "registered-lost-items",
-      name: "AdminRegisteredLostItems",
-      component: AdminRegisteredLostItems
+      path: "ad/create",
+      name: "AdminAdCreate",
+      component: AdminAdCreate
     },
     {
       path: "operation-time",

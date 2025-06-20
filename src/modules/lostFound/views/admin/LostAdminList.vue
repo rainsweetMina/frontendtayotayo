@@ -1,12 +1,19 @@
 <template>
   <div>
     <h2 class="text-2xl font-bold mb-6">관리자용 분실물 목록</h2>
+    <!-- ✅ 검색창 -->
+    <SearchBar
+        placeholder="제목, 버스번호, 버스회사, 신고자 검색"
+        @search="handleSearch"
+        @reset="fetchLostItems"
+    />
+
     <div class="bg-white shadow rounded-lg">
       <table class="min-w-full divide-y divide-gray-200">
         <thead>
         <tr>
           <th>ID</th>
-          <th>제목</th>
+          <th>물품명</th>
           <th>버스 번호</th>
           <th>버스 회사</th>
           <th>신고자</th>
@@ -49,6 +56,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getLostItemsForAdmin, hideLostItem, deleteLostItem } from '@/modules/lostFound/api/lostAdmin'
+import SearchBar from "@/modules/lostFound/components/SearchBar.vue";
 
 const lostItems = ref([])
 const router = useRouter()
@@ -57,6 +65,17 @@ const fetchLostItems = async () => {
   const { data } = await getLostItemsForAdmin()
   console.log(data); // <-- 실제 key 이름이 뭔지 찍어보기!
   lostItems.value = data
+}
+
+// ✅ 검색 함수 (검색어 없으면 전체목록)
+const handleSearch = async (keyword) => {
+  if (!keyword) {
+    fetchLostItems();
+    return;
+  }
+  // 검색 API (params로 넘기기)
+  const res = await getLostItemsForAdmin({ keyword });
+  lostItems.value = Array.isArray(res) ? res : res.data;
 }
 
 const goDetail = (id) => {

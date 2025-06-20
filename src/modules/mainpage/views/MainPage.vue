@@ -122,13 +122,17 @@
       <h2 class="section-title">알림존</h2>
       <div class="album-container">
         <!-- 첫 번째 배너 -->
-        <div class="album-banner">
-          <img src="/src/assets/banners/city-bus-banner.jpg" alt="현금 없는 시내버스">
+        <div
+            v-if="banners.length > 0"
+            class="album-banner"
+            @click="goToAdLink(banners[0].linkUrl)"
+            style="cursor:pointer;"
+        >
+          <img :src="`${IMAGE_BASE_URL}/ad/${banners[0].imageUrl}`" :alt="banners[0].title" />
           <div class="banner-content">
-            <h3>2025년 4월 1일</h3>
-            <h2>현금 없는 시내버스</h2>
-            <p>전 노선 전면 시행</p>
-            <p class="banner-note">"당신이 카드만 있다면 승차바로 도와줄게요"</p>
+            <h3>{{ formatDate(banners[0].startDate) }} ~ {{ formatDate(banners[0].endDate) }}</h3>
+            <h2>{{ banners[0].title }}</h2>
+            <p>{{ banners[0].description }}</p>
           </div>
         </div>
         <!-- 두 번째 배너 -->
@@ -201,6 +205,8 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
+const banners = ref([])
 
 const router = useRouter();
 
@@ -439,10 +445,25 @@ const downloadFile = (fileType) => {
   }
 };
 
+const fetchBanners = async () => {
+  try {
+    // 진행중 광고만(공개용 API가 있다면 /api/ad/active, 없다면 /api/ad)
+    const response = await axios.get('https://localhost:8081/api/ad/active')
+    banners.value = response.data
+  } catch (e) {
+    banners.value = []
+  }
+}
+const goToAdLink = (url) => {
+  if (url) window.open(url, '_blank')
+}
+
+
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
   fetchNotices();
   fetchLowFloorBuses();
+  fetchBanners();
 });
 </script>
 

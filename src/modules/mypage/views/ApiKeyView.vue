@@ -56,18 +56,21 @@
 <script setup>
 import api from '@/api/axiosInstance'
 import { ref, onMounted, watch, computed } from 'vue'
-
+import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
-const { user, isLoggedIn, isLoading } = useUserInfo()
+const router = useRouter()
+const { user, isLoggedIn, isLoading, fetchUserInfo } = useUserInfo()
+
 const apiKey = ref(null)
 const isVisible = ref(false)
 const copied = ref(false)
+const userReady = ref(false) // ✅ 사용자 정보 로딩 여부
 
 const fetchApiKey = async () => {
   try {
     const res = await api.get('/api/user/apikey/getApiKey', {
-      withCredentials: true  // ✅ 쿠키 인증 기반
+      withCredentials: true
     })
     apiKey.value = res.data
   } catch (e) {
@@ -77,7 +80,7 @@ const fetchApiKey = async () => {
 }
 
 const requestApiKey = async () => {
-  if (!user.value?.userId || !user.value?.name) {
+  if (!user.value?.userId || !user.value?.username) {
     alert('사용자 정보가 없습니다.')
     return
   }
@@ -85,7 +88,7 @@ const requestApiKey = async () => {
   try {
     const requestBody = {
       userId: user.value.userId,
-      user_name: user.value.name,
+      user_name: user.value.username,
       allowedIp: '',
       callbackUrls: []
     }
@@ -99,7 +102,7 @@ const requestApiKey = async () => {
 
 const reissueApiKey = async () => {
   try {
-    await api.post(`/api/user/apikey/reissue`)  // userId는 서버가 인증 정보로 처리
+    await api.post('/api/user/apikey/reissue')
     alert('API 키가 재발급되었습니다.')
     await fetchApiKey()
   } catch (e) {
@@ -149,8 +152,15 @@ watch(isLoggedIn, (loggedIn) => {
   if (loggedIn) fetchApiKey()
 })
 
-onMounted(() => {
-  if (isLoggedIn.value) fetchApiKey()
+onMounted(async () => {
+  const success = await fetchUserInfo(true)
+  if (!success) {
+    router.push('/login')
+    return
+  }
+
+  userReady.value = true
+  await fetchApiKey()
 })
 </script>
 

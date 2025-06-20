@@ -40,15 +40,16 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted, watch } from 'vue'
 import api from '@/api/axiosInstance'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const { resetUserInfo, fetchUserInfo } = useUserInfo()
 
 const userId = ref('admin')
 const password = ref('!1aaaaaa')
@@ -56,61 +57,58 @@ const rememberId = ref(false)
 const error = ref('')
 
 onMounted(() => {
-
   const savedId = localStorage.getItem('savedUserId')
-
   if (savedId && savedId !== 'null' && savedId !== 'undefined') {
     userId.value = savedId
     rememberId.value = true
   } else {
-    userId.value = 'user' // 기본값 설정
+    userId.value = 'user'
   }
 })
 
 watch(rememberId, (checked) => {
-  if (!checked) localStorage.removeItem('savedUserId')
+  if (!checked) {
+    localStorage.removeItem('savedUserId')
+  }
 })
 
 const handleLogin = async () => {
-  error.value = '' // 이전 에러 초기화
+  error.value = ''
 
   try {
+    // ✅ 기존 로그인 정보 완전 초기화 (Pinia + 캐시 + localStorage)
+    auth.logout(true)
+    resetUserInfo()
+
     const formData = new URLSearchParams()
     formData.append('username', userId.value)
     formData.append('password', password.value)
 
-    await api.post('/auth/login', formData, {
+    const response = await api.post('/auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       withCredentials: true
     })
 
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    const userInfo = await api.get('/api/user/info', { withCredentials: true })
-    const { id, userId: fetchedUserId, name, email, role = 'USER' } = userInfo.data
-
-    auth.login({
-      id,
-      role,
-      username: name,
-      userId: fetchedUserId,
-      email
-    })
-
-    if (rememberId.value) {
-      localStorage.setItem('savedUserId', fetchedUserId)
+    // ✅ 백엔드에서 JSON 형태로 accessToken을 전송받을 때 처리
+    if (response.data && response.data.accessToken) {
+      // auth store를 통해 accessToken 관리
+      auth.setAccessToken(response.data.accessToken)
     }
 
-    // ✅ redirect 쿼리 파라미터 우선 사용
-    const redirectPath = route.query.redirect || (role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
+    // ✅ 로그인 후 사용자 정보 강제 재요청
+    const success = await fetchUserInfo(true)
+    if (!success) {
+      error.value = '사용자 정보를 불러오지 못했습니다.'
+      return
+    }
+
+    const redirectPath =
+        route.query.redirect || (auth.role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
     router.push(redirectPath)
 
   } catch (err) {
     console.error('❌ 로그인 실패:', err)
-    console.error('에러 응답 전체:', err.response);
-    console.log('에러 메시지 상태:', error.value);
-
-    if (err.response && err.response.data && err.response.data.message) {
+    if (err.response?.data?.message) {
       error.value = err.response.data.message
     } else {
       error.value = '아이디 또는 비밀번호가 잘못되었습니다.'
@@ -130,6 +128,7 @@ const loginWithKakao = () => {
   window.location.href = 'https://localhost:8081/oauth2/authorization/kakao'
 }
 </script>
+
 
 <style scoped>
 .login-wrapper {

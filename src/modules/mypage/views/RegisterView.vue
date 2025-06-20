@@ -10,8 +10,8 @@
             <input type="text" v-model="form.userId" required />
             <button type="button" class="btn-id-check" @click="checkDuplicateId">중복 확인</button>
           </div>
-          <p class="error" v-if="idDuplicate === true">이미 사용 중인 아이디입니다</p>
-          <p class="success" v-if="idDuplicate === false">사용 가능한 아이디입니다</p>
+          <p class="error" v-if="idChecked && idDuplicate === true">이미 사용 중인 아이디입니다</p>
+          <p class="success" v-if="idChecked && idDuplicate === false">사용 가능한 아이디입니다</p>
         </div>
 
         <div class="form-group">
@@ -54,7 +54,9 @@
         <div class="form-group" v-if="codeSent">
           <label>인증 코드 입력</label>
           <input v-model="form.verificationCode" placeholder="인증 코드 입력" />
+          <button type="button" class="btn-small" @click="verifyCode">인증 확인</button>
           <p class="info">남은 시간: {{ remainingTime }}초</p>
+          <p class="success" v-if="form.emailVerified">✅ 인증 완료</p>
         </div>
 
         <button type="submit" :disabled="!canSubmit" class="submit-btn">가입하기</button>
@@ -68,19 +70,21 @@
 import api from '@/api/axiosInstance'
 import { ref, computed } from 'vue'
 
-
 const form = ref({
   userId: '',
   password: '',
-  verificationCode: '',
+  passwordCheck: '',
   username: '',
   email: '',
+  verificationCode: '',
+  emailVerified: false,
 })
 
 const passwordCheck = ref('')
 const passwordValid = ref(false)
 const passwordsMatch = ref(true)
 const idDuplicate = ref(null)
+const idChecked = ref(false)
 
 const emailLocal = ref('')
 const emailDomain = ref('')
@@ -101,35 +105,63 @@ const checkPasswordMatch = () => {
 }
 
 const checkDuplicateId = async () => {
+  idChecked.value = false
   try {
     const res = await api.get(`/api/user/check-id?userId=${form.value.userId}`)
-    idDuplicate.value = res.data.duplicate // true: 중복, false: 사용 가능
-  } catch (err) {
+    idDuplicate.value = res.data.duplicate
+  } catch {
     idDuplicate.value = true
+  } finally {
+    idChecked.value = true
   }
 }
 
 const handleEmailSelect = () => {
-  if (emailDomainSelected.value !== '직접입력') {
-    emailDomain.value = emailDomainSelected.value
-  } else {
-    emailDomain.value = ''
-  }
+  emailDomain.value = emailDomainSelected.value !== '직접입력' ? emailDomainSelected.value : ''
 }
 
 const sendVerificationCode = async () => {
-  form.value.email = `${emailLocal.value}@${emailDomain.value}`
+  form.value.email = `${emailLocal.value}@${emailDomain.value}`.trim().toLowerCase()
   try {
-    await api.post('/api/email/send', { email: form.value.email })
+    await api.post('/api/user/email/send', null, {
+      params: { email: form.value.email }
+    })
     codeSent.value = true
+    form.value.emailVerified = false
     startTimer()
   } catch (err) {
-    error.value = '이메일 전송 실패'
+    error.value = '이메일 전송에 실패했습니다.'
+  }
+}
+
+const verifyCode = async () => {
+  if (form.value.emailVerified) {
+    alert('✅ 이미 이메일 인증이 완료되었습니다.')
+    return
+  }
+
+  try {
+    const res = await api.post('/api/user/email/verify', {
+      email: form.value.email,
+      code: form.value.verificationCode
+    })
+
+    if (res.data.success) {
+      form.value.emailVerified = true
+      alert('✅ 이메일 인증이 완료되었습니다.')
+    } else {
+      form.value.emailVerified = false
+      alert('❌ 인증 코드가 올바르지 않습니다.')
+    }
+  } catch (err) {
+    form.value.emailVerified = false
+    alert('❌ 인증 실패: ' + (err.response?.data?.message || '오류가 발생했습니다.'))
   }
 }
 
 const startTimer = () => {
   remainingTime.value = 180
+  clearInterval(timer)
   timer = setInterval(() => {
     if (remainingTime.value > 0) remainingTime.value--
     else clearInterval(timer)
@@ -142,18 +174,30 @@ const canSubmit = computed(() =>
     passwordValid.value &&
     passwordsMatch.value &&
     form.value.verificationCode &&
-    idDuplicate.value === false
+    idDuplicate.value === false &&
+    form.value.emailVerified === true
 )
 
 const handleRegister = async () => {
   try {
-    await api.post('/api/user/join', form.value)
-    alert('회원가입 완료! 로그인해주세요.')
+    form.value.passwordCheck = passwordCheck.value
+
+    // ✅ Boolean 강제 변환 (혹시 문자열로 들어가는 경우 대비)
+    form.value.emailVerified = !!form.value.emailVerified
+
+    console.log('📦 회원가입 요청:', form.value)
+
+    const res = await api.post('/api/user/join', form.value)
+    const message = res.data?.message || '회원가입 완료! 로그인해주세요.'
+    alert('✅ ' + message)
     window.location.href = '/login'
   } catch (err) {
-    error.value = err.response?.data?.message || '회원가입 실패'
+    console.error('❌ 회원가입 실패:', err)
+    const errorMessage = err.response?.data?.message || '알 수 없는 오류가 발생했습니다.'
+    alert('❌ 회원가입 실패: ' + errorMessage)
   }
 }
+
 </script>
 
 <style scoped>
