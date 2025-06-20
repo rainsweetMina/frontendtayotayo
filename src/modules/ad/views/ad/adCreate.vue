@@ -35,7 +35,7 @@
         <select v-model="form.companyId" class="form-select w-full" required>
           <option value="" disabled>선택</option>
           <option v-for="company in companyList" :key="company.id" :value="company.id">
-            {{ company.companyName }}
+            {{ company.companyName }}  <!-- ← 필드명에 주의 -->
           </option>
         </select>
       </div>
@@ -105,7 +105,6 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
-  // 광고회사 목록 불러오기
   companyList.value = await fetchAdCompanyDropdown()
 })
 </script>

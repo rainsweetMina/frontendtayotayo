@@ -1,6 +1,11 @@
 <template>
   <div>
-    <h2 class="text-2xl font-bold mb-6">등록된 광고 목록</h2>
+    <div class="d-flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">등록된 광고 목록</h2>
+      <router-link to="/admin/ad/create" class="btn btn-primary">
+        광고 등록
+      </router-link>
+    </div>
     <div class="bg-white shadow rounded-lg">
       <table class="min-w-full divide-y divide-gray-200">
         <thead>
@@ -46,13 +51,11 @@
   </div>
 </template>
 
-
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchAds, deleteAd } from '@/modules/ad/api/adApi.js'
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
-
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 
 const router = useRouter()
 const adList = ref([])
@@ -86,19 +89,20 @@ const handleDelete = async (id) => {
 
 const statusText = (status) => {
   switch (status) {
-    case 'ACTIVE': return '진행중'
-    case 'WAIT': return '예정'
+    case 'SCHEDULED': return '예정'
+    case 'ONGOING': return '진행중'
+    case 'ENDING_SOON': return '종료임박'
     case 'ENDED': return '종료됨'
+    case 'DELETED': return '삭제됨'
     default: return status
   }
 }
 
-// 날짜 예쁘게 출력
+
 const formatDate = (date) => {
   if (!date) return '-'
   return date.length > 10 ? date.slice(0, 10) : date
 }
-
 
 onMounted(fetchData)
 </script>

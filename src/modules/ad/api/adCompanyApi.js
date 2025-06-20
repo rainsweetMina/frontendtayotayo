@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-// 광고회사 목록
+// 광고회사 목록 (전체)
 export async function fetchAdCompanies() {
     const res = await axios.get('/api/admin/ad-companies')
     return res.data
@@ -29,7 +29,7 @@ export async function deleteAdCompany(id) {
     return axios.delete(`/api/admin/ad-companies/${id}`)
 }
 
-// 광고 등록폼 드롭다운용(회사 ID/이름만)
+// 광고 등록폼 드롭다운용 (id, companyName만)
 export async function fetchAdCompanyDropdown() {
     const res = await axios.get('/api/admin/ad-companies/dropdown')
     return res.data
