@@ -120,22 +120,9 @@
     <!-- 앨범존 영역 -->
     <section class="album-zone">
       <h2 class="section-title">알림존</h2>
-      <div class="album-container">
-        <!-- 첫 번째 배너 -->
-        <div
-            v-if="banners.length > 0"
-            class="album-banner"
-            @click="goToAdLink(banners[0].linkUrl)"
-            style="cursor:pointer;"
-        >
-          <img :src="`${IMAGE_BASE_URL}/ad/${banners[0].imageUrl}`" :alt="banners[0].title" />
-          <div class="banner-content">
-            <h3>{{ formatDate(banners[0].startDate) }} ~ {{ formatDate(banners[0].endDate) }}</h3>
-            <h2>{{ banners[0].title }}</h2>
-            <p>{{ banners[0].description }}</p>
-          </div>
-        </div>
-        <!-- 두 번째 배너 -->
+      <div class="album-container flex gap-6">
+        <!-- 광고 캐러셀: 동일한 album-banner 클래스로 높이 200px 고정! -->
+        <AlbumBannerCarousel :banners="banners" class="album-banner" />
         <div class="album-banner weather-banner">
           <div class="weather-content">
             <h3>오늘의 날씨</h3>
@@ -206,6 +193,8 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
+import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
+
 const banners = ref([])
 
 const router = useRouter();

@@ -31,6 +31,7 @@ export async function deleteAdCompany(id) {
 
 // 광고 등록폼 드롭다운용 (id, companyName만)
 export async function fetchAdCompanyDropdown() {
-    const res = await axios.get('/api/admin/ad-companies/dropdown')
+    const res = await axios.get('/api/ad-company/dropdown')
+
     return res.data
 }
