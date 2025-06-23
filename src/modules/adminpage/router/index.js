@@ -29,6 +29,10 @@ import LowFloorBusDetail from '@/modules/adminpage/dashboard/views/lowfloorbus/L
 import LowFloorBusWrite from '@/modules/adminpage/dashboard/views/lowfloorbus/LowFloorBusWrite.vue'
 import AdminAdList from '@/modules/ad/views/ad/adList.vue'
 import AdminAdCreate from '@/modules/ad/views/ad/adCreate.vue'
+import BusRouteAllView from "@/modules/busRoute/views/BusRouteAllView.vue";
+import BusRouteAddView from "@/modules/busRoute/views/BusRouteAddView.vue";
+import BusRouteInfoView from "@/modules/busRoute/views/BusRouteInfoView.vue";
+import BusRouteEditView from "@/modules/busRoute/views/BusRouteEditView.vue";
 
 
 export const adminRoutes = {
@@ -120,31 +124,6 @@ export const adminRoutes = {
       component: AdminRouteFinderSettings
     },
     {
-      path: "bus-routes",
-      name: "AdminBusRoutes",
-      component: AdminBusRoutes
-    },
-    {
-      path: "bus-routes/add",
-      name: "AdminBusRouteAdd",
-      component: AdminBusRouteAdd
-    },
-    {
-      path: "bus-routes/search",
-      name: "AdminBusRouteSearch",
-      component: AdminBusRouteSearch
-    },
-    {
-      path: "bus-routes/order",
-      name: "AdminBusRouteOrder",
-      component: AdminBusRouteOrder
-    },
-    {
-      path: "bus-routes/stops",
-      name: "AdminBusRouteStops",
-      component: AdminBusRouteStops
-    },
-    {
       path: "bus-stops",
       name: "AdminBusStops",
       component: AdminBusStops
@@ -203,7 +182,34 @@ export const adminRoutes = {
       name: "LostAdminDetail",
       component: LostAdminDetail,
       props: true
-    }
+    },
+    {
+      path: '/bus/route/all',
+      name: 'BusRouteAllView',
+      // component: () => import('../views/BusRouteAllView.vue'),
+      component: BusRouteAllView,
+      meta: { requiresAuth: true, role: 'ADMIN' },
+    },
+    {
+      path: '/bus/route/add',
+      name: 'BusRouteAddView',
+      component: BusRouteAddView,
+      meta: { requiresAuth: true, role: 'ADMIN' },
+    },
+    {
+      path: '/bus/route/info',
+      name: 'BusRouteInfoView',
+      component: BusRouteInfoView,
+      meta: { requiresAuth: true, role: 'ADMIN' },
+      props: true
+    },
+    {
+      path: '/bus/route/info/:routeId',
+      name: 'RouteEdit',
+      component: BusRouteEditView,
+      meta: { requiresAuth: true, role: 'ADMIN' },
+      props: true
+    },
   ],
   meta: { requiresAuth: true }
 } 
