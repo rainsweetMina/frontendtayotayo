@@ -19,11 +19,31 @@
       <BasicSearchBox v-if="!isRouteMode" @search="handleSearch" />
       <RouteSearchBox v-else />
     </div>
+    
+    <!-- 최근 검색어 표시 영역 -->
+    <div v-if="!isRouteMode && store.recentSearches.length > 0" class="recent-searches mt-2 px-3">
+      <div class="flex justify-between items-center mb-1">
+        <h3 class="text-sm font-medium text-gray-600">최근 검색</h3>
+        <button @click="store.clearRecentSearches()" class="text-xs text-gray-500 hover:text-gray-700">전체 삭제</button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <div 
+          v-for="(search, index) in store.recentSearches" 
+          :key="index" 
+          class="recent-search-item"
+        >
+          <span @click="useRecentSearch(search)" class="cursor-pointer">{{ search }}</span>
+          <button @click="store.removeFromRecentSearches(search)" class="delete-btn ml-1">
+            <i class="fas fa-times text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import {nextTick, ref, watch} from 'vue'
+import {nextTick, ref, watch, onMounted} from 'vue'
 import {useSearchStore} from "@/stores/searchStore.js";
 import BasicSearchBox from './SearchBox.vue'
 import RouteSearchBox from './RouteSearchBox.vue'
@@ -33,10 +53,20 @@ const emit = defineEmits(['search'])
 const store = useSearchStore()
 const isRouteMode = ref(false)
 
+// 컴포넌트 마운트 시 로컬 스토리지에서 최근 검색어 로드
+onMounted(() => {
+  store.loadRecentSearchesFromCache()
+})
+
 function handleSearch(keyword) {
   store.forceRouteMode = false
-
   emit('search', keyword) // ❗그대로 상위로 전달만
+}
+
+// 최근 검색어 클릭 시 검색 실행
+function useRecentSearch(keyword) {
+  store.keyword = keyword
+  store.commitSearch()
 }
 
 function toggleMode() {
@@ -102,5 +132,38 @@ watch(() => store.forceRouteMode, async (val) => {
 
 .mode-toggle-btn i {
   pointer-events: none;
+}
+
+.recent-searches {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.recent-search-item {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e9ecef;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: #495057;
+  transition: background-color 0.2s;
+}
+
+.recent-search-item:hover {
+  background-color: #dee2e6;
+}
+
+.delete-btn {
+  color: #adb5bd;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.delete-btn:hover {
+  color: #495057;
 }
 </style>

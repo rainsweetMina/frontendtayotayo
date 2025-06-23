@@ -15,8 +15,15 @@
 
 <script setup>
 import { useSearchStore } from '@/stores/searchStore'
+import { onMounted } from 'vue'
+
 const store = useSearchStore()
 const emit = defineEmits(['search'])
+
+// 컴포넌트 마운트 시 캐시에서 최근 검색어 로드
+onMounted(() => {
+  store.loadRecentSearchesFromCache()
+})
 
 function onSearch() {
   if (!store.keyword.trim()) return

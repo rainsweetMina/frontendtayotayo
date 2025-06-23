@@ -16,7 +16,8 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
+import { useSearchStore } from '@/stores/searchStore';
 
 const props = defineProps({
   placeholder: {
@@ -27,12 +28,22 @@ const props = defineProps({
 
 const emit = defineEmits(['search']);
 const searchText = ref('');
+const searchStore = useSearchStore();
+
+// 컴포넌트 마운트 시 로컬 스토리지에서 검색 히스토리 로드
+onMounted(() => {
+  searchStore.loadRecentSearchesFromCache();
+});
 
 const handleSearch = () => {
   if (searchText.value.trim()) {
+    // 검색 이벤트 발생
     emit('search', { 
       keyword: searchText.value
     });
+    
+    // 검색어를 searchStore에 추가
+    searchStore.addToRecentSearches(searchText.value);
   }
 };
 </script>
