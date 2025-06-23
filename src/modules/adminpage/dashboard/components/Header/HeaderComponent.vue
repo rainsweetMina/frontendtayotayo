@@ -53,7 +53,8 @@ const busMenu = [
 ]
 
 const lostMenu = [
-  {label: '분실물 조회', to: '/lost'}
+  {label: '분실물 신고', to: '/lost'},
+  {label: '습득물 조회', to: '/found'}
 ]
 
 const noticeMenu = [

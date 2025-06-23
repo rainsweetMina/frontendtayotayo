@@ -2,7 +2,7 @@
   <div class="max-w-xl mx-auto mt-12 p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
     <h2 class="text-2xl font-extrabold text-gray-800 mb-6 flex items-center gap-2">
       <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      광고 등록
+      {{ isEditMode ? '광고 수정' : '광고 등록' }} <!-- ✅ 동적 제목 -->
     </h2>
     <form @submit.prevent="handleSubmit" enctype="multipart/form-data" class="space-y-6">
       <!-- 제목 -->
@@ -23,7 +23,7 @@
             accept="image/*"
             @change="handleImage"
             class="block w-full border rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:border-blue-400"
-            required
+            :required="!isEditMode"
         />
         <div v-if="preview" class="mt-3 flex justify-center">
           <div class="rounded-lg border border-gray-200 bg-gray-50 p-2 w-64 h-32 flex items-center justify-center">
@@ -72,8 +72,12 @@
             required
         >
           <option value="" disabled>선택</option>
-          <option v-for="company in companyList" :key="company.id" :value="company.id">
-            {{ company.name }}
+          <option
+              v-for="company in companyList"
+              :key="company.id"
+              :value="company.id"
+          >
+          {{ company.name }}
           </option>
         </select>
       </div>
@@ -83,12 +87,10 @@
         <label for="popup" class="text-gray-700 font-medium">팝업으로 표시</label>
       </div>
       <!-- 등록 버튼 -->
-      <div class="pt-4 flex justify-end gap-2">
-        <button
-            type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition"
-        >
-          등록
+      <div class="pt-4 flex justify-between items-center">
+        <router-link to="/admin/ad" class="text-gray-600 hover:underline">← 목록으로</router-link>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition">
+          {{ isEditMode ? '수정 완료' : '등록' }} <!-- ✅ 동적 버튼 -->
         </button>
       </div>
     </form>
@@ -97,12 +99,17 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { createAd } from '@/modules/ad/api/adApi.js'
+import {ref, onMounted, computed, watch} from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { createAd, fetchAd, updateAd } from '@/modules/ad/api/adApi.js'
 import { fetchAdCompanyDropdown } from '@/modules/ad/api/adCompanyApi.js'
 
 const router = useRouter()
+const route = useRoute()                         // ✅ 추가
+
+// ✅ 수정 모드 여부 판단
+const isEditMode = computed(() => !!route.params.id)
+
 const form = ref({
   title: '',
   linkUrl: '',
@@ -125,7 +132,7 @@ const handleImage = (e) => {
 }
 
 const handleSubmit = async () => {
-  if (!form.value.imageFile) {
+  if (!form.value.imageFile && !isEditMode.value) {
     alert('이미지 파일은 필수입니다.');
     return;
   }
@@ -143,20 +150,58 @@ const handleSubmit = async () => {
   // ② FormData에 'dto'라는 이름으로 JSON 붙이기!
   const fd = new FormData();
   fd.append('dto', new Blob([JSON.stringify(adDTO)], { type: 'application/json' }));
-  fd.append('image', form.value.imageFile);
+  if (form.value.imageFile) {
+    fd.append('image', form.value.imageFile);
+  }
 
   try {
-    await createAd(fd); // 또는 fetch로 직접 전송
-    alert('등록 완료!');
-    // ...후처리
+    if (isEditMode.value) {
+      await updateAd(route.params.id, fd) // ✅ 수정
+      alert('수정 완료!')
+    } else {
+      await createAd(fd) // 등록
+      alert('등록 완료!')
+    }
+    router.push('/admin/ad')
   } catch (e) {
-    alert('등록 실패');
+    alert('전송 실패: ' + (e.response?.data?.message || e.message))
   }
 }
 
 onMounted(async () => {
-  companyList.value = await fetchAdCompanyDropdown()
+  // ✅ 광고회사 먼저 가져오기
+  const rawList = await fetchAdCompanyDropdown()
+  companyList.value = rawList.map(c => ({
+    id: String(c.id || c.companyId),
+    name: c.name || c.companyName
+  }))
+  console.log('📦 회사 목록', companyList.value)
+
+  // ✅ 그 다음 광고 데이터 fetch
+  if (isEditMode.value) {
+    const ad = await fetchAd(route.params.id)
+    console.log('🧾 서버에서 받은 광고:', ad)
+
+    form.value.title = ad.title
+    form.value.linkUrl = ad.linkUrl
+    form.value.startDate = ad.startDateTime?.slice(0, 10)
+    form.value.endDate = ad.endDateTime?.slice(0, 10)
+    // ✅ 이 줄만 아래처럼 교체
+    form.value.companyId = ad.companyId
+        ? String(ad.companyId)
+        : ad.company?.id
+            ? String(ad.company.id)
+            : ''
+    form.value.isPopup = !!ad.showPopup  // ✅ 이렇게!
+    preview.value = `${import.meta.env.VITE_IMAGE_BASE_URL}/ad/${ad.imageUrl}`
+  }
+
+  // 🔍 디버깅 로그
+  watch(form, () => {
+    console.log('🔥 선택된 companyId:', form.value.companyId)
+  })
 })
+
 </script>
 
 <style scoped>

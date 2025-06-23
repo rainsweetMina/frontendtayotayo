@@ -105,7 +105,10 @@ const fetchData = async () => {
   }
 }
 
-const goEdit = (id) => { router.push({ name: 'AdEdit', params: { id } }) }
+// 수정 버튼 클릭 이벤트
+const goEdit = (id) => {
+  router.push({ name: 'AdEdit', params: { id } })
+}
 const goExtend = (id) => { router.push({ name: 'AdExtend', params: { id } }) }
 const handleDelete = async (id) => {
   if (!confirm('정말 삭제하시겠습니까?')) return
