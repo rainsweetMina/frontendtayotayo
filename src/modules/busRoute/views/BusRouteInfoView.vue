@@ -139,7 +139,7 @@ const confirmDeleteRoute = async () => {
 
 const goToEditRoute = () => {
   if (!routeData.value?.routeId) return alert('노선 정보가 없습니다.')
-  router.push(`/admin/bus-routes/info/${routeData.value.routeId}`)
+  router.push(`/bus/route/info/${routeData.value.routeId}`)
 }
 
 onMounted(() => {
