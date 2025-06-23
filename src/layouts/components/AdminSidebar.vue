@@ -99,43 +99,34 @@
       <div class="mb-4">
         <div class="px-3 py-2 text-sm font-medium text-gray-900 flex items-center">
           <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
           </svg>
           버스 노선 관리
         </div>
         <div class="space-y-1">
           <router-link
-            to="/admin/bus-routes"
-            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+              to="/bus/route/all"
+              class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
             전체 노선 리스트
           </router-link>
           <router-link
-            to="/admin/bus-routes/add"
-            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+              to="/bus/route/add"
+              class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
             노선 추가
           </router-link>
+
           <router-link
-            to="/admin/bus-routes/search"
-            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+              to="/bus/route/info"
+              class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
             노선 조회
           </router-link>
-          <router-link
-            to="/admin/bus-routes/order"
-            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-          >
-            노선 순서 수정
-          </router-link>
-          <router-link
-            to="/admin/bus-routes/stops"
-            class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-          >
-            노선 정류장 추가
-          </router-link>
         </div>
       </div>
+
 
       <!-- 정류장 관리 섹션 -->
       <div class="mb-4">

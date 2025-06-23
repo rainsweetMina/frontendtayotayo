@@ -8,7 +8,6 @@ import lostFoundRoutes from '@/modules/lostFound/router'
 import adRoutes from '@/modules/ad/router'
 import userManagementRoutes from '@/modules/usermanagement/router'
 import boardRoutes from '@/modules/board/router'
-
 import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
 import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
