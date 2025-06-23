@@ -6,31 +6,24 @@ import myPageRoutes from '@/modules/mypage/router'
 import { adminRoutes } from "@/modules/adminpage/router"
 import lostFoundRoutes from '@/modules/lostFound/router'
 import adRoutes from '@/modules/ad/router'
-import userManagementRoutes from '@/modules/usermanagement/router'
 import boardRoutes from '@/modules/board/router'
 import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
 import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
 
-// 📌 Pinia에서 인증 상태 가져오기
 import { useAuthStore } from '@/stores/auth'
-import {useUserInfo} from "@/modules/mypage/composables/useUserInfo.js";
-
-// 중복되는 라우트 경로 제거 (adminRoutes에서 이미 정의된 경로)
-// const filteredLostFoundRoutes = lostFoundRoutes.filter(route => !route.path.startsWith('/admin'));
+import { useUserInfo } from "@/modules/mypage/composables/useUserInfo.js"
 
 const routes = [
-    // { path: '/', component: HomeView }, // 메인 페이지로 교체
-    ...mainPageRoutes, // 메인 페이지 라우트 추가
+    ...mainPageRoutes,
     adminRoutes,
     ...busSearchRoutes,
     ...busMapRoutes,
     ...myPageRoutes,
     ...lostFoundRoutes,
     ...adRoutes,
-    ...noticeRoutes, // 공지사항 라우트 추가
-    ...lowFloorBusRoutes, // 저상버스 대체 안내 라우트 추가
-    ...userManagementRoutes,
+    ...noticeRoutes,
+    ...lowFloorBusRoutes,
     ...boardRoutes,
 ]
 
@@ -39,31 +32,33 @@ const router = createRouter({
     routes
 })
 
-// ✅ 소셜 로그인 후 새로고침이나 직접 접근 시 자동 로그인 복원
+// ✅ 전역 가드 설정
 router.beforeEach(async (to, from, next) => {
-    const { isLoggedIn, fetchUserInfo } = useUserInfo()
+    const auth = useAuthStore()
+    const {
+        isLoggedIn,
+        fetchUserInfo,
+        isUserInfoFetched
+    } = useUserInfo()
 
-    // ✅ 인증 필요 없는 경로는 무시
-    if (to.path === '/oauth-success') {
-        return next()
-    }
+    const publicPaths = ['/login', '/register', '/oauth-success', '/find-password']
+    const requiresAuth = !publicPaths.includes(to.path)
 
-    // ✅ 마이페이지 접근 시 자동 로그인 복원
-    if (!isLoggedIn.value && to.path.startsWith('/mypage')) {
-        const ok = await fetchUserInfo()
-
+    // ✅ 토큰 있는 경우 → 사용자 정보 복원 시도
+    if (requiresAuth && !auth.userId && localStorage.getItem('accessToken') && !isUserInfoFetched.value) {
+        const ok = await fetchUserInfo(true)
         if (!ok) {
+            console.warn('⛔ 사용자 정보 복원 실패 → 로그인 페이지로')
             return next('/login')
         }
     }
 
-    // 전역 가드: /admin 하위 라우트에서 accessToken 체크 및 저장
-    if (to.path.startsWith('/admin') && to.path !== '/admin/login') {
+    // ✅ /admin 접근 로직
+    if (to.path.startsWith('/admin')) {
         const urlParams = new URLSearchParams(window.location.search)
         const accessToken = urlParams.get('accessToken')
         const refreshToken = urlParams.get('refreshToken')
 
-        // accessToken/refreshToken이 쿼리로 오면 localStorage에 저장
         if (accessToken && accessToken !== 'null') {
             localStorage.setItem('accessToken', accessToken)
         }
@@ -71,7 +66,7 @@ router.beforeEach(async (to, from, next) => {
             localStorage.setItem('refreshToken', refreshToken)
         }
 
-        // URL에서 토큰 파라미터 제거
+        // 쿼리 정리
         if (accessToken || refreshToken) {
             const newUrl = new URL(window.location.href)
             newUrl.searchParams.delete('accessToken')
@@ -79,14 +74,42 @@ router.beforeEach(async (to, from, next) => {
             window.history.replaceState({}, document.title, newUrl.toString())
         }
 
-        // localStorage에 accessToken이 없으면 로그인 페이지로 이동
+        // ❌ accessToken 없으면 로그인 페이지로
         if (!localStorage.getItem('accessToken')) {
-            return next('/admin/login')
+            return next('/login')
+        }
+
+        // ✅ 사용자 정보 복원 완료 후 권한 체크
+        if (!auth.role) {
+            const ok = await fetchUserInfo(true)
+            if (!ok) return next('/login')
+        }
+
+        // ✅ BUS 권한 체크
+        if (auth.role === 'BUS') {
+            const allowedPaths = ['/admin/found', '/admin/lost', '/admin/dashboard']
+            const isAllowed = allowedPaths.some(path => to.path.startsWith(path))
+            if (!isAllowed) {
+                alert('🚫 BUS 권한으로는 해당 페이지에 접근할 수 없습니다.')
+                return next('/admin/dashboard')
+            }
+        }
+
+        // ✅ 일반 사용자 접근 제한
+        if (auth.role === 'USER') {
+            alert('🚫 일반 사용자에게는 관리자 페이지 접근 권한이 없습니다.')
+            return next('/')
         }
     }
 
+    // ✅ 마이페이지 접근 시 로그인 복원 실패하면 로그인 페이지로
+    if (to.path.startsWith('/mypage') && !auth.userId) {
+        const ok = await fetchUserInfo(true)
+        if (!ok) return next('/login')
+    }
+
+    // ✅ 기본 이동 허용
     next()
 })
-
 
 export default router

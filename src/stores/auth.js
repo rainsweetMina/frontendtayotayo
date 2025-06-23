@@ -13,7 +13,8 @@ export const useAuthStore = defineStore('auth', {
     getters: {
         isAuthenticated: (state) => !!state.userId,
         isAdmin: (state) => state.role === 'ADMIN',
-        isUser: (state) => state.role === 'USER'
+        isUser: (state) => state.role === 'USER',
+        isBus: (state) => state.role === 'BUS' // ✅ BUS 역할 getter 추가
     },
 
     actions: {
@@ -24,7 +25,7 @@ export const useAuthStore = defineStore('auth', {
             this.userId = userId
             this.email = email
             this.accessToken = accessToken
-            
+
             // accessToken을 localStorage에 저장
             if (accessToken) {
                 localStorage.setItem('accessToken', accessToken)
@@ -43,7 +44,7 @@ export const useAuthStore = defineStore('auth', {
         logout(clearAll = false) {
             this.$reset()                          // ✅ Pinia 상태 초기화
             localStorage.removeItem('auth')       // ✅ persist 저장소도 함께 제거
-            
+
             if (clearAll) {
                 localStorage.removeItem('accessToken') // ✅ accessToken도 제거
             }

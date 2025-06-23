@@ -91,15 +91,12 @@ const handleLogout = async () => {
 
 const fetchAllSummaries = async () => {
   try {
-    console.log('[MyPageHome] 📡 데이터 요약 요청 시작')
     const [favRes, apiRes, notiRes, qnaRes] = await Promise.all([
       api.get('/api/mypage/favorites/summary'),
       api.get('/api/user/apikey/summary'),
       api.get('/api/mypage/notifications/count'),
       api.get('/api/qna/count')
     ])
-
-    console.log('[MyPageHome] ✅ 응답 수신 완료')
 
     favorites.value = favRes.data
     apiKeyStatusText.value = apiRes.data?.status === 'APPROVED' ? '승인됨' :
@@ -114,7 +111,6 @@ const fetchAllSummaries = async () => {
 
 onMounted(async () => {
   const success = await fetchUserInfo()
-  console.log('[MyPageHome] ✅ fetchUserInfo 완료 여부:', success)
   if (!success) {
     router.push('/login')
     return

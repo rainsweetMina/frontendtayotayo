@@ -4,6 +4,7 @@
       <h2>회원가입</h2>
 
       <form @submit.prevent="handleRegister">
+        <!-- 아이디 -->
         <div class="form-group">
           <label>아이디</label>
           <div class="id-check-row">
@@ -14,6 +15,7 @@
           <p class="success" v-if="idChecked && idDuplicate === false">사용 가능한 아이디입니다</p>
         </div>
 
+        <!-- 비밀번호 -->
         <div class="form-group">
           <label>비밀번호</label>
           <input type="password" v-model="form.password" @input="validatePassword" required />
@@ -21,17 +23,33 @@
           <p class="success" v-if="form.password && passwordValid">사용 가능한 비밀번호입니다</p>
         </div>
 
+        <!-- 비밀번호 확인 -->
         <div class="form-group">
           <label>비밀번호 확인</label>
           <input type="password" v-model="passwordCheck" @input="checkPasswordMatch" required />
           <p class="error" v-if="!passwordsMatch">비밀번호가 일치하지 않습니다</p>
         </div>
 
+        <!-- 이름 -->
         <div class="form-group">
           <label>이름</label>
           <input type="text" v-model="form.username" required />
         </div>
 
+        <!-- 휴대폰 번호 -->
+        <div class="form-group">
+          <label>휴대폰 번호</label>
+          <input
+              type="text"
+              v-model="form.phoneNumber"
+              @input="formatPhoneNumber"
+              placeholder=""
+              maxlength="13"
+              required
+          />
+        </div>
+
+        <!-- 이메일 -->
         <div class="form-group">
           <label>이메일</label>
           <div class="email-row">
@@ -51,6 +69,7 @@
           </div>
         </div>
 
+        <!-- 인증 코드 -->
         <div class="form-group" v-if="codeSent">
           <label>인증 코드 입력</label>
           <input v-model="form.verificationCode" placeholder="인증 코드 입력" />
@@ -59,6 +78,7 @@
           <p class="success" v-if="form.emailVerified">✅ 인증 완료</p>
         </div>
 
+        <!-- 가입 버튼 -->
         <button type="submit" :disabled="!canSubmit" class="submit-btn">가입하기</button>
         <p class="error" v-if="error">{{ error }}</p>
       </form>
@@ -75,6 +95,7 @@ const form = ref({
   password: '',
   passwordCheck: '',
   username: '',
+  phoneNumber: '',
   email: '',
   verificationCode: '',
   emailVerified: false,
@@ -168,6 +189,17 @@ const startTimer = () => {
   }, 1000)
 }
 
+const formatPhoneNumber = () => {
+  let num = form.value.phoneNumber.replace(/\D/g, '')
+  if (num.length < 4) {
+    form.value.phoneNumber = num
+  } else if (num.length < 8) {
+    form.value.phoneNumber = `${num.slice(0, 3)}-${num.slice(3)}`
+  } else {
+    form.value.phoneNumber = `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7, 11)}`
+  }
+}
+
 const canSubmit = computed(() =>
     form.value.userId &&
     form.value.username &&
@@ -181,11 +213,9 @@ const canSubmit = computed(() =>
 const handleRegister = async () => {
   try {
     form.value.passwordCheck = passwordCheck.value
-
-    // ✅ Boolean 강제 변환 (혹시 문자열로 들어가는 경우 대비)
     form.value.emailVerified = !!form.value.emailVerified
 
-    console.log('📦 회원가입 요청:', form.value)
+    console.log('📦 회원가입 요청:', JSON.stringify(form.value, null, 2))
 
     const res = await api.post('/api/user/join', form.value)
     const message = res.data?.message || '회원가입 완료! 로그인해주세요.'
@@ -197,7 +227,6 @@ const handleRegister = async () => {
     alert('❌ 회원가입 실패: ' + errorMessage)
   }
 }
-
 </script>
 
 <style scoped>

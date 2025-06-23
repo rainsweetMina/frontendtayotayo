@@ -33,6 +33,8 @@ import BusRouteAllView from "@/modules/busRoute/views/BusRouteAllView.vue";
 import BusRouteAddView from "@/modules/busRoute/views/BusRouteAddView.vue";
 import BusRouteInfoView from "@/modules/busRoute/views/BusRouteInfoView.vue";
 import BusRouteEditView from "@/modules/busRoute/views/BusRouteEditView.vue";
+import UserListView from "@/modules/adminpage/dashboard/views/UserListView.vue";
+import UserApiKeyManagementView from "@/modules/adminpage/dashboard/views/UserApiKeyManagementView.vue";
 
 
 export const adminRoutes = {
@@ -210,6 +212,18 @@ export const adminRoutes = {
       meta: { requiresAuth: true, role: 'ADMIN' },
       props: true
     },
+    {
+      path: '/admin/user',
+      name: 'AdminUserList',
+      component: UserListView,
+      meta: { requiresAuth: true, adminOnly: true }
+    },
+    {
+      path: '/admin/apikey',
+      name: 'AdminApiKeyManagement',
+      component: UserApiKeyManagementView,
+      meta: { requiresAuth: true, adminOnly: true }
+    }
   ],
   meta: { requiresAuth: true }
 } 

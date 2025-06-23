@@ -42,13 +42,13 @@ api.interceptors.response.use(
         ]
         const shouldSkipLoginRedirect = EXCLUDE_REDIRECT_URLS.some(ex => url?.includes(ex))
 
-        console.warn('[axiosInstance.js] 응답 URL:', url)
-        console.warn('[axiosInstance.js] path:', path)
-        console.warn('[axiosInstance.js] isAdmin:', isAdmin)
-        console.warn('[axiosInstance.js] isPublic:', isPublic)
-        console.warn('[axiosInstance.js] isLoginRequest:', isLoginRequest)
-        console.warn('[axiosInstance.js] contentType:', contentType)
-        console.warn('[axiosInstance.js] data:', response.data?.slice?.(0, 100))
+        // console.warn('[axiosInstance.js] 응답 URL:', url)
+        // console.warn('[axiosInstance.js] path:', path)
+        // console.warn('[axiosInstance.js] isAdmin:', isAdmin)
+        // console.warn('[axiosInstance.js] isPublic:', isPublic)
+        // console.warn('[axiosInstance.js] isLoginRequest:', isLoginRequest)
+        // console.warn('[axiosInstance.js] contentType:', contentType)
+        // console.warn('[axiosInstance.js] data:', response.data?.slice?.(0, 100))
 
         // ✅ 핵심 조건: 로그인 페이지 응답인데 제외 URL이 아니면 → 리다이렉트
         if (isHtml && isLoginHtml && !isAdmin && !isPublic && !isLoginRequest && !shouldSkipLoginRedirect) {
