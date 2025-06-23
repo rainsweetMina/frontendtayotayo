@@ -16,12 +16,12 @@
 <!--      </div>-->
 <!--    </nav>-->
 
-    <div class="flex">
+    <div class="flex overflow-hidden">
       <!-- 사이드바 -->
       <AdminSidebar />
 
       <!-- 메인 콘텐츠 -->
-      <main class="flex-1 p-8">
+      <main class="flex-1 p-8 overflow-auto">
         <router-view></router-view>
       </main>
     </div>

@@ -1,5 +1,5 @@
 <template>
-  <aside class="w-64 bg-white shadow-md">
+  <aside class="w-64 bg-white shadow-md min-w-64 flex-shrink-0">
     <div class="flex items-center justify-center h-16 px-4 bg-gray-800">
       <h1 class="text-xl font-semibold text-white">관리자 대시보드</h1>
     </div>

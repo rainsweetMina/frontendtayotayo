@@ -16,13 +16,13 @@
           placeholder="『정류소, 노선, 목적지』를 입력하세요." 
           @search="handleSearch"
         />
-        <div class="search-history" v-if="searchHistory.length > 0">
+        <div class="search-history" v-if="searchStore.recentSearches.length > 0">
           <div class="history-label">
             <span class="history-icon">🕒</span>
             <span>최근 검색 내역</span>
           </div>
           <div class="history-tags">
-            <span v-for="(item, index) in searchHistory" :key="index" 
+            <span v-for="(item, index) in searchStore.recentSearches" :key="index" 
                   class="history-tag" @click="useHistoryItem(item)">
               {{ item }}
             </span>
@@ -192,15 +192,14 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
+import { useSearchStore } from '@/stores/searchStore';
+
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
 
 const banners = ref([])
-
 const router = useRouter();
-
-// 검색 히스토리
-const searchHistory = ref(['730', '내당삼익맨션건너', '7', '중앙로']);
+const searchStore = useSearchStore();
 
 // 공지사항 데이터
 const notices = ref([]);
@@ -364,13 +363,8 @@ const handleSearch = (searchData) => {
   const { keyword } = searchData;
   if (!keyword) return;
   
-  // 검색 히스토리에 추가 (중복 방지 및 최대 4개 유지)
-  if (!searchHistory.value.includes(keyword)) {
-    searchHistory.value.unshift(keyword);
-    if (searchHistory.value.length > 4) {
-      searchHistory.value.pop();
-    }
-  }
+  // searchStore를 통해 검색어 저장
+  searchStore.addToRecentSearches(keyword);
   
   // 버스 맵 페이지로 이동하면서 검색어 전달
   router.push({ 
@@ -380,6 +374,9 @@ const handleSearch = (searchData) => {
 };
 
 const useHistoryItem = (keyword) => {
+  // searchStore에 검색어 추가
+  searchStore.addToRecentSearches(keyword);
+  
   // 히스토리 아이템으로 검색
   router.push({ 
     path: '/bus/map', 
@@ -447,12 +444,14 @@ const goToAdLink = (url) => {
   if (url) window.open(url, '_blank')
 }
 
-
 // 컴포넌트 마운트 시 데이터 로드
-onMounted(() => {
+onMounted(async () => {
   fetchNotices();
   fetchLowFloorBuses();
   fetchBanners();
+  
+  // 로컬 스토리지에서 검색 히스토리 로드
+  searchStore.loadRecentSearchesFromCache();
 });
 </script>
 

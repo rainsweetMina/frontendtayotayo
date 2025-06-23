@@ -103,6 +103,11 @@
       </div>
     </div>
 
+    <!-- 게시물 통계 카드 -->
+    <div class="mt-6">
+      <PostsStatsCard :stats="postsStats" />
+    </div>
+
     <!-- 차트 섹션 -->
     <div class="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
       <!-- API 응답 시간 차트 -->
@@ -164,10 +169,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import Chart from 'chart.js/auto'
-import { getDashboardStats, getApiResponseTimes } from '@/api/admin'
+import { getDashboardStats, getApiResponseTimes, getPostsStats } from '@/api/admin'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import axios from '@/config/axios'
+import PostsStatsCard from '../components/PostsStatsCard.vue'
 
 // 상태 데이터
 const stats = ref({
@@ -176,6 +182,14 @@ const stats = ref({
   users: 0,
   usersIncrease: 0,
   pendingQna: 0
+})
+
+// 게시물 통계 데이터
+const postsStats = ref({
+  notices: { today: 0, total: 0 },
+  qna: { today: 0, total: 0 },
+  faq: { today: 0, total: 0 },
+  advertisements: { today: 0, total: 0 }
 })
 
 // 인증 상태
@@ -522,9 +536,10 @@ const loadInitialLogs = async () => {
 // 데이터 로드
 const loadDashboardData = async () => {
   try {
-    const [statsData, apiTimesData] = await Promise.all([
+    const [statsData, apiTimesData, postsData] = await Promise.all([
       getDashboardStats(),
-      getApiResponseTimes()
+      getApiResponseTimes(),
+      getPostsStats()
     ])
     
     // 통계 데이터 업데이트
@@ -534,6 +549,14 @@ const loadDashboardData = async () => {
       users: statsData.users || 0,
       usersIncrease: statsData.usersIncrease || 0,
       pendingQna: statsData.pendingQna || 0
+    }
+    
+    // 게시물 통계 데이터 업데이트
+    postsStats.value = postsData || {
+      notices: { today: 0, total: 0 },
+      qna: { today: 0, total: 0 },
+      faq: { today: 0, total: 0 },
+      advertisements: { today: 0, total: 0 }
     }
 
     // API 응답 시간 차트 업데이트

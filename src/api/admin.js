@@ -25,6 +25,25 @@ export const getApiResponseTimes = async () => {
   }
 } 
 
+/**
+ * 관리자 대시보드용 게시글 통계를 가져옵니다.
+ * @returns {Promise<Object>} 게시글 통계 정보
+ */
+export async function getPostsStats() {
+  try {
+    const response = await axios.get('/api/admin/stats/posts');
+    return response.data;
+  } catch (error) {
+    console.error('게시글 통계 조회 중 오류 발생:', error);
+    // 오류 발생 시 기본값 반환
+    return {
+      notices: { today: 0, total: 0 },
+      qna: { today: 0, total: 0 },
+      advertisements: { today: 0, total: 0 }
+    };
+  }
+}
+
 // 파일 다운로드 URL 테스트 함수
 export const testFileDownloadUrls = async (noticeId) => {
   const testUrls = [

@@ -1,21 +1,21 @@
 <template>
-  <div class="container mt-4">
-    <h2>실시간 버스 도착 정보</h2>
+  <div class="container mx-auto px-4 mt-4">
+    <h2 class="text-2xl font-bold mb-4">실시간 버스 도착 정보</h2>
 
     <div v-if="arrivalData.length > 0">
-      <ul class="list-group">
+      <ul class="bg-white rounded-lg divide-y divide-gray-200 shadow">
         <li
             v-for="bus in arrivalData"
             :key="bus.routeNo"
-            class="list-group-item d-flex justify-content-between align-items-center"
+            class="px-4 py-3 flex justify-between items-center"
         >
-          <strong>{{ bus.routeNo }}</strong>
-          <span>{{ getArrivalText(bus) }}</span>
+          <strong class="font-medium">{{ bus.routeNo }}</strong>
+          <span class="text-gray-700">{{ getArrivalText(bus) }}</span>
         </li>
       </ul>
     </div>
 
-    <div v-else class="mt-3 text-muted">
+    <div v-else class="mt-3 text-gray-500">
       도착 정보가 없습니다.
     </div>
   </div>

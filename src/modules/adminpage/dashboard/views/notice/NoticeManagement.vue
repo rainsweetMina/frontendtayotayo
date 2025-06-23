@@ -9,7 +9,7 @@
       {{ error }}
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-lg shadow">
       <div v-if="isLoading" class="flex justify-center items-center py-20">
         <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -17,32 +17,32 @@
         </svg>
       </div>
 
-      <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+      <div v-else class="w-full">
+        <table class="w-full divide-y divide-gray-200 table-fixed">
           <thead class="bg-gray-50">
           <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성자</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성일</th>
-              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">번호</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[40%]">제목</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">작성자</th>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">작성일</th>
+              <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">관리</th>
           </tr>
         </thead>
           <tbody class="bg-white divide-y divide-gray-200">
           <tr v-if="!notices || notices.length === 0">
-              <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">등록된 공지사항이 없습니다.</td>
+              <td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500">등록된 공지사항이 없습니다.</td>
           </tr>
             <tr v-for="notice in notices" :key="notice.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-4 py-3 text-sm text-gray-500">{{ notice.id }}</td>
+              <td class="px-4 py-3 truncate">
                 <router-link :to="`/admin/notices/${notice.id}`" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
                 {{ notice.title }}
               </router-link>
             </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.author }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(notice.createdDate) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <router-link :to="`/admin/notices/${notice.id}/edit`" class="text-indigo-600 hover:text-indigo-900 mr-3">수정</router-link>
+              <td class="px-4 py-3 text-sm text-gray-500">{{ notice.author }}</td>
+              <td class="px-4 py-3 text-sm text-gray-500">{{ formatDate(notice.createdDate) }}</td>
+              <td class="px-4 py-3 text-right text-sm font-medium">
+                <router-link :to="`/admin/notices/${notice.id}/edit`" class="text-indigo-600 hover:text-indigo-900 mr-2">수정</router-link>
                 <button @click="deleteNotice(notice.id)" class="text-red-600 hover:text-red-900">삭제</button>
             </td>
           </tr>

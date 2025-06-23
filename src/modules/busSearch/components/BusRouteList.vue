@@ -1,61 +1,61 @@
 <template>
-  <div class="bus-route-list">
+  <div class="px-5 py-1">
     <div
         v-for="route in routes"
         :key="route.routeId"
-        class="bus-route-item"
-        :class="getTextClass(route.routeNo)"
+        class="px-[18px] py-[18px] border border-gray-200 mb-2 rounded-lg cursor-pointer bg-white transition-colors hover:bg-gray-50 overflow-hidden whitespace-nowrap text-ellipsis"
         @click="selectRoute(route)"
     >
       <!-- 노선번호와 색상 뱃지 -->
-      <strong style="font-size: 17px">
-        <span :class="['badge', getBadgeClass(route.routeNo)]">
+      <strong class="text-[17px]" :class="getTextColorClass(route.routeNo)">
+        <span :class="['px-1.5 py-0.5 rounded-full text-xs text-white', getBadgeClass(route.routeNo)]">
           {{ getRouteType(route.routeNo) }}
         </span>
-        <span class="ms-2">{{ route.routeNo }}</span>
+        <span class="ml-2">{{ route.routeNo }}</span>
       </strong>
-      <span v-if="route.routeNote" class="ms-1 text-muted route-note" :title="route.routeNote">
+      <span v-if="route.routeNote" class="ml-1 text-gray-500 text-sm font-bold" :title="route.routeNote">
         ({{ route.routeNote }})
       </span>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    routes: Array
-  },
-  emits: ['select'],
-  methods: {
-    selectRoute(route) {
-      this.$emit('select', route)
-    },
-    getRouteType(routeNo) {
-      if (routeNo.startsWith('순환')) return '순환'
-      if (routeNo.startsWith('급행')) return '급행'
-      if (routeNo.startsWith('직행')) return '직행'
-      if (routeNo.startsWith('군위')) return '마을'
-      if (/^\d+(-\d+)?$/.test(routeNo)) return '간선'
-      return '지선'
-    },
-    getBadgeClass(routeNo) {
-      if (routeNo.startsWith('순환')) return 'badge-yellow'
-      if (routeNo.startsWith('급행')) return 'badge-red'
-      if (routeNo.startsWith('직행')) return 'badge-red'
-      if (routeNo.startsWith('군위')) return 'badge-green'
-      if (/^\d+(-\d+)?$/.test(routeNo))  return 'badge-blue'
-      return 'badge-green'
-    },
-    getTextClass(routeNo) {
-      if (routeNo.startsWith('순환')) return 'text-yellow'
-      if (routeNo.startsWith('급행')) return 'text-red'
-      if (routeNo.startsWith('직행')) return 'text-red'
-      if (routeNo.startsWith('군위')) return 'text-green'
-      if (/^\d+(-\d+)?$/.test(routeNo))  return 'text-blue'
-      return 'text-green'
-    }
-  }
+<script setup>
+defineProps({
+  routes: Array
+})
+
+const emit = defineEmits(['select'])
+
+function selectRoute(route) {
+  emit('select', route)
+}
+
+function getRouteType(routeNo) {
+  if (routeNo.startsWith('순환')) return '순환'
+  if (routeNo.startsWith('급행')) return '급행'
+  if (routeNo.startsWith('직행')) return '직행'
+  if (routeNo.startsWith('군위')) return '마을'
+  if (/^\d+(-\d+)?$/.test(routeNo)) return '간선'
+  return '지선'
+}
+
+function getBadgeClass(routeNo) {
+  if (routeNo.startsWith('순환')) return 'bg-amber-500'
+  if (routeNo.startsWith('급행')) return 'bg-red-500'
+  if (routeNo.startsWith('직행')) return 'bg-red-500'
+  if (routeNo.startsWith('군위')) return 'bg-green-500'
+  if (/^\d+(-\d+)?$/.test(routeNo)) return 'bg-blue-500'
+  return 'bg-green-500'
+}
+
+function getTextColorClass(routeNo) {
+  if (routeNo.startsWith('순환')) return 'text-amber-500'
+  if (routeNo.startsWith('급행')) return 'text-red-500'
+  if (routeNo.startsWith('직행')) return 'text-red-500'
+  if (routeNo.startsWith('군위')) return 'text-green-500'
+  if (/^\d+(-\d+)?$/.test(routeNo)) return 'text-blue-600'
+  return 'text-green-500'
 }
 </script>
 
