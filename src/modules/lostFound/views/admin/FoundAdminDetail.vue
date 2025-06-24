@@ -1,96 +1,46 @@
 <template>
-  <div class="container py-4">
-    <div class="card p-3">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">📦 습득물 상세 정보 (관리자)</h5>
-        <div class="d-flex gap-2">
-          <button 
-            @click="goToEditPage" 
-            class="btn btn-primary btn-sm"
-          >
-            <i class="bi bi-pencil me-1"></i> 수정
-          </button>
-          <button 
-            @click="goBack" 
-            class="btn btn-outline-secondary btn-sm"
-          >
-            <i class="bi bi-arrow-left me-1"></i> 목록으로
-          </button>
-        </div>
+  <div class="max-w-xl mx-auto mt-12 p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="text-2xl font-extrabold flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        습득물 상세 정보
+      </h2>
+      <div class="flex gap-2">
+        <button @click="goToEditPage" class="px-4 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6 6M3 17v4h4l11-11a2.828 2.828 0 10-4-4L3 17z" /></svg>
+          수정
+        </button>
+        <button @click="goBack" class="px-4 py-1 rounded bg-gray-100 text-gray-700 font-semibold border border-gray-300 hover:bg-gray-200 transition flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          목록으로
+        </button>
       </div>
-      
-      <div v-if="item" class="row">
-        <!-- 이미지 -->
-        <div class="col-md-4 text-center mb-3">
-          <img 
-            v-if="item.photoUrl" 
-            :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
-            alt="등록된 이미지" 
-            class="img-fluid rounded shadow-sm" 
-            style="max-height: 220px;" 
-          />
-          <div v-else class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 220px;">
-            <span class="text-muted">이미지 없음</span>
-          </div>
-        </div>
-
-        <!-- 상세 정보 -->
-        <div class="col-md-8">
-          <table class="table table-bordered">
-            <tbody>
-              <tr>
-                <th>물품명</th>
-                <td>{{ item.itemName || '-' }}</td>
-              </tr>
-              <tr>
-                <th>버스 회사</th>
-                <td>{{ item.busCompany || '-' }}</td>
-              </tr>
-              <tr>
-                <th>노선 번호</th>
-                <td>{{ item.busNumber || '-' }}</td>
-              </tr>
-              <tr>
-                <th>습득 위치</th>
-                <td>{{ item.foundPlace || '-' }}</td>
-              </tr>
-              <tr>
-                <th>습득일</th>
-                <td>{{ formatDate(item.foundTime) }}</td>
-              </tr>
-              <tr>
-                <th>연락처</th>
-                <td>{{ item.handlerContact || '-' }}</td>
-              </tr>
-              <tr>
-                <th>이메일</th>
-                <td>{{ item.handlerEmail || '-' }}</td>
-              </tr>
-              <tr>
-                <th>처리 상태</th>
-                <td>{{ statusLabel(item.status) }}</td>
-              </tr>
-              <tr>
-                <th>보관 장소</th>
-                <td>{{ item.storageLocation || '-' }}</td>
-              </tr>
-              <tr>
-                <th>내용</th>
-                <td>{{ item.content || '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    </div>
+    <div v-if="item">
+      <div class="flex flex-col items-center mb-8">
+        <img v-if="item.photoUrl" :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" alt="등록된 이미지" class="w-64 h-40 object-cover rounded-xl shadow border mb-2 ring-2 ring-blue-200" />
+        <div v-else class="w-64 h-40 flex items-center justify-center bg-gray-100 rounded-xl text-gray-400 mb-2">이미지 없음</div>
       </div>
-      
-      <div v-else class="py-10 text-center">
-        <div v-if="loading" class="d-flex justify-content-center">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <p v-else class="text-muted">정보를 찾을 수 없습니다.</p>
+      <div class="grid grid-cols-1 gap-4">
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">물품명</div><div class="flex-1">{{ item.itemName || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">버스 회사</div><div class="flex-1">{{ item.busCompany || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">노선 번호</div><div class="flex-1">{{ item.busNumber || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">습득 위치</div><div class="flex-1">{{ item.foundPlace || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">습득일</div><div class="flex-1">{{ formatDate(item.foundTime) }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">연락처</div><div class="flex-1">{{ item.handlerContact || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">이메일</div><div class="flex-1">{{ item.handlerEmail || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">처리 상태</div><div class="flex-1"><span :class="getStatusClass(item.status)">{{ statusLabel(item.status) }}</span></div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">보관 장소</div><div class="flex-1">{{ item.storageLocation || '-' }}</div></div>
+        <div class="flex items-center gap-4"><div class="w-32 text-gray-500 font-semibold">내용</div><div class="flex-1">{{ item.content || '-' }}</div></div>
+        <div v-if="item.isDeleted || item.deleted" class="text-red-600 font-bold">(삭제됨)</div>
+        <div v-else-if="item.visible === false" class="text-blue-800 font-bold">(숨김됨)</div>
       </div>
+    </div>
+    <div v-else class="py-10 text-center">
+      <div v-if="loading" class="flex justify-center">
+        <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      </div>
+      <p v-else class="text-gray-400">정보를 찾을 수 없습니다.</p>
     </div>
   </div>
 </template>
@@ -138,6 +88,14 @@ const statusLabel = (status) => {
     RETURNED: '수령완료'
   }
   return map[status] || status
+}
+
+const getStatusClass = (status) => {
+  const map = {
+    IN_STORAGE: 'bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium rounded-full',
+    RETURNED: 'bg-green-100 text-green-800 px-2 py-1 text-xs font-medium rounded-full'
+  }
+  return map[status] || 'bg-gray-100 text-gray-800 px-2 py-1 text-xs font-medium rounded-full'
 }
 
 onMounted(() => {

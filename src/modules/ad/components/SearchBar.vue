@@ -26,4 +26,4 @@ function onReset() {
   keyword.value = '';
   emit('reset');
 }
-</script>
+</script> 

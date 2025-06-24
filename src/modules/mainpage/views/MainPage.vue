@@ -67,7 +67,33 @@
         </div>
       </div>
     </section>
-    
+
+    <!-- 팝업 광고 -->
+    <div
+        v-if="showPopup && popupAd"
+        class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[9999] bg-white p-4 shadow-2xl rounded-xl w-[400px]"
+    >
+      <button
+          class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl font-bold"
+          @click="closePopup"
+      >
+        &times;
+      </button>
+      <a :href="popupAd.linkUrl" target="_blank">
+        <img
+            :src="`${IMAGE_BASE_URL}/ad/${popupAd.imageUrl}`"
+            alt="광고 이미지"
+            class="w-full h-auto rounded"
+        />
+      </a>
+      <div class="text-right mt-2">
+        <button @click="dismissToday" class="text-sm text-gray-500 hover:text-black">
+          하루 동안 보지 않기
+        </button>
+      </div>
+
+    </div>
+
     <!-- 슬라이더 영역 -->
     <section class="info-slider">
       <div class="slider-container">
@@ -192,6 +218,39 @@ const notices = ref([]);
 const lowFloorBuses = ref([]);
 const isLoading = ref(false);
 const error = ref('');
+
+const popupAd = ref(null)
+const showPopup = ref(false)
+
+const fetchPopupAd = async () => {
+  try {
+    const res = await axios.get('https://localhost:8081/api/ad/popup')
+    const ad = res.data
+    const today = new Date().toISOString().split('T')[0]
+    const dismissed = JSON.parse(localStorage.getItem('dismissedPopups') || '{}')
+
+    if (!dismissed[`${today}_${ad.id}`]) {
+      popupAd.value = ad
+      showPopup.value = true
+    }
+  } catch (e) {
+    console.log('팝업 광고 없음 또는 오류:', e)
+  }
+}
+
+const dismissToday = () => {
+  const today = new Date().toISOString().split('T')[0]
+  const dismissed = JSON.parse(localStorage.getItem('dismissedPopups') || '{}')
+  dismissed[`${today}_${popupAd.value.id}`] = true
+  localStorage.setItem('dismissedPopups', JSON.stringify(dismissed))
+  showPopup.value = false
+}
+
+// ✅ 닫기 버튼 처리용 함수
+const closePopup = () => {
+  showPopup.value = false
+}
+
 
 // 공지사항 데이터 불러오기
 const fetchNotices = async () => {
@@ -434,7 +493,8 @@ onMounted(async () => {
   fetchNotices();
   fetchLowFloorBuses();
   fetchBanners();
-  
+  fetchPopupAd();
+
   // 로컬 스토리지에서 검색 히스토리 로드
   searchStore.loadRecentSearchesFromCache();
 });

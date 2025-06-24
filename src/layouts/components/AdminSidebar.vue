@@ -50,8 +50,8 @@
       </div>
       <div class="mb-4">
         <div class="px-3 py-2 text-sm font-medium text-gray-900 flex items-center">
-          <svg class="mr-3 h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+          <svg class="mr-3 h-5 w-5 text-gray-500" viewBox="0 0 576 512" fill="currentColor">
+            <path d="M576 240c0-16.1-13-31.1-32-31.1H512V80c0-26.5-21.5-48-48-48-6.6 0-13.1 1.3-19.1 3.9L96 192H48c-26.5 0-48 21.5-48 48s21.5 48 48 48h48l348.9 156.1c6 2.6 12.5 3.9 19.1 3.9 26.5 0 48-21.5 48-48V303.1h32c19 0 32-15 32-31.1zM464 432c0 8.8-7.2 16-16 16-2.1 0-4.2-.4-6.1-1.2L96 304V208l345.9-142.8c1.9-.8 4-.2 6.1-.2 8.8 0 16 7.2 16 16v352z"/>
           </svg>
           광고
         </div>
@@ -63,7 +63,7 @@
             광고 관리
           </router-link>
           <router-link
-              to="/admin/ad"
+              to="/admin/adcompany"
               class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
           >
             광고 회사 관리
