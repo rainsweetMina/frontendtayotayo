@@ -82,7 +82,8 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth';
+import axios from '@/api/axiosInstance';
 
 const router = useRouter();
 const email = ref("admin@example.com");
@@ -91,28 +92,114 @@ const rememberMe = ref(false);
 const error = ref("");
 const isLoading = ref(false);
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
 async function login() {
   try {
     isLoading.value = true;
     error.value = "";
 
-    // 실제 환경에서는 API 호출로 대체
-    if (email.value && password.value) {
-      // 로그인 성공 처리
-      localStorage.setItem('isAuthenticated', 'true');
-      if (rememberMe.value) {
-        localStorage.setItem('userEmail', email.value);
+    if (!email.value || !password.value) {
+      error.value = "이메일과 비밀번호를 입력해주세요.";
+      return;
+    }
+
+    // JWT 인증 API 호출
+    try {
+      const response = await axios.post('/api/auth/login', {
+        email: email.value,
+        password: password.value
+      });
+
+      // JWT 토큰 추출
+      const { accessToken, refreshToken, expiresIn } = response.data;
+      
+      if (accessToken) {
+        // 토큰 및 사용자 정보 저장
+        authStore.login({
+          id: response.data.id || null,
+          role: response.data.role || 'USER',
+          username: response.data.username || email.value,
+          userId: response.data.userId || response.data.id,
+          email: email.value,
+          accessToken,
+          refreshToken,
+          expiresIn
+        });
+
+        // 로그인 성공 시 로컬 스토리지에 이메일 저장 (rememberMe가 true인 경우)
+        if (rememberMe.value) {
+          localStorage.setItem('userEmail', email.value);
+        } else {
+          localStorage.removeItem('userEmail');
+        }
+        
+        // 관리자인 경우 관리자 대시보드로, 일반 사용자는 메인 페이지로 리다이렉트
+        if (authStore.isAdmin) {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/");
+        }
+      } else {
+        error.value = "로그인에 실패했습니다. 응답에 토큰이 없습니다.";
+      }
+    } catch (apiError) {
+      console.error('Login API error:', apiError);
+      
+      if (apiError.response) {
+        // 서버에서 오류 응답이 온 경우
+        if (apiError.response.status === 401) {
+          error.value = "이메일 또는 비밀번호가 올바르지 않습니다.";
+        } else if (apiError.response.data && apiError.response.data.message) {
+          error.value = apiError.response.data.message;
+        } else {
+          error.value = `로그인 실패: ${apiError.response.status}`;
+        }
+      } else if (apiError.request) {
+        // 요청은 보냈으나 응답이 없는 경우
+        error.value = "서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.";
+      } else {
+        error.value = "로그인 요청을 생성하는 중 오류가 발생했습니다.";
       }
       
-      // 사용자 정보를 store에 저장
-      authStore.login('ADMIN', email.value)
-      
-      // 관리자 대시보드로 리다이렉트
-      router.push("/admin/dashboard");
-    } else {
-      error.value = "이메일과 비밀번호를 입력해주세요.";
+      // 백엔드 API가 없는 개발 환경을 위한 임시 로그인 처리
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('개발 환경에서 임시 로그인 처리');
+        
+        // 임시 토큰 생성
+        const mockToken = `mock_${Math.random().toString(36).substring(2)}`;
+        const mockRefreshToken = `refresh_${Math.random().toString(36).substring(2)}`;
+        
+        // 관리자 계정으로 로그인
+        if (email.value === 'admin@example.com' && password.value === 'admin123!') {
+          authStore.login({
+            id: 1,
+            role: 'ADMIN',
+            username: 'Admin User',
+            userId: 'admin',
+            email: email.value,
+            accessToken: mockToken,
+            refreshToken: mockRefreshToken,
+            expiresIn: 3600
+          });
+          
+          router.push("/admin/dashboard");
+        } else {
+          // 일반 사용자로 로그인
+          authStore.login({
+            id: 2,
+            role: 'USER',
+            username: 'Regular User',
+            userId: 'user',
+            email: email.value,
+            accessToken: mockToken,
+            refreshToken: mockRefreshToken,
+            expiresIn: 3600
+          });
+          
+          router.push("/");
+        }
+      }
     }
   } catch (err) {
     error.value = "로그인 중 오류가 발생했습니다.";

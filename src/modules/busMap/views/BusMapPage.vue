@@ -52,6 +52,10 @@ function handleSearch({ keyword, newStart, newEnd }) {
   store.forceRouteMode = false
   if (!keyword.trim()) return
 
+  // 검색 결과 초기화
+  busStops.value = []
+  busRoutes.value = []
+  
   clearMapElements(window.leafletMap)
 
   // 지도 클리어
@@ -75,6 +79,17 @@ function handleSearch({ keyword, newStart, newEnd }) {
         busStops.value = data.busStops || []
         busRoutes.value = data.busNumbers || []
         drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
+        
+        // 검색 결과가 있으면 지도 중심 이동
+        if (busStops.value.length > 0) {
+          const firstStop = busStops.value[0]
+          const lat = parseFloat(firstStop.yPos ?? firstStop.ypos)
+          const lng = parseFloat(firstStop.xPos ?? firstStop.xpos)
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            window.leafletMap.setView([lat, lng], 15)
+          }
+        }
       })
       .catch(err => {
         console.error('❌ 검색 실패:', err)
@@ -154,22 +169,12 @@ onMounted(() => {
     
     // 지도가 로드된 후 검색 실행
     setTimeout(() => {
-      // 검색 API 직접 호출
-      axios.get('/api/bus/searchBSorBN', { params: { keyword } })
-        .then(({ data }) => {
-          busStops.value = data.busStops || []
-          busRoutes.value = data.busNumbers || []
-          store.toggleSidebar(true)
-          
-          // 검색 결과가 있을 경우 지도에 표시
-          if (window.leafletMap) {
-            drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
-          }
-        })
-        .catch(err => {
-          console.error('❌ 검색 실패:', err)
-          alert('검색 중 오류가 발생했습니다.')
-        })
+      // handleSearch 함수를 직접 호출하여 검색 로직 통일
+      handleSearch({ 
+        keyword, 
+        newStart: store.startCoord, 
+        newEnd: store.endCoord 
+      })
     }, 500) // 지도 로드 시간을 고려한 지연 시간
   }
 })

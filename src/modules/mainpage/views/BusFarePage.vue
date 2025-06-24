@@ -148,7 +148,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axios from '@/config/axios';
+import axios from '@/api/axiosInstance';
 
 const fares = ref([]);
 const loading = ref(false);

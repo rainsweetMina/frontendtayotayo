@@ -124,10 +124,46 @@ function clearRoutePolylines() {
 }
 
 function clearMapElementsForSearch() {
+  // 모든 마커와 레이어 초기화
   clearManualMarkers()
   clearAutoMarkers()
   clearRoutePolylines()
   clearTransferMarker()
+  
+  // 버스 정류장 마커 초기화
+  if (window.busStopMarkers) {
+    window.busStopMarkers.forEach(marker => {
+      if (map.value && map.value.hasLayer(marker)) {
+        map.value.removeLayer(marker)
+      }
+    })
+    window.busStopMarkers = []
+  }
+  
+  // 버스 위치 마커 초기화
+  clearBusMarkers()
+  
+  // 기타 모든 맵 요소 초기화
+  if (map.value) {
+    // 모든 레이어 초기화
+    map.value.eachLayer(layer => {
+      // 기본 타일 레이어는 제외
+      if (layer instanceof L.TileLayer) return
+      
+      // 마커, 폴리라인 등 모든 커스텀 레이어 제거
+      if (map.value.hasLayer(layer)) {
+        map.value.removeLayer(layer)
+      }
+    })
+  }
+  
+  // 전역 변수 초기화
+  window.routeLineLayers = []
+  window.routePointMarkers = []
+  window.busStopMarkers = []
+  window.realtimeBusMarkers = []
+  window.busLocationMarkers = []
+  window.routePolylines = []
 }
 
 defineExpose({
