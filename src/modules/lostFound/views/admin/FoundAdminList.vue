@@ -28,7 +28,7 @@
         </thead>
         <tbody>
         <tr
-          v-for="item in foundItems"
+          v-for="item in pagedFoundItems"
           :key="item.id"
           :class="['border-b hover:bg-blue-50 transition cursor-pointer', rowClass(item)]"
           @click="goToDetailPage(item.id)"
@@ -41,17 +41,17 @@
           <td class="py-2 px-4 font-semibold truncate">{{ item.itemName }}</td>
           <td class="py-2 px-4 text-center">{{ formatDate(item.foundTime) }}</td>
           <td class="py-2 px-4 text-center">
-            <span :class="getStatusClass(item.status)">
-              {{ getStatusText(item.status) }}
-            </span>
-            <span v-if="item.isDeleted || item.deleted" class="ml-2 text-xs text-red-600">(삭제됨)</span>
-            <span v-else-if="item.visible === false" class="ml-2 text-xs text-gray-500">(숨김됨)</span>
+            <span v-if="item.isDeleted || item.deleted" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-500">삭제됨</span>
+            <span v-else-if="item.visible === false" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-200 text-gray-500">숨김</span>
+            <span v-else :class="getStatusBadgeClass(item)">{{ getStatusText(item.status) }}</span>
           </td>
           <td class="py-2 px-4">
             <div class="flex justify-center items-center gap-2" @click.stop>
               <button
                 class="px-4 py-1 rounded bg-green-50 text-green-700 font-semibold border border-green-200 hover:bg-green-100 transition"
                 @click="goToEditPage(item.id)"
+                :disabled="item.isDeleted || item.deleted"
+                :class="inactiveBtnClass(item)"
               >수정</button>
               <button
                 class="px-4 py-1 rounded bg-gray-50 text-gray-700 font-semibold border border-gray-200 hover:bg-gray-100 transition"
@@ -71,11 +71,38 @@
         </tbody>
       </table>
     </div>
+    <!-- 페이지네이션 UI -->
+    <div v-if="totalPages > 1" class="mt-6 flex justify-center">
+      <nav class="flex items-center space-x-1" aria-label="Pagination">
+        <button
+          class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 mr-1"
+          :disabled="page === 1"
+          :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
+          @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+        >이전</button>
+        <button
+          v-for="p in totalPages"
+          :key="p"
+          class="px-3 py-1 rounded border text-sm font-medium mx-0.5"
+          :class="[
+            page === p ? 'bg-blue-50 border-blue-500 text-blue-600 font-bold underline' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50',
+            'transition-colors duration-150'
+          ]"
+          @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+        >{{ p }}</button>
+        <button
+          class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 ml-1"
+          :disabled="page === totalPages"
+          :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
+          @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+        >다음</button>
+      </nav>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getFoundItemsForAdmin, hideFoundItem, deleteFoundItem } from '@/modules/lostFound/api/foundAdmin'
 import SearchBar from "@/modules/lostFound/components/SearchBar.vue";
@@ -84,6 +111,12 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 const router = useRouter()
 const foundItems = ref([])
+const page = ref(1)
+const pageSize = 10
+const totalPages = computed(() => Math.ceil(foundItems.value.length / pageSize))
+const pagedFoundItems = computed(() =>
+  foundItems.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+)
 
 const handleSearch = async (keyword) => {
   try {
@@ -97,7 +130,7 @@ const handleSearch = async (keyword) => {
 const fetchFoundItems = async () => {
   try {
     const { data } = await getFoundItemsForAdmin()
-    foundItems.value = data
+    foundItems.value = data.sort((a, b) => b.id - a.id)
   } catch (error) {
     console.error('습득물 목록 조회 실패:', error)
   }
@@ -163,12 +196,10 @@ const getStatusText = (status) => {
   return map[status] || status
 }
 
-const getStatusClass = (status) => {
-  const map = {
-    IN_STORAGE: 'bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium rounded-full',
-    RETURNED: 'bg-green-100 text-green-800 px-2 py-1 text-xs font-medium rounded-full'
-  }
-  return map[status] || 'bg-gray-100 text-gray-800 px-2 py-1 text-xs font-medium rounded-full'
+const getStatusBadgeClass = (item) => {
+  if (item.status === 'IN_STORAGE') return 'inline-block rounded-full px-3 py-1 text-sm font-bold bg-blue-100 text-blue-700'
+  if (item.status === 'RETURNED') return 'inline-block rounded-full px-3 py-1 text-sm font-bold bg-green-100 text-green-700'
+  return 'inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-100 text-gray-400'
 }
 
 const formatDate = (dateStr) => {

@@ -15,9 +15,4 @@ export default [
         component: () => import('@/modules/ad/views/ad/AdExtendPage.vue'),
         props: true
     }
-
-    // // 광고회사
-    // { path: '/admin/ad-company',              component: () => import('@/modules/ad/views/adCompany/adCompanyList.vue') },
-    // { path: '/admin/ad-company/create',       component: () => import('@/modules/ad/views/adCompany/adCompanyCreate.vue') },
-    // { path: '/admin/ad-company/edit/:id',     component: () => import('@/modules/ad/views/adCompany/adCompanyEdit.vue'), props: true },
 ]
