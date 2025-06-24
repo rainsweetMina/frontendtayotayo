@@ -15,7 +15,7 @@
         <span class="dust-value" :class="getDustClass(dustStatus)">{{ dustStatus }}</span>
       </div>
       <div class="dust-item">
-        <span class="dust-label">초미세먼지</span>
+        <span class="dust-label">초미세</span>
         <span class="dust-value" :class="getDustClass(fineDustStatus)">{{ fineDustStatus }}</span>
       </div>
     </div>
@@ -92,15 +92,6 @@ function convertToGrid(lat, lon) {
   return { nx: x, ny: y }
 }
 
-function getBaseDateTime() {
-  const now = new Date()
-  now.setMinutes(now.getMinutes() - 40)
-  const yyyyMMdd = now.toISOString().slice(0, 10).replace(/-/g, '')
-  const hour = String(now.getHours()).padStart(2, '0')
-  const minute = now.getMinutes() < 30 ? '00' : '30'
-  return { base_date: yyyyMMdd, base_time: `${hour}${minute}` }
-}
-
 // 오늘 날짜를 YYYYMMDD 형식으로 반환하는 함수
 function getToday() {
   const today = new Date();
@@ -108,6 +99,24 @@ function getToday() {
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
+}
+
+// 현재 시간을 HHMM 형식으로 반환하는 함수
+function getCurrentTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}${minutes}`;
+}
+
+// 기상청 API 호출을 위한 기준 날짜와 시간 계산
+function getBaseDateTime() {
+  const now = new Date()
+  now.setMinutes(now.getMinutes() - 40)
+  const yyyyMMdd = now.toISOString().slice(0, 10).replace(/-/g, '')
+  const hour = String(now.getHours()).padStart(2, '0')
+  const minute = now.getMinutes() < 30 ? '00' : '30'
+  return { base_date: yyyyMMdd, base_time: `${hour}${minute}` }
 }
 
 // 날씨 정보 조회 함수
@@ -125,14 +134,14 @@ async function fetchWeather() {
           pageNo: 1,
           numOfRows: 100,
           dataType: 'JSON',
-          base_date: base_date,
-          base_time: base_time,
-          nx: nx,
-          ny: ny
+          base_date: getToday(),
+          base_time: '0500',
+          nx: 89,
+          ny: 90
         },
         {
-          // 인코딩된 API 키 사용
-          apiKey: 'oDPMcPKGx7dsFyVw5YzReqSK07UuJoUrABe2dbwM7zt9yVfOjSlE7SQtdIir%2BEW%2BDWAcIvio0lm1rR2sMnW7iw%3D%3D',
+          // 인코딩되지 않은 원본 API 키 사용
+          apiKey: 'lIuYX2niKlocef22bmi40PfIT9fT2VuJdhz5wULQUmCMHm4yit0AxNRDUinnB/J9WU/pEOMof3VV11vrnYpUdw==',
           // 목업 데이터 제공
           mockData: {
             response: {
@@ -141,10 +150,10 @@ async function fetchWeather() {
                 dataType: 'JSON',
                 items: {
                   item: [
-                    { category: 'T1H', fcstValue: '22', fcstDate: base_date || getToday(), fcstTime: '1400' },
-                    { category: 'SKY', fcstValue: '1', fcstDate: base_date || getToday(), fcstTime: '1400' },
-                    { category: 'PTY', fcstValue: '0', fcstDate: base_date || getToday(), fcstTime: '1400' },
-                    { category: 'REH', fcstValue: '60', fcstDate: base_date || getToday(), fcstTime: '1400' }
+                    { category: 'T1H', fcstValue: '22', fcstDate: getToday(), fcstTime: '1400' },
+                    { category: 'SKY', fcstValue: '1', fcstDate: getToday(), fcstTime: '1400' },
+                    { category: 'PTY', fcstValue: '0', fcstDate: getToday(), fcstTime: '1400' },
+                    { category: 'REH', fcstValue: '60', fcstDate: getToday(), fcstTime: '1400' }
                   ]
                 }
               }
@@ -308,7 +317,7 @@ onMounted(async () => {
   color: white;
   transition: background 0.5s ease;
   border-radius: 10px;
-  padding: 20px;
+  padding: 15px;
   text-align: center;
 }
 
@@ -336,13 +345,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 h3 {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin: 0 0 0 10px;
+  margin: 0 0 0 8px;
 }
 
 .weather-info {
@@ -350,15 +359,15 @@ h3 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .weather-icon {
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .temperature {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -366,7 +375,7 @@ h3 {
 .weather-details {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 15px;
   width: 100%;
 }
 
@@ -377,16 +386,16 @@ h3 {
 }
 
 .dust-label {
-  font-size: 0.9rem;
-  margin-bottom: 5px;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
   opacity: 0.9;
 }
 
 .dust-value {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.2);
 }
 
