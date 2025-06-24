@@ -6,8 +6,16 @@ export default [
     {
         path: '/admin/ad/edit/:id',
         name: 'AdEdit',
-        component: () => import('@/modules/ad/views/ad/adCreate.vue') // ✅ 경로 수정
-    }    // { path: '/admin/ad/extend/:id',   component: () => import('@/modules/ad/views/ad/adExtend.vue'), props: true },
+        component: () => import('@/modules/ad/views/ad/adCreate.vue'),
+        props: true
+    },
+    {
+        path: '/admin/ad/extend/:id',
+        name: 'AdExtend',
+        component: () => import('@/modules/ad/views/ad/AdExtendPage.vue'),
+        props: true
+    }
+
     // // 광고회사
     // { path: '/admin/ad-company',              component: () => import('@/modules/ad/views/adCompany/adCompanyList.vue') },
     // { path: '/admin/ad-company/create',       component: () => import('@/modules/ad/views/adCompany/adCompanyCreate.vue') },

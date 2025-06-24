@@ -1,49 +1,53 @@
 <template>
-  <div>
-    <h2 class="text-2xl font-bold mb-6">관리자용 분실물 목록</h2>
-    <!-- ✅ 검색창 -->
-    <SearchBar
+  <div class="w-full px-0 py-8">
+    <div class="flex justify-between items-center mb-8 px-8">
+      <h2 class="text-3xl font-extrabold">관리자용 분실물 목록</h2>
+    </div>
+    <div class="px-8 mb-6">
+      <SearchBar
         placeholder="제목, 버스번호, 버스회사, 신고자 검색"
         @search="handleSearch"
         @reset="fetchLostItems"
-    />
-
-    <div class="bg-white shadow rounded-lg">
-      <table class="min-w-full divide-y divide-gray-200">
+      />
+    </div>
+    <div class="bg-white shadow-lg rounded-xl overflow-x-auto w-full">
+      <table class="w-full text-base">
         <thead>
-        <tr>
-          <th>ID</th>
-          <th>물품명</th>
-          <th>버스 번호</th>
-          <th>버스 회사</th>
-          <th>신고자</th>
-          <th>삭제 여부</th>
-          <th>숨김 여부</th>
-          <th>분실일</th>
-          <th>액션</th>
+        <tr class="bg-gray-100">
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">ID</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-left">물품명</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">버스 번호</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">버스 회사</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">신고자</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">삭제 여부</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">숨김 여부</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">분실일</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">액션</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="item in lostItems" :key="item.id"
-            :class="rowClass(item)"
+            :class="['border-b hover:bg-blue-50 transition cursor-pointer', rowClass(item)]"
             @click="goDetail(item.id)">
-          <td>{{ item.id }}</td>
-          <td>{{ item.title }}</td>
-          <td>{{ item.busNumber }}</td>
-          <td>{{ item.busCompany }}</td>
-          <td>{{ item.memberName }}</td>
-          <td>
-            <span v-if="item.deleted" class="text-red-500">삭제됨</span>
-            <span v-else>정상</span>
+          <td class="py-3 px-4 text-center font-mono">{{ item.id }}</td>
+          <td class="py-2 px-4 font-semibold truncate">{{ item.title }}</td>
+          <td class="py-2 px-4 text-center">{{ item.busNumber }}</td>
+          <td class="py-2 px-4 text-center">{{ item.busCompany }}</td>
+          <td class="py-2 px-4 text-center">{{ item.memberName }}</td>
+          <td class="py-2 px-4 text-center">
+            <span v-if="item.deleted" class="bg-red-100 text-red-700 px-2 py-1 text-xs font-medium rounded-full">삭제됨</span>
+            <span v-else class="bg-green-100 text-green-700 px-2 py-1 text-xs font-medium rounded-full">정상</span>
           </td>
-          <td>
-            <span v-if="!item.visible" class="text-gray-500">숨김</span>
-            <span v-else>보임</span>
+          <td class="py-2 px-4 text-center">
+            <span v-if="!item.visible" class="bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium rounded-full">숨김</span>
+            <span v-else class="bg-gray-100 text-gray-800 px-2 py-1 text-xs font-medium rounded-full">보임</span>
           </td>
-          <td>{{ formatDate(item.lostTime) }}</td>
-          <td>
-            <button class="btn btn-warning mr-2" @click.stop="hideItem(item)" :disabled="item.deleted || !item.visible">숨김</button>
-            <button class="btn btn-danger" @click.stop="deleteItem(item)" :disabled="item.deleted">삭제</button>
+          <td class="py-2 px-4 text-center">{{ formatDate(item.lostTime) }}</td>
+          <td class="py-2 px-4">
+            <div class="flex justify-center items-center gap-2" @click.stop>
+              <button class="px-4 py-1 rounded bg-gray-50 text-gray-700 font-semibold border border-gray-200 hover:bg-gray-100 transition" @click="hideItem(item)" :disabled="item.deleted || !item.visible">숨김</button>
+              <button class="px-4 py-1 rounded bg-red-50 text-red-700 font-semibold border border-red-200 hover:bg-red-100 transition" @click="deleteItem(item)" :disabled="item.deleted">삭제</button>
+            </div>
           </td>
         </tr>
         </tbody>
@@ -100,7 +104,7 @@ const formatDate = (dateStr) => {
 
 const rowClass = (item) => {
   if (item.deleted) return 'bg-red-100 opacity-60';
-  if (!item.visible) return 'bg-gray-100 opacity-80';
+  if (!item.visible) return 'bg-blue-100 text-blue-800 opacity-90';
   return '';
 }
 

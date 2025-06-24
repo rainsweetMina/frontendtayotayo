@@ -1,51 +1,39 @@
 <template>
-  <div class="container py-4">
-    <div class="card p-3">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">📝 습득물 정보 수정</h5>
-        <button 
-          @click="goBack" 
-          class="btn btn-outline-secondary btn-sm"
-        >
-          <i class="bi bi-x-circle me-1"></i> 취소
-        </button>
-      </div>
-      
-      <div v-if="item" class="mt-4">
-        <FoundItemForm :item="item" @submitted="handleSubmit" />
-        
-        <!-- 매칭 섹션 -->
-        <div class="card mt-4 bg-light">
-          <div class="card-body">
-            <h6 class="card-title mb-3">분실물 매칭</h6>
-            <div class="row g-3 align-items-end">
-              <div class="col-md-8">
-                <label class="form-label">분실물 ID (매칭용)</label>
-                <input v-model="matchLostId" class="form-control" placeholder="예: 10 (선택)" />
-                <small class="text-muted">매칭할 분실물 ID를 입력하세요</small>
-              </div>
-              <div class="col-md-4 text-end">
-                <button
-                  type="button"
-                  class="btn btn-warning"
-                  @click="matchWithLostItem"
-                >
-                  <i class="bi bi-link me-1"></i> 매칭하기
-                </button>
-              </div>
-            </div>
+  <div>
+    <div v-if="item">
+      <FoundItemForm :item="item" @submitted="handleSubmit" />
+      <!-- 매칭 섹션도 동일 카드 스타일로 -->
+      <div class="bg-white rounded-2xl shadow-lg border max-w-xl mx-auto mt-8 p-8">
+        <h6 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          분실물 매칭
+        </h6>
+        <div class="flex flex-col gap-4">
+          <div>
+            <label class="block font-semibold mb-1 text-gray-700">분실물 ID (매칭용)</label>
+            <input v-model="matchLostId" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" placeholder="예: 10 (선택)" />
+            <small class="text-gray-400">매칭할 분실물 ID를 입력하세요</small>
+          </div>
+          <div class="flex justify-end">
+            <button
+              type="button"
+              class="bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition flex items-center"
+              @click="matchWithLostItem"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
+              매칭하기
+            </button>
           </div>
         </div>
       </div>
-      
-      <div v-else class="py-5 text-center">
-        <div v-if="loading" class="d-flex justify-content-center">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
+    </div>
+    <div v-else class="py-5 text-center">
+      <div v-if="loading" class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
-        <p v-else class="text-muted">정보를 찾을 수 없습니다.</p>
       </div>
+      <p v-else class="text-muted">정보를 찾을 수 없습니다.</p>
     </div>
   </div>
 </template>

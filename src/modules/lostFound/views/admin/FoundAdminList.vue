@@ -1,74 +1,69 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">등록된 습득물 관리</h1>
+  <div class="w-full px-0 py-8">
+    <div class="flex justify-between items-center mb-8 px-8">
+      <h2 class="text-3xl font-extrabold">등록된 습득물 목록</h2>
       <button
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          @click="goToCreatePage"
-      >
-        습득물 등록
-      </button>
+        class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        @click="goToCreatePage"
+      >습득물 등록</button>
     </div>
-    <SearchBar
+    <div class="px-8 mb-6">
+      <SearchBar
         placeholder="물품명, 버스회사, 노선번호 검색"
         @search="handleSearch"
         @reset="fetchFoundItems"
-    />
-
-    <!-- ✅ 목록 테이블 -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사진</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">물품명</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">습득일</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
-          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+      />
+    </div>
+    <div class="bg-white shadow-lg rounded-xl overflow-x-auto w-full">
+      <table class="w-full text-base">
+        <thead>
+        <tr class="bg-gray-100">
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">ID</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">사진</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-left">물품명</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">습득일</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">상태</th>
+          <th class="py-3 px-4 font-bold text-gray-700 text-center">액션</th>
         </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody>
         <tr
-            v-for="item in foundItems"
-            :key="item.id"
-            :class="rowClass(item)"
-            @click="goToDetailPage(item.id)"
+          v-for="item in foundItems"
+          :key="item.id"
+          :class="['border-b hover:bg-blue-50 transition cursor-pointer', rowClass(item)]"
+          @click="goToDetailPage(item.id)"
         >
-          <td class="px-4 py-3 text-sm text-gray-500">{{ item.id }}</td>
-          <td class="px-4 py-3">
-            <img v-if="item.photoUrl" :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" alt="사진" class="w-12 h-12 object-cover rounded" />
-            <span v-else class="text-gray-400 text-sm">-</span>
+          <td class="py-3 px-4 text-center font-mono">{{ item.id }}</td>
+          <td class="py-2 px-4 flex justify-center items-center">
+            <img v-if="item.photoUrl" :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" alt="사진" class="w-32 h-20 object-cover rounded shadow" />
+            <span v-else class="text-gray-400">-</span>
           </td>
-          <td class="px-4 py-3">{{ item.itemName }}</td>
-          <td class="px-4 py-3 text-sm text-gray-500">{{ formatDate(item.foundTime) }}</td>
-          <td class="px-4 py-3">
+          <td class="py-2 px-4 font-semibold truncate">{{ item.itemName }}</td>
+          <td class="py-2 px-4 text-center">{{ formatDate(item.foundTime) }}</td>
+          <td class="py-2 px-4 text-center">
             <span :class="getStatusClass(item.status)">
               {{ getStatusText(item.status) }}
             </span>
-            <!-- 상태 표시 -->
             <span v-if="item.isDeleted || item.deleted" class="ml-2 text-xs text-red-600">(삭제됨)</span>
             <span v-else-if="item.visible === false" class="ml-2 text-xs text-gray-500">(숨김됨)</span>
           </td>
-          <td class="px-4 py-3 text-sm">
-            <div class="flex space-x-2" @click.stop>
-              <!-- 수정은 항상 활성화 -->
+          <td class="py-2 px-4">
+            <div class="flex justify-center items-center gap-2" @click.stop>
               <button
-                  class="text-green-600 hover:underline"
-                  @click="goToEditPage(item.id)"
+                class="px-4 py-1 rounded bg-green-50 text-green-700 font-semibold border border-green-200 hover:bg-green-100 transition"
+                @click="goToEditPage(item.id)"
               >수정</button>
-              <!-- 숨김/삭제는 비활성처리(스타일/속성 모두) -->
               <button
-                  class="text-gray-600 hover:underline"
-                  @click="hideItem(item)"
-                  :disabled="!item.visible || item.isDeleted || item.deleted"
-                  :class="inactiveBtnClass(item)"
+                class="px-4 py-1 rounded bg-gray-50 text-gray-700 font-semibold border border-gray-200 hover:bg-gray-100 transition"
+                @click="hideItem(item)"
+                :disabled="!item.visible || item.isDeleted || item.deleted"
+                :class="inactiveBtnClass(item)"
               >숨김</button>
               <button
-                  class="text-red-600 hover:underline"
-                  @click="deleteItem(item)"
-                  :disabled="item.isDeleted || item.deleted"
-                  :class="inactiveBtnClass(item)"
+                class="px-4 py-1 rounded bg-red-50 text-red-700 font-semibold border border-red-200 hover:bg-red-100 transition"
+                @click="deleteItem(item)"
+                :disabled="item.isDeleted || item.deleted"
+                :class="inactiveBtnClass(item)"
               >삭제</button>
             </div>
           </td>
@@ -147,7 +142,7 @@ const deleteItem = async (item) => {
 // ✅ 행 배경 색상/불투명도 동적 적용
 const rowClass = (item) => {
   if (item.isDeleted || item.deleted) return "bg-red-100 opacity-60";        // 삭제 → 빨간색
-  if (item.visible === false)    return "bg-gray-100 opacity-80";            // 숨김 → 회색
+  if (item.visible === false)    return "bg-blue-100 text-blue-800 opacity-90";        // 숨김 → 연파랑
   return "";
 };
 

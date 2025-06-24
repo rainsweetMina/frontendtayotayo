@@ -26,7 +26,8 @@
         <tr
             v-for="ad in adList"
             :key="ad.id"
-            class="border-b hover:bg-blue-50 transition"
+            class="border-b hover:bg-blue-50 transition cursor-pointer"
+            @click="openDetail(ad)"
         >
           <td class="py-3 px-4 text-center font-mono">{{ ad.id }}</td>
           <td class="py-2 px-4 flex justify-center items-center">
@@ -84,9 +85,29 @@
         </tbody>
       </table>
     </div>
+
+    <!-- 광고 상세 팝업 -->
+    <div v-if="detailAd" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div class="relative bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+        <button
+          class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+          @click="closeDetail"
+          aria-label="닫기"
+        >&times;</button>
+        <img :src="`${IMAGE_BASE_URL}/ad/${detailAd.imageUrl}`" alt="광고" class="w-full rounded mb-4" />
+        <div class="mb-2"><b>제목:</b> {{ detailAd.title }}</div>
+        <div class="mb-2"><b>링크:</b> <a :href="detailAd.linkUrl" target="_blank" class="text-blue-600 underline">{{ detailAd.linkUrl }}</a></div>
+        <div class="mb-2"><b>기간:</b> {{ formatDate(detailAd.startDateTime) }} ~ {{ formatDate(detailAd.endDateTime) }}</div>
+        <div class="mb-2"><b>광고회사:</b> {{ detailAd.companyName }}</div>
+        <div class="flex gap-2 mt-4">
+          <button class="px-4 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700" @click="goEdit(detailAd.id)">수정</button>
+          <button class="px-4 py-1 rounded bg-green-600 text-white font-semibold hover:bg-green-700" @click="goExtend(detailAd.id)">연장</button>
+          <button class="px-4 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700" @click="handleDelete(detailAd.id)">삭제</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -96,6 +117,10 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 
 const router = useRouter()
 const adList = ref([])
+
+const detailAd = ref(null)
+const openDetail = (ad) => { detailAd.value = ad }
+const closeDetail = () => { detailAd.value = null }
 
 const fetchData = async () => {
   try {
@@ -107,12 +132,14 @@ const fetchData = async () => {
 
 // 수정 버튼 클릭 이벤트
 const goEdit = (id) => {
-  router.push({ name: 'AdEdit', params: { id } })
+  router.push({ name: 'AdminAdEdit', params: { id } })
 }
-const goExtend = (id) => { router.push({ name: 'AdExtend', params: { id } }) }
+const goExtend = (id) => {
+  router.push({ name: 'AdminAdExtend', params: { id } })
+}
 const handleDelete = async (id) => {
   if (!confirm('정말 삭제하시겠습니까?')) return
-  try { await deleteAd(id); await fetchData(); alert('삭제되었습니다.') }
+  try { await deleteAd(id); await fetchData(); alert('삭제되었습니다.'); closeDetail(); }
   catch (e) { alert('삭제에 실패했습니다.') }
 }
 

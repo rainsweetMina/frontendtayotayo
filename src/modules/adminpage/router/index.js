@@ -109,6 +109,18 @@ export const adminRoutes = {
       component: AdminAdCreate
     },
     {
+      path: "ad/edit/:id",          // ✅ /admin/ad/edit/:id
+      name: "AdminAdEdit",
+      component: AdminAdCreate,
+      props: true
+    },
+    {
+      path: "ad/extend/:id",
+      name: "AdminAdExtend",
+      component: () => import('@/modules/ad/views/ad/AdExtendPage.vue'),
+      props: true
+    },
+    {
       path: "operation-time",
       name: "AdminOperationTime",
       component: AdminOperationTime
