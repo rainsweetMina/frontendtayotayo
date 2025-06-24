@@ -101,6 +101,15 @@ function getBaseDateTime() {
   return { base_date: yyyyMMdd, base_time: `${hour}${minute}` }
 }
 
+// 오늘 날짜를 YYYYMMDD 형식으로 반환하는 함수
+function getToday() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
 // 날씨 정보 조회 함수
 async function fetchWeather() {
   try {
@@ -122,8 +131,8 @@ async function fetchWeather() {
           ny: ny
         },
         {
-          // 인코딩되지 않은 원본 API 키 사용
-          apiKey: 'oDPMcPKGx7dsFyVw5YzReqSK07UuJoUrABe2dbwM7zt9yVfOjSlE7SQtdIir+EW+DWAcIvio0lm1rR2sMnW7iw==',
+          // 인코딩된 API 키 사용
+          apiKey: 'oDPMcPKGx7dsFyVw5YzReqSK07UuJoUrABe2dbwM7zt9yVfOjSlE7SQtdIir%2BEW%2BDWAcIvio0lm1rR2sMnW7iw%3D%3D',
           // 목업 데이터 제공
           mockData: {
             response: {
@@ -132,10 +141,10 @@ async function fetchWeather() {
                 dataType: 'JSON',
                 items: {
                   item: [
-                    { category: 'T1H', fcstValue: '22', fcstDate: getToday(), fcstTime: '1400' },
-                    { category: 'SKY', fcstValue: '1', fcstDate: getToday(), fcstTime: '1400' },
-                    { category: 'PTY', fcstValue: '0', fcstDate: getToday(), fcstTime: '1400' },
-                    { category: 'REH', fcstValue: '60', fcstDate: getToday(), fcstTime: '1400' }
+                    { category: 'T1H', fcstValue: '22', fcstDate: base_date || getToday(), fcstTime: '1400' },
+                    { category: 'SKY', fcstValue: '1', fcstDate: base_date || getToday(), fcstTime: '1400' },
+                    { category: 'PTY', fcstValue: '0', fcstDate: base_date || getToday(), fcstTime: '1400' },
+                    { category: 'REH', fcstValue: '60', fcstDate: base_date || getToday(), fcstTime: '1400' }
                   ]
                 }
               }
