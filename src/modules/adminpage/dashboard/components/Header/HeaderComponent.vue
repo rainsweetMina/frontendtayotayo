@@ -48,8 +48,8 @@ const busMenu = [
   {label: '버스 요금', to: '/fare'},
   {label: '버스 운행 시간표', to: '/schedule'},
   {label: '저상버스 시간표', to: '/low-schedule'},
-  {label: '정류장 조회', to: '/bus-info'},
-  {label: '버스 회사 조회', to: '/bus-company'}
+  {label: '정류장 조회', to: '/stop-info'},
+  {label: '버스 회사 조회', to: '/companies'}
 ]
 
 const lostMenu = [

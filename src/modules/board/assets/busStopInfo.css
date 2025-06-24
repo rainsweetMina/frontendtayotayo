@@ -1,4 +1,31 @@
 /* ✅ 페이지 컨테이너 및 제목 */
+.page-container {
+    max-width: 1240px;
+    margin: 20px auto;
+    padding: 20px 20px;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+}
+
+.page-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2c3e50;
+    border-left: 6px solid #4d9eff;
+}
+
+* {
+    color: #333;
+    box-sizing: border-box;
+}
+
 .search-box {
     margin: 1rem 0;
     padding: 16px;
@@ -34,21 +61,6 @@
     max-width: 240px;
 }
 
-.page-container {
-    max-width: 960px;
-    margin: 40px auto;
-    padding: 0 20px;
-    font-family: 'Noto Sans KR', sans-serif;
-}
-
-.page-title {
-    font-size: 28px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-}
 
 /* ✅ 박스 레이아웃 (선택 영역, 결과 등) */
 .section-box {
@@ -72,7 +84,7 @@
 }
 
 .tab-selector button.active {
-    background-color: #1e60c7;
+    background-color: #0d6efd;
     color: white;
     font-weight: 600;
 }
@@ -110,7 +122,7 @@
 }
 
 .bus-stop-result-table th {
-    background-color: #f9f9f9;
+    background-color: #f0f6ff;
     font-weight: 600;
 }
 

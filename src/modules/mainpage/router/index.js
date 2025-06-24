@@ -21,7 +21,7 @@ const mainPageRoutes = [
     }
   },
   {
-    path: '/fare',
+    path: '/fare2',
     name: 'BusFare',
     component: BusFarePage,
     meta: {

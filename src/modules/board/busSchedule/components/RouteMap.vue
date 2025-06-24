@@ -94,8 +94,8 @@ watch(
 
 <style scoped>
 .scroll-container {
-  width: 80%;
-  min-width: 30%;
+  max-width: 500px;
+  min-width: 300px;
   margin: 24px auto;
   background: #ffffff;
   border-radius: 16px;

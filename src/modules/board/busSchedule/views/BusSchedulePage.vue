@@ -1,41 +1,46 @@
 <template>
-  <div class="bus-schedule-page">
-    <h2>버스 시간표</h2>
+  <div class="bus-schedule-layout">
+    <!-- 왼쪽: 본문 -->
+    <div :class="['bus-schedule-page', { 'map-open': routeId && showRouteMap }]">
 
-    <!-- 날짜 + 노선 + 방향/방면 선택 -->
-    <ScheduleSelector
-        v-model:routeNo="routeNo"
-        v-model:routeNote="routeNote"
-        v-model:moveDir="moveDir"
-        @route-id-updated="handleRouteIdUpdated"
-    />
+    <h2>버스 운행 시간표</h2>
 
-    <hr />
+      <ScheduleSelector
+          v-model:routeNo="routeNo"
+          v-model:routeNote="routeNote"
+          v-model:moveDir="moveDir"
+          @route-id-updated="handleRouteIdUpdated"
+      />
 
-    <!-- 시간표 테이블 -->
-    <ScheduleTable
-        v-if="shouldLoadSchedule"
-        :route-id="routeId"
-        :move-dir="moveDir"
-        :selected-stops="selectedStops"
-        :route-no="routeNo"
-    :route-note="routeNote"
-    />
+      <hr/>
 
-    <div class="route-toggle" v-if="shouldLoadSchedule">
-      <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
-        {{ showRouteMap ? '노선도 접기 ▲' : '노선도 보기 ▼' }}
-      </button>
+      <ScheduleTable
+          v-if="shouldLoadSchedule"
+          :route-id="routeId"
+          :move-dir="moveDir"
+          :selected-stops="selectedStops"
+          :route-no="routeNo"
+          :route-note="routeNote"
+      />
+
+      <div class="route-toggle" v-if="shouldLoadSchedule">
+        <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
+          {{ showRouteMap ? '노선도 접기 ▲' : '노선도 보기 ▼' }}
+        </button>
+      </div>
+
     </div>
 
-    <!-- 노선도 -->
-    <RouteMap
-        v-if="routeId && showRouteMap"
-        :route-id="routeId"
-        :move-dir="moveDir"
-    />
+    <!-- 오른쪽: 노선도 -->
+    <div
+        class="side-route-map"
+        v-show="routeId && showRouteMap"
+    >
+      <RouteMap :route-id="routeId" :move-dir="moveDir"/>
+    </div>
   </div>
 </template>
+
 
 <script setup>
 import api from '@/api/axiosInstance'
@@ -74,7 +79,7 @@ async function handleRouteIdUpdated(data) {
     const res = await api.get('/api/schedule-header', {
       params: {
         routeId: data.routeId,
-        ...(data.moveDir !== null && { moveDir: data.moveDir })
+        ...(data.moveDir !== null && {moveDir: data.moveDir})
       }
     })
     selectedStops.value = res.data || []
@@ -92,4 +97,48 @@ watch([routeNo, routeNote, moveDir], () => {
 
 <style scoped>
 @import "@/modules/board/assets/schedule.css";
+
+.bus-schedule-layout {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 0 auto;
+  padding: 0 20px;
+  max-width: 1400px;
+}
+
+/* ✅ 디자인은 유지하되 너비만 고정 */
+.bus-schedule-page {
+  max-width: 1000px;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+/* 노선도는 오른쪽에 자연스럽게 */
+.side-route-map {
+  width: 300px;
+  align-self: stretch; /* 왼쪽 본문 높이만큼 자동 확장 */
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  overflow: hidden; /* 스크롤 제거 */
+  transition: all 0.3s;
+}
+
+/* 반응형 처리 */
+@media (max-width: 1024px) {
+  .bus-schedule-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .side-route-map {
+    width: 100%;
+    max-height: none;
+    margin-top: 16px;
+  }
+}
+
 </style>
