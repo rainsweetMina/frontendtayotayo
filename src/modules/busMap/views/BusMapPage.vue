@@ -54,7 +54,6 @@ function handleSearch({ keyword, newStart, newEnd }) {
 
   clearMapElements(window.leafletMap)
 
-  // 지도 클리어
   mapRef.value?.clearMapElementsForSearch?.()
   mapRef.value?.clearStartMarker?.()
   mapRef.value?.clearManualStartMarkers?.()
@@ -66,7 +65,6 @@ function handleSearch({ keyword, newStart, newEnd }) {
   if (newStart) store.setStartCoord(newStart)
   if (newEnd) store.setEndCoord(newEnd)
 
-  // 검색 수행
   store.setKeyword(keyword)
   store.toggleSidebar(true)
 
@@ -74,13 +72,21 @@ function handleSearch({ keyword, newStart, newEnd }) {
       .then(({ data }) => {
         busStops.value = data.busStops || []
         busRoutes.value = data.busNumbers || []
+
         drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
+
+        const first = busStops.value[0]
+        if (first?.ypos && first?.xpos) {
+          const latlng = L.latLng(parseFloat(first.ypos), parseFloat(first.xpos))
+          window.leafletMap.setView(latlng, 16)
+        }
       })
       .catch(err => {
         console.error('❌ 검색 실패:', err)
         alert('검색 중 오류가 발생했습니다.')
       })
 }
+
 
 // 지도 이동
 const moveToStop = (stop) => {
@@ -147,30 +153,26 @@ watch(() => store.selectedRoute, (route) => {
 
 // URL 쿼리 파라미터에서 검색어를 가져와 자동으로 검색 실행
 onMounted(() => {
-  const keyword = route.query.keyword
-  if (keyword) {
+  const bsNmParam = route.query.bsNm
+  if (bsNmParam) {
+    const keyword = decodeURIComponent(bsNmParam)
+
+    // 1. Pinia 상태 세팅
     store.setKeyword(keyword)
     searchKeyword.value = keyword
-    
-    // 지도가 로드된 후 검색 실행
+
+    // 2. 지도 로딩 이후 검색 실행
     setTimeout(() => {
-      // 검색 API 직접 호출
-      axios.get('/api/bus/searchBSorBN', { params: { keyword } })
-        .then(({ data }) => {
-          busStops.value = data.busStops || []
-          busRoutes.value = data.busNumbers || []
-          store.toggleSidebar(true)
-          
-          // 검색 결과가 있을 경우 지도에 표시
-          if (window.leafletMap) {
-            drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
-          }
-        })
-        .catch(err => {
-          console.error('❌ 검색 실패:', err)
-          alert('검색 중 오류가 발생했습니다.')
-        })
-    }, 500) // 지도 로드 시간을 고려한 지연 시간
+      handleSearch({ keyword })
+
+      if (busStops.value.length > 0) {
+        const first = busStops.value[0]
+        if (first?.ypos && first?.xpos) {
+          const latlng = L.latLng(parseFloat(first.ypos), parseFloat(first.xpos))
+          window.leafletMap.setView(latlng, 16)
+        }
+      }
+    }, 300)
   }
 })
 </script>

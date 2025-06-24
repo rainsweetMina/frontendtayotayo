@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onBeforeUnmount, watch, nextTick} from 'vue'
+import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import L from 'leaflet'
 import axios from 'axios'
 import ContextMenu from './ContextMenu.vue'

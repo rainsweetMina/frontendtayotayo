@@ -1,0 +1,159 @@
+/* 공통 레이아웃 */
+.schedule-page-container,
+.bus-schedule-page {
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.schedule-title,
+.bus-schedule-page h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 섹션 박스 공통 */
+.section-box,
+.selector-container,
+.schedule-view {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin: 24px 0;
+}
+
+/* 버튼 */
+.toggle-btn {
+    background-color: #bbb;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 13px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle-btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+.toggle-btn:hover:not(:disabled) {
+    background-color: #aaa;
+}
+
+.route-toggle {
+    text-align: right;
+}
+
+/* 셀렉터 */
+.selector-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.selector-box {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 150px;
+}
+
+.selector-box label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.selector-box select,
+select {
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: border-color 0.2s;
+    height: 34px;
+    line-height: 1.2;
+}
+
+.selector-box select:focus,
+select:focus {
+    border-color: #1976d2;
+    outline: none;
+}
+
+/* 시간표 테이블 */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.schedule-table th,
+.schedule-table td {
+    border: 1px solid #ccc;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    max-width: 100px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.schedule-table th {
+    background-color: #f9f9f9;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.schedule-table td:first-child {
+    background-color: #f1f8ff;
+    font-weight: bold;
+}
+
+.schedule-table tbody tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+.schedule-table tbody tr:hover {
+    background-color: #f5faff;
+}
+
+/* 오버플로우 대응 */
+.schedule-view {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+}
+
+/* Webkit 브라우저용 스크롤바 꾸미기 */
+.schedule-view::-webkit-scrollbar {
+    height: 6px;
+}
+
+.schedule-view::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.schedule-view::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
