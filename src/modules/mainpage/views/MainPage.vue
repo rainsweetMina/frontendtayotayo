@@ -147,9 +147,10 @@
     <section class="album-zone">
       <h2 class="section-title">알림존</h2>
       <div class="album-container flex gap-6">
-        <!-- 광고 캐러셀: 동일한 album-banner 클래스로 높이 200px 고정! -->
-        <AlbumBannerCarousel :banners="banners" class="album-banner" />
-        <div class="album-banner">
+        <!-- 광고 캐러셀: 더 넓게 차지하도록 flex-grow 추가 -->
+        <AlbumBannerCarousel :banners="banners" class="album-banner flex-grow" />
+        <!-- 날씨 정보: 더 좁게 표시 -->
+        <div class="album-banner weather-banner-container">
           <MainWeatherDisplay />
         </div>
       </div>
@@ -741,14 +742,15 @@ onMounted(async () => {
 .album-container {
   display: flex;
   gap: 20px;
+  margin-bottom: 20px;
 }
 
 .album-banner {
   flex: 1;
-  position: relative;
+  height: 200px;
   border-radius: 10px;
   overflow: hidden;
-  height: 200px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .album-banner img {
@@ -973,5 +975,11 @@ onMounted(async () => {
   .history-label {
     margin-bottom: 10px;
   }
+}
+
+/* 날씨 배너 컨테이너 스타일 */
+.weather-banner-container {
+  flex: 0 0 300px;
+  max-width: 300px;
 }
 </style> 
