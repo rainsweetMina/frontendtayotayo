@@ -43,6 +43,12 @@ export const useSearchStore = defineStore('searchStore', {
     }),
     actions: {
         setKeyword(value) {
+            // 검색어가 변경되면 검색 결과 초기화
+            if (this.keyword !== value) {
+                this.busStops = []
+                this.busRoutes = []
+                this.routeResults = []
+            }
             this.keyword = value
         },
         commitSearch() {

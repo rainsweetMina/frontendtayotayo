@@ -20,7 +20,7 @@ import './assets/css/tailwind.css'
 import EmptyLayout from "@/layouts/components/EmptyLayout.vue"
 
 // ✅ Axios 전역 설정 적용
-import './config/axios'
+import './api/axiosInstance'
 
 // ✅ Pinia 생성 및 persist 적용
 const pinia = createPinia()

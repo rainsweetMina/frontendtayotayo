@@ -11,7 +11,7 @@ export default defineConfig({
     plugins: [
         vue(),
         vueDevTools(),
-        // basicSsl() // ✅ HTTPS 인증서 적용 (필요 시 사용)
+        basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
     ],
     resolve: {
         alias: {
@@ -34,15 +34,12 @@ export default defineConfig({
         port: 5173,
         host: '0.0.0.0',
         open: false,
-        https: {
-            key: fs.readFileSync('./localhost+2-key.pem'),
-            cert: fs.readFileSync('./localhost+2.pem')
-        },
+        https: true, // basicSsl 플러그인이 자체 서명 인증서를 생성함
         proxy: {
             '/api': {
                 target: 'https://localhost:8081',
                 changeOrigin: true,
-                secure: false, // ⚠️ 개발 중이므로 false
+                secure: false, // ⚠️ 개발 중이므로 false (SSL 인증서 검증 비활성화)
                 configure: (proxy) => {
                     proxy.on('proxyReq', (proxyReq, req, res) => {
                         // ✅ 인증 쿠키를 프록시 요청에 포함

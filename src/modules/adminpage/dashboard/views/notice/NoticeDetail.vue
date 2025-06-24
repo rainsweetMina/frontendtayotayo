@@ -142,7 +142,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useNoticeApi } from '../../composables/useNoticeApi.js';
-import axios from '@/config/axios.js';
+import axios from '@/api/axiosInstance.js';
 
 export default {
   name: 'NoticeDetail',

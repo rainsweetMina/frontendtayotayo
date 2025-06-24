@@ -101,7 +101,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { useLowFloorBusApi } from '../../composables/useLowFloorBusApi.js';
-import axios from '@/config/axios.js';
+import axios from '@/api/axiosInstance.js';
 
 // Base64 형식의 이미지를 Blob으로 변환
 function dataURLtoBlob(dataURL) {

@@ -149,24 +149,8 @@
       <div class="album-container flex gap-6">
         <!-- 광고 캐러셀: 동일한 album-banner 클래스로 높이 200px 고정! -->
         <AlbumBannerCarousel :banners="banners" class="album-banner" />
-        <div class="album-banner weather-banner">
-          <div class="weather-content">
-            <h3>오늘의 날씨</h3>
-            <div class="weather-info">
-              <div class="weather-icon">
-                <img src="/src/assets/icons/partly-cloudy.svg" alt="구름 조금">
-              </div>
-              <div class="temperature">29.3°C</div>
-            </div>
-            <div class="weather-details">
-              <span>미세</span>
-              <span>초미세</span>
-              <span>오존</span>
-              <span>보통</span>
-              <span>통합</span>
-              <span>보통</span>
-            </div>
-          </div>
+        <div class="album-banner">
+          <MainWeatherDisplay />
         </div>
       </div>
     </section>
@@ -219,6 +203,7 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
 import { useSearchStore } from '@/stores/searchStore';
+import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay.vue';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
@@ -810,7 +795,7 @@ onMounted(async () => {
 }
 
 .weather-banner {
-  background-color: #FF6A3D;
+  background-color: #1e73c9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -820,6 +805,7 @@ onMounted(async () => {
   text-align: center;
   color: white;
   padding: 20px;
+  width: 100%;
 }
 
 .weather-content h3 {
@@ -831,29 +817,20 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
 }
 
-.weather-icon img {
-  width: 60px;
-  height: 60px;
-  margin-right: 15px;
-}
-
-.temperature {
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.weather-details {
+.weather-icon {
+  width: 100%;
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
-.weather-details span {
-  font-size: 0.9rem;
+.main-weather-display {
+  font-size: 1.5rem !important;
+  padding: 0.5rem 1rem !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* 이용안내 & 다운로드 영역 */

@@ -3,7 +3,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStore } from '@/modules/mypage/store/userStore'
-import api from '@/api/axiosInstance'
+import { api } from '@/api/axiosInstance'
 
 export function useUserInfo() {
     const auth = useAuthStore()

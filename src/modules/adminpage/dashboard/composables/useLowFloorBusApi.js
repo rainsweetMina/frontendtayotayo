@@ -1,4 +1,4 @@
-import axios from '@/config/axios';
+import axios from '@/api/axiosInstance';
 
 export function useLowFloorBusApi() {
   const getLowFloorBuses = async (page = 1, pageSize = 10) => {
