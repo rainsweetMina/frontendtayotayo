@@ -15,7 +15,7 @@
 
 <script setup>
 import { useSearchStore } from '@/stores/searchStore'
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 
 const store = useSearchStore()
 const emit = defineEmits(['search'])
@@ -23,7 +23,23 @@ const emit = defineEmits(['search'])
 // 컴포넌트 마운트 시 캐시에서 최근 검색어 로드
 onMounted(() => {
   store.loadRecentSearchesFromCache()
+  
+  // 마운트 시 검색어가 이미 있다면 자동 검색 실행
+  if (store.keyword.trim()) {
+    onSearch()
+  }
 })
+
+// store.keyword가 변경될 때 자동 검색 실행 (URL 쿼리 파라미터로부터 설정된 경우)
+watch(() => store.keyword, (newKeyword, oldKeyword) => {
+  // 초기 로딩 시 또는 검색어가 변경될 때 자동 검색
+  if (newKeyword && newKeyword.trim()) {
+    // 이전 검색어와 다른 경우에만 검색 실행
+    if (newKeyword !== oldKeyword) {
+      onSearch()
+    }
+  }
+}, { immediate: true })
 
 function onSearch() {
   if (!store.keyword.trim()) return

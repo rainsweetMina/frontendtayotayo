@@ -6,11 +6,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from '@/config/axios.js'
+import { callPublicApi } from '@/api/axiosInstance.js'
 
 const weatherList = ref([])
 const currentIndex = ref(0)
-const apiKey = ref('')
+const apiKey = ref('lIuYX2niKlocef22bmi40PfIT9fT2VuJdhz5wULQUmCMHm4yit0AxNRDUinnB/J9WU/pEOMof3VV11vrnYpUdw==')
 
 // ✔️ 1. 좌표 변환 함수
 function convertToGrid(lat, lon) {
@@ -56,15 +56,82 @@ function windDirection(degree) {
   return dirs[idx]
 }
 
+// CORS 우회를 위한 프록시 URL 생성 함수
+function createProxyUrl(url) {
+  return `https://cors-anywhere.herokuapp.com/${url}`;
+}
+
+// JSONP 방식으로 API 호출하는 함수
+function jsonpRequest(url, callback) {
+  return new Promise((resolve, reject) => {
+    // 콜백 함수 이름 생성 (유니크한 이름)
+    const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
+    
+    // 전역 콜백 함수 등록
+    window[callbackName] = function(data) {
+      // 스크립트 태그 제거
+      document.body.removeChild(script);
+      // 전역 콜백 함수 제거
+      delete window[callbackName];
+      // 데이터 반환
+      resolve(data);
+    };
+    
+    // 콜백 파라미터 추가
+    const jsonpUrl = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+    
+    // 스크립트 태그 생성 및 추가
+    const script = document.createElement('script');
+    script.src = jsonpUrl;
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+}
+
+// 날씨 정보 조회 함수
 async function fetchWeather() {
-  const { nx, ny } = convertToGrid(35.860533, 128.595014)
-  const { base_date, base_time } = getBaseDateTime()
-
-  const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=${encodeURIComponent(apiKey.value)}&pageNo=1&numOfRows=100&dataType=JSON&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}`
-
   try {
-    const res = await fetch(url)
-    const data = await res.json()
+    const { nx, ny } = convertToGrid(35.860533, 128.595014)
+    const { base_date, base_time } = getBaseDateTime()
+
+    // 공공 API 호출 (유틸리티 함수 사용)
+    const data = await callPublicApi(
+      'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0', 
+      'getUltraSrtFcst', 
+      {
+        pageNo: 1,
+        numOfRows: 100,
+        dataType: 'JSON',
+        base_date: base_date,
+        base_time: base_time,
+        nx: nx,
+        ny: ny
+      },
+      {
+        // 인코딩되지 않은 원본 API 키 사용
+        apiKey: 'lIuYX2niKlocef22bmi40PfIT9fT2VuJdhz5wULQUmCMHm4yit0AxNRDUinnB/J9WU/pEOMof3VV11vrnYpUdw==',
+        // 목업 데이터 제공
+        mockData: {
+          response: {
+            header: { resultCode: '00', resultMsg: 'NORMAL_SERVICE' },
+            body: {
+              dataType: 'JSON',
+              items: {
+                item: [
+                  { category: 'T1H', fcstValue: '22', fcstDate: base_date, fcstTime: '1400' },
+                  { category: 'SKY', fcstValue: '1', fcstDate: base_date, fcstTime: '1400' },
+                  { category: 'PTY', fcstValue: '0', fcstDate: base_date, fcstTime: '1400' },
+                  { category: 'REH', fcstValue: '60', fcstDate: base_date, fcstTime: '1400' }
+                ]
+              }
+            }
+          }
+        }
+      }
+    );
+    
+    console.log('날씨 API 응답 데이터:', data);
+
     const items = data?.response?.body?.items?.item || []
 
     function getVal(cat) {
@@ -112,8 +179,6 @@ async function fetchWeather() {
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/api/public/api-key')   // 나중에 여기 주소 수정필요
-    apiKey.value = data.apiKey
     await fetchWeather()
 
     setInterval(fetchWeather, 1000 * 60 * 30)
@@ -121,7 +186,8 @@ onMounted(async () => {
       currentIndex.value = (currentIndex.value + 1) % weatherList.value.length
     }, 5000)
   } catch (err) {
-    weatherList.value = ['API 키 불러오기 실패']
+    weatherList.value = ['날씨 정보를 불러올 수 없습니다.']
+    console.error('날씨 정보 초기화 실패:', err)
   }
 })
 </script>

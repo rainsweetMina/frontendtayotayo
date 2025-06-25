@@ -1,140 +1,110 @@
 <template>
   <div>
-    <div v-if="!authStore.isAuthenticated" class="alert alert-warning">
-      <i class="bi bi-exclamation-triangle me-2"></i>
-      관리자 로그인이 필요한 기능입니다.
+    <div v-if="!authStore.isAuthenticated" class="flex items-center gap-2 p-4 mb-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+      <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
+      <span class="font-medium">관리자 로그인이 필요한 기능입니다.</span>
     </div>
-    <form v-else @submit="handleSubmit">
-      <div class="row">
+    <form v-else @submit="handleSubmit" class="max-w-xl mx-auto mt-12 p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+      <h2 class="text-2xl font-extrabold text-gray-800 mb-8 flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ props.item ? '물품 수정' : '물품 등록' }}
+      </h2>
+      <div class="space-y-6">
         <!-- 이미지 영역 -->
-        <div class="col-md-4 text-center mb-3">
-          <div v-if="props.item && props.item.photoUrl" class="mb-3">
+        <div class="flex flex-col items-center">
+          <div v-if="props.item && props.item.photoUrl" class="mb-2">
             <img
-                :src="`${IMAGE_BASE_URL}/found/${props.item.photoUrl}`"
-                alt="현재 이미지"
-                class="img-fluid rounded shadow-sm mb-2"
-                style="max-height: 200px;"
+              :src="`${IMAGE_BASE_URL}/found/${props.item.photoUrl}`"
+              alt="현재 이미지"
+              class="w-36 h-36 object-cover rounded-xl shadow border mb-2 ring-2 ring-blue-200"
             />
           </div>
-          <div class="form-group">
-            <label class="form-label d-block">사진 {{ props.item ? '' : '(필수)' }}</label>
+          <div class="w-full">
+            <label class="block font-bold mb-2 text-gray-700">사진 <span v-if="!props.item" class="text-red-500">*</span></label>
             <input
-                class="form-control"
-                type="file"
-                accept="image/*"
-                :required="!props.item"
-                ref="fileInput"
-                @change="handleFileChange"
+              class="block w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition"
+              type="file"
+              accept="image/*"
+              :required="!props.item"
+              ref="fileInput"
+              @change="handleFileChange"
             />
-            <small class="form-text text-muted" v-if="props.item && props.item.photoUrl">
-              새 이미지를 업로드하면 기존 이미지가 교체됩니다.
-            </small>
+            <small v-if="props.item && props.item.photoUrl" class="text-xs text-gray-500">새 이미지를 업로드하면 기존 이미지가 교체됩니다.</small>
           </div>
         </div>
         <!-- 폼 영역 -->
-        <div class="col-md-8">
-          <table class="table table-bordered">
-            <tbody>
-            <tr>
-              <th class="bg-light" style="width: 30%">
-                <label for="itemName" class="form-label m-0">물품명</label>
-              </th>
-              <td>
-                <input id="itemName" class="form-control" v-model="form.itemName" required />
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="busCompanyId" class="form-label m-0">버스회사</label>
-              </th>
-              <td>
-                <select id="busCompanyId" class="form-select" v-model="form.busCompanyId" required>
-                  <option value="" disabled>선택</option>
-                  <option v-for="company in busCompanies" :key="company.id" :value="company.id">
-                    {{ company.companyName }}
-                  </option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="busNumber" class="form-label m-0">노선번호</label>
-              </th>
-              <td>
-                <select id="busNumber" class="form-select" v-model="form.busNumber" required>
-                  <option value="" disabled>선택</option>
-                  <option v-for="route in busRoutes" :key="route" :value="route">
-                    {{ route }}
-                  </option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="foundTime" class="form-label m-0">습득일</label>
-              </th>
-              <td>
-                <input id="foundTime" type="date" class="form-control" v-model="form.foundTime" required />
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="foundPlace" class="form-label m-0">습득장소</label>
-              </th>
-              <td>
-                <input id="foundPlace" class="form-control" v-model="form.foundPlace" />
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="storageLocation" class="form-label m-0">보관장소</label>
-              </th>
-              <td>
-                <input id="storageLocation" class="form-control" v-model="form.storageLocation" />
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="handlerContact" class="form-label m-0">연락처</label>
-              </th>
-              <td>
-                <input id="handlerContact" class="form-control" v-model="form.handlerContact" />
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="handlerEmail" class="form-label m-0">이메일</label>
-              </th>
-              <td>
-                <input id="handlerEmail" type="email" class="form-control" v-model="form.handlerEmail" />
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="status" class="form-label m-0">상태</label>
-              </th>
-              <td>
-                <select id="status" class="form-select" v-model="form.status">
-                  <option value="IN_STORAGE">보관중</option>
-                  <option value="RETURNED">수령완료</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <th class="bg-light">
-                <label for="content" class="form-label m-0">내용</label>
-              </th>
-              <td>
-                <textarea id="content" class="form-control" v-model="form.content" rows="3"></textarea>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-          <div class="text-end mt-3">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> 저장
-            </button>
+        <div class="grid grid-cols-1 gap-6">
+          <div>
+            <label for="itemName" class="block font-bold mb-1 text-gray-700">물품명 <span class="text-red-500">*</span></label>
+            <input id="itemName" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.itemName" required />
           </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="busCompanyId" class="block font-bold mb-1 text-gray-700">버스회사 <span class="text-red-500">*</span></label>
+              <select id="busCompanyId" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.busCompanyId" required>
+                <option value="" disabled>선택</option>
+                <option v-for="company in busCompanies" :key="company.id" :value="company.id">
+                  {{ company.companyName }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label for="busNumber" class="block font-bold mb-1 text-gray-700">노선번호 <span class="text-red-500">*</span></label>
+              <select id="busNumber" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.busNumber" required>
+                <option value="" disabled>선택</option>
+                <option v-for="route in busRoutes" :key="route" :value="route">
+                  {{ route }}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="foundTime" class="block font-bold mb-1 text-gray-700">습득일 <span class="text-red-500">*</span></label>
+              <input id="foundTime" type="date" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.foundTime" required />
+            </div>
+            <div>
+              <label for="foundPlace" class="block font-bold mb-1 text-gray-700">습득장소</label>
+              <input id="foundPlace" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.foundPlace" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="storageLocation" class="block font-bold mb-1 text-gray-700">보관장소</label>
+              <input id="storageLocation" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.storageLocation" />
+            </div>
+            <div>
+              <label for="handlerContact" class="block font-bold mb-1 text-gray-700">연락처</label>
+              <input id="handlerContact" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.handlerContact" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="handlerEmail" class="block font-bold mb-1 text-gray-700">이메일</label>
+              <input id="handlerEmail" type="email" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.handlerEmail" />
+            </div>
+            <div>
+              <label for="status" class="block font-bold mb-1 text-gray-700">상태</label>
+              <select id="status" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.status">
+                <option value="IN_STORAGE">보관중</option>
+                <option value="RETURNED">수령완료</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="content" class="block font-bold mb-1 text-gray-700">내용</label>
+            <textarea id="content" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.content" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-between items-center pt-6">
+          <router-link to="/admin/found" class="text-gray-600 hover:underline flex items-center">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            목록으로
+          </router-link>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-sm transition flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            저장
+          </button>
         </div>
       </div>
     </form>

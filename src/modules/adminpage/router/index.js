@@ -1,7 +1,6 @@
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import AdminDashboard from '@/modules/adminpage/dashboard/views/AdminDashboard.vue'
 import AdminNotice from '@/modules/adminpage/dashboard/views/notice/Notice.vue'
-import AdminQna from '@/modules/adminpage/dashboard/views/Qna.vue'
 import AdminOperationTime from '@/modules/adminpage/dashboard/views/OperationTime.vue'
 import AdminSystemLogs from '@/modules/adminpage/dashboard/views/SystemLogs.vue'
 import AdminRouteFinderSettings from '@/modules/adminpage/dashboard/views/RouteFinderSettings.vue'
@@ -34,6 +33,10 @@ import BusRouteAddView from "@/modules/busRoute/views/BusRouteAddView.vue";
 import BusRouteInfoView from "@/modules/busRoute/views/BusRouteInfoView.vue";
 import BusRouteEditView from "@/modules/busRoute/views/BusRouteEditView.vue";
 
+// 광고 회사 관리 컴포넌트들
+import AdCompanyList from '@/modules/ad/views/adcompany/adCompanyList.vue'
+import AdCompanyCreate from '@/modules/ad/views/adcompany/adCompanyCreate.vue'
+import AdCompanyEdit from '@/modules/ad/views/adcompany/adCompanyEdit.vue'
 
 export const adminRoutes = {
   path: "/admin",
@@ -94,11 +97,6 @@ export const adminRoutes = {
       component: LowFloorBusWrite
     },
     {
-      path: "qna",
-      name: "AdminQna",
-      component: AdminQna
-    },
-    {
       path: "ad",
       name: "AdminAdList",
       component: AdminAdList
@@ -107,6 +105,35 @@ export const adminRoutes = {
       path: "ad/create",
       name: "AdminAdCreate",
       component: AdminAdCreate
+    },
+    {
+      path: "ad/edit/:id",          // ✅ /admin/ad/edit/:id
+      name: "AdminAdEdit",
+      component: AdminAdCreate,
+      props: true
+    },
+    {
+      path: "ad/extend/:id",
+      name: "AdminAdExtend",
+      component: () => import('@/modules/ad/views/ad/AdExtendPage.vue'),
+      props: true
+    },
+    // 광고 회사 관리 라우터 추가
+    {
+      path: "adcompany",
+      name: "AdCompanyList",
+      component: AdCompanyList
+    },
+    {
+      path: "adcompany/create",
+      name: "AdCompanyCreate",
+      component: AdCompanyCreate
+    },
+    {
+      path: "adcompany/edit/:id",
+      name: "AdCompanyEdit",
+      component: AdCompanyEdit,
+      props: true
     },
     {
       path: "operation-time",
@@ -209,6 +236,27 @@ export const adminRoutes = {
       component: BusRouteEditView,
       meta: { requiresAuth: true, role: 'ADMIN' },
       props: true
+    },
+    // QnA 관리
+    {
+      path: 'qna',
+      name: 'AdminQnaList',
+      component: () => import('@/modules/qna/QnaList.vue')
+    },
+    {
+      path: 'qna/:id/answer',
+      name: 'AdminQnaAnswerWrite',
+      component: () => import('@/modules/qna/QnaAnswerWrite.vue')
+    },
+    {
+      path: 'qna/:id/edit',
+      name: 'AdminQnaAnswerEdit',
+      component: () => import('@/modules/qna/QnaAnswerEdit.vue')
+    },
+    {
+      path: 'qna/:id',
+      name: 'AdminQnaDetail',
+      component: () => import('@/modules/qna/QnaDetail.vue')
     },
   ],
   meta: { requiresAuth: true }

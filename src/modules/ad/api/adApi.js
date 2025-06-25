@@ -1,5 +1,6 @@
 // adApi.js (수정본)
 import axios from 'axios'
+import api from "@/api/axiosInstance.js";
 
 // 광고 목록 조회
 export async function fetchAds() {
@@ -29,5 +30,13 @@ export async function updateAd(id, data) {
 export async function deleteAd(id) {
     return axios.delete(`/api/ad/${id}`)
 }
+
+// 광고 연장
+export async function extendAd(adId, newEndDateTime) {
+    return await api.put(`/api/ad/${adId}/extend`, {
+        newEndDateTime: newEndDateTime
+    });
+}
+
 
 // 광고 연장, 통계 등은 백엔드 엔드포인트에 맞게 추가!

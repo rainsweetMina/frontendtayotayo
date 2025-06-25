@@ -7,6 +7,16 @@
           class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
       >광고 등록</router-link>
     </div>
+
+    <!-- 검색바 -->
+    <div class="mb-6">
+      <SearchBar
+        placeholder="제목, 광고회사, 상태 검색"
+        @search="handleSearch"
+        @reset="resetSearch"
+      />
+    </div>
+
     <div class="bg-white shadow-lg rounded-xl overflow-x-auto w-full">
       <table class="w-full text-base">
         <thead>
@@ -24,9 +34,10 @@
         </thead>
         <tbody>
         <tr
-            v-for="ad in adList"
+            v-for="ad in pagedAdList"
             :key="ad.id"
-            class="border-b hover:bg-blue-50 transition"
+            class="border-b hover:bg-blue-50 transition cursor-pointer"
+            @click="openDetail(ad)"
         >
           <td class="py-3 px-4 text-center font-mono">{{ ad.id }}</td>
           <td class="py-2 px-4 flex justify-center items-center">
@@ -83,36 +94,124 @@
         </tr>
         </tbody>
       </table>
+      
+      <!-- 검색 결과가 없을 때 -->
+      <div v-if="filteredAdList.length === 0" class="py-8 text-center text-gray-500">
+        <p v-if="searchKeyword">"{{ searchKeyword }}"에 대한 검색 결과가 없습니다.</p>
+        <p v-else>등록된 광고가 없습니다.</p>
+      </div>
+
+      <!-- 페이지네이션 UI -->
+      <div v-if="totalPages > 1" class="mt-6 flex justify-center">
+        <nav class="flex items-center space-x-1" aria-label="Pagination">
+          <button
+            class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 mr-1"
+            :disabled="page === 1"
+            :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
+            @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+          >이전</button>
+          <button
+            v-for="p in totalPages"
+            :key="p"
+            class="px-3 py-1 rounded border text-sm font-medium mx-0.5"
+            :class="[
+              page === p ? 'bg-blue-50 border-blue-500 text-blue-600 font-bold underline' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50',
+              'transition-colors duration-150'
+            ]"
+            @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+          >{{ p }}</button>
+          <button
+            class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 ml-1"
+            :disabled="page === totalPages"
+            :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
+            @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+          >다음</button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 광고 상세 팝업 -->
+    <div v-if="detailAd" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div class="relative bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+        <button
+          class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+          @click="closeDetail"
+          aria-label="닫기"
+        >&times;</button>
+        <img :src="`${IMAGE_BASE_URL}/ad/${detailAd.imageUrl}`" alt="광고" class="w-full rounded mb-4" />
+        <div class="mb-2"><b>제목:</b> {{ detailAd.title }}</div>
+        <div class="mb-2"><b>링크:</b> <a :href="detailAd.linkUrl" target="_blank" class="text-blue-600 underline">{{ detailAd.linkUrl }}</a></div>
+        <div class="mb-2"><b>기간:</b> {{ formatDate(detailAd.startDateTime) }} ~ {{ formatDate(detailAd.endDateTime) }}</div>
+        <div class="mb-2"><b>광고회사:</b> {{ detailAd.companyName }}</div>
+        <div class="flex gap-2 mt-4">
+          <button class="px-4 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700" @click="goEdit(detailAd.id)">수정</button>
+          <button class="px-4 py-1 rounded bg-green-600 text-white font-semibold hover:bg-green-700" @click="goExtend(detailAd.id)">연장</button>
+          <button class="px-4 py-1 rounded bg-red-600 text-white font-semibold hover:bg-red-700" @click="handleDelete(detailAd.id)">삭제</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchAds, deleteAd } from '@/modules/ad/api/adApi.js'
+import SearchBar from '@/modules/ad/components/SearchBar.vue'
+
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 
 const router = useRouter()
 const adList = ref([])
+const detailAd = ref(null)
+const searchKeyword = ref('')
+const page = ref(1)
+const pageSize = 10
+
+const openDetail = (ad) => { detailAd.value = ad }
+const closeDetail = () => { detailAd.value = null }
 
 const fetchData = async () => {
   try {
-    adList.value = await fetchAds()
+    adList.value = (await fetchAds()).sort((a, b) => b.id - a.id)
   } catch (e) {
     alert('광고 목록을 불러올 수 없습니다.')
   }
 }
 
+// 검색 기능
+const handleSearch = (keyword) => {
+  searchKeyword.value = keyword
+}
+
+const resetSearch = () => {
+  searchKeyword.value = ''
+}
+
+// 필터링된 광고 목록
+const filteredAdList = computed(() => {
+  if (!searchKeyword.value) {
+    return adList.value
+  }
+  
+  const keyword = searchKeyword.value.toLowerCase()
+  return adList.value.filter(ad => 
+    ad.title.toLowerCase().includes(keyword) ||
+    ad.companyName.toLowerCase().includes(keyword) ||
+    statusText(ad.status).toLowerCase().includes(keyword)
+  )
+})
+
 // 수정 버튼 클릭 이벤트
 const goEdit = (id) => {
-  router.push({ name: 'AdEdit', params: { id } })
+  router.push({ name: 'AdminAdEdit', params: { id } })
 }
-const goExtend = (id) => { router.push({ name: 'AdExtend', params: { id } }) }
+const goExtend = (id) => {
+  router.push({ name: 'AdminAdExtend', params: { id } })
+}
 const handleDelete = async (id) => {
   if (!confirm('정말 삭제하시겠습니까?')) return
-  try { await deleteAd(id); await fetchData(); alert('삭제되었습니다.') }
+  try { await deleteAd(id); await fetchData(); alert('삭제되었습니다.'); closeDetail(); }
   catch (e) { alert('삭제에 실패했습니다.') }
 }
 
@@ -131,6 +230,11 @@ const formatDate = (date) => {
   if (!date) return '-'
   return date.length > 10 ? date.slice(0, 10) : date
 }
+
+const totalPages = computed(() => Math.ceil(adList.value.length / pageSize))
+const pagedAdList = computed(() =>
+  adList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+)
 
 onMounted(fetchData)
 </script>

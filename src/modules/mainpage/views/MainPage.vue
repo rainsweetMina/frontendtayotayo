@@ -67,7 +67,33 @@
         </div>
       </div>
     </section>
-    
+
+    <!-- 팝업 광고 -->
+    <div
+        v-if="showPopup && popupAd"
+        class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[9999] bg-white p-4 shadow-2xl rounded-xl w-[400px]"
+    >
+      <button
+          class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl font-bold"
+          @click="closePopup"
+      >
+        &times;
+      </button>
+      <a :href="popupAd.linkUrl" target="_blank">
+        <img
+            :src="`${IMAGE_BASE_URL}/ad/${popupAd.imageUrl}`"
+            alt="광고 이미지"
+            class="w-full h-auto rounded"
+        />
+      </a>
+      <div class="text-right mt-2">
+        <button @click="dismissToday" class="text-sm text-gray-500 hover:text-black">
+          하루 동안 보지 않기
+        </button>
+      </div>
+
+    </div>
+
     <!-- 슬라이더 영역 -->
     <section class="info-slider">
       <div class="slider-container">
@@ -123,24 +149,8 @@
       <div class="album-container flex gap-6">
         <!-- 광고 캐러셀: 동일한 album-banner 클래스로 높이 200px 고정! -->
         <AlbumBannerCarousel :banners="banners" class="album-banner" />
-        <div class="album-banner weather-banner">
-          <div class="weather-content">
-            <h3>오늘의 날씨</h3>
-            <div class="weather-info">
-              <div class="weather-icon">
-                <img src="/src/assets/icons/partly-cloudy.svg" alt="구름 조금">
-              </div>
-              <div class="temperature">29.3°C</div>
-            </div>
-            <div class="weather-details">
-              <span>미세</span>
-              <span>초미세</span>
-              <span>오존</span>
-              <span>보통</span>
-              <span>통합</span>
-              <span>보통</span>
-            </div>
-          </div>
+        <div class="album-banner">
+          <MainWeatherDisplay />
         </div>
       </div>
     </section>
@@ -193,6 +203,7 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
 import { useSearchStore } from '@/stores/searchStore';
+import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay.vue';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
@@ -207,6 +218,39 @@ const notices = ref([]);
 const lowFloorBuses = ref([]);
 const isLoading = ref(false);
 const error = ref('');
+
+const popupAd = ref(null)
+const showPopup = ref(false)
+
+const fetchPopupAd = async () => {
+  try {
+    const res = await axios.get('https://localhost:8081/api/ad/popup')
+    const ad = res.data
+    const today = new Date().toISOString().split('T')[0]
+    const dismissed = JSON.parse(localStorage.getItem('dismissedPopups') || '{}')
+
+    if (!dismissed[`${today}_${ad.id}`]) {
+      popupAd.value = ad
+      showPopup.value = true
+    }
+  } catch (e) {
+    console.log('팝업 광고 없음 또는 오류:', e)
+  }
+}
+
+const dismissToday = () => {
+  const today = new Date().toISOString().split('T')[0]
+  const dismissed = JSON.parse(localStorage.getItem('dismissedPopups') || '{}')
+  dismissed[`${today}_${popupAd.value.id}`] = true
+  localStorage.setItem('dismissedPopups', JSON.stringify(dismissed))
+  showPopup.value = false
+}
+
+// ✅ 닫기 버튼 처리용 함수
+const closePopup = () => {
+  showPopup.value = false
+}
+
 
 // 공지사항 데이터 불러오기
 const fetchNotices = async () => {
@@ -449,7 +493,8 @@ onMounted(async () => {
   fetchNotices();
   fetchLowFloorBuses();
   fetchBanners();
-  
+  fetchPopupAd();
+
   // 로컬 스토리지에서 검색 히스토리 로드
   searchStore.loadRecentSearchesFromCache();
 });
@@ -750,7 +795,7 @@ onMounted(async () => {
 }
 
 .weather-banner {
-  background-color: #FF6A3D;
+  background-color: #1e73c9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -760,6 +805,7 @@ onMounted(async () => {
   text-align: center;
   color: white;
   padding: 20px;
+  width: 100%;
 }
 
 .weather-content h3 {
@@ -771,29 +817,20 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
 }
 
-.weather-icon img {
-  width: 60px;
-  height: 60px;
-  margin-right: 15px;
-}
-
-.temperature {
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.weather-details {
+.weather-icon {
+  width: 100%;
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
-.weather-details span {
-  font-size: 0.9rem;
+.main-weather-display {
+  font-size: 1.5rem !important;
+  padding: 0.5rem 1rem !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* 이용안내 & 다운로드 영역 */
