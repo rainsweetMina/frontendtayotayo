@@ -169,31 +169,103 @@ export const getApiResponseTimes = async () => {
  */
 export const getRequestVolume = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/admin/metrics/request-volume/hourly`)
-    console.log('요청 처리량 데이터 응답:', response.data)
+    // XML 응답을 직접 처리하기 위해 responseType을 text로 설정
+    const response = await axios.get(`${BASE_URL}/api/admin/metrics/request-volume/hourly`, {
+      responseType: 'text',
+      transformResponse: [data => data] // 자동 변환 방지
+    });
     
-    // XML 응답인 경우 처리 (List 형식의 데이터)
-    if (response.data && typeof response.data === 'object' && response.data.List && response.data.List.item) {
-      const items = Array.isArray(response.data.List.item) ? response.data.List.item : [response.data.List.item];
-      return items.map(item => ({
-        time: item.time,
-        count: parseInt(item.count) || 0
-      }));
+    console.log('요청 처리량 데이터 원본 응답:', response.data);
+    
+    // XML 응답인 경우 처리
+    if (typeof response.data === 'string' && response.data.includes('<?xml')) {
+      console.log('XML 형식 응답 감지, 수동 파싱 시도');
+      
+      try {
+        // XML 응답을 수동으로 파싱
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(response.data, "text/xml");
+        const items = xmlDoc.getElementsByTagName('item');
+        
+        const result = [];
+        for (let i = 0; i < items.length; i++) {
+          const timeElement = items[i].getElementsByTagName('time')[0];
+          const countElement = items[i].getElementsByTagName('count')[0];
+          
+          if (timeElement && countElement) {
+            result.push({
+              time: timeElement.textContent,
+              count: parseInt(countElement.textContent) || 0
+            });
+          }
+        }
+        
+        console.log('XML 파싱 결과:', result);
+        return result;
+      } catch (parseError) {
+        console.error('XML 파싱 오류:', parseError);
+        
+        // 정규식으로 간단히 파싱 시도
+        const timeMatches = response.data.match(/<time>([^<]+)<\/time>/g);
+        const countMatches = response.data.match(/<count>([^<]+)<\/count>/g);
+        
+        if (timeMatches && countMatches && timeMatches.length === countMatches.length) {
+          const result = [];
+          
+          for (let i = 0; i < timeMatches.length; i++) {
+            const time = timeMatches[i].replace(/<time>|<\/time>/g, '');
+            const count = parseInt(countMatches[i].replace(/<count>|<\/count>/g, '')) || 0;
+            
+            result.push({ time, count });
+          }
+          
+          console.log('정규식 파싱 결과:', result);
+          return result;
+        }
+      }
     }
     
-    return response.data
+    // JSON 응답 처리 시도
+    try {
+      const jsonData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      
+      // XML이 JSON으로 변환된 형태 (List.item 구조)
+      if (jsonData && jsonData.List && jsonData.List.item) {
+        const items = Array.isArray(jsonData.List.item) ? jsonData.List.item : [jsonData.List.item];
+        const result = items.map(item => ({
+          time: item.time,
+          count: parseInt(item.count) || 0
+        }));
+        console.log('List.item 구조 파싱 결과:', result);
+        return result;
+      }
+      
+      // 일반 JSON 배열 형식
+      if (Array.isArray(jsonData)) {
+        const result = jsonData.map(item => ({
+          time: item.time || '',
+          count: item.count || item.value || 0
+        }));
+        console.log('JSON 배열 파싱 결과:', result);
+        return result;
+      }
+      
+      console.warn('알 수 없는 JSON 응답 형식:', jsonData);
+      return jsonData;
+    } catch (jsonError) {
+      console.error('JSON 파싱 오류:', jsonError);
+    }
+    
+    console.warn('응답 데이터 파싱 실패, 원본 반환:', response.data);
+    return [];
   } catch (error) {
     console.error('요청 처리량 데이터 조회 실패:', error)
     // 백엔드 API가 아직 없을 경우 샘플 데이터 반환
     return [
-      { time: '09:00', count: 120 },
-      { time: '10:00', count: 145 },
-      { time: '11:00', count: 168 },
-      { time: '12:00', count: 132 },
-      { time: '13:00', count: 157 },
-      { time: '14:00', count: 189 },
-      { time: '15:00', count: 201 },
-      { time: '16:00', count: 180 }
+      { time: '20:00', count: 120 },
+      { time: '21:00', count: 145 },
+      { time: '22:00', count: 168 },
+      { time: '23:00', count: 157 }
     ]
   }
 }
@@ -204,19 +276,95 @@ export const getRequestVolume = async () => {
  */
 export const getErrorCounts = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/admin/metrics/errors/hourly`)
-    console.log('에러 발생 건수 데이터 응답:', response.data)
+    // XML 응답을 직접 처리하기 위해 responseType을 text로 설정
+    const response = await axios.get(`${BASE_URL}/api/admin/metrics/errors/hourly`, {
+      responseType: 'text',
+      transformResponse: [data => data] // 자동 변환 방지
+    });
     
-    // XML 응답인 경우 처리 (List 형식의 데이터)
-    if (response.data && typeof response.data === 'object' && response.data.List && response.data.List.item) {
-      const items = Array.isArray(response.data.List.item) ? response.data.List.item : [response.data.List.item];
-      return items.map(item => ({
-        time: item.time,
-        count: parseInt(item.count) || 0
-      }));
+    console.log('에러 발생 건수 데이터 원본 응답:', response.data);
+    
+    // XML 응답인 경우 처리
+    if (typeof response.data === 'string' && response.data.includes('<?xml')) {
+      console.log('XML 형식 응답 감지, 수동 파싱 시도');
+      
+      try {
+        // XML 응답을 수동으로 파싱
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(response.data, "text/xml");
+        const items = xmlDoc.getElementsByTagName('item');
+        
+        const result = [];
+        for (let i = 0; i < items.length; i++) {
+          const timeElement = items[i].getElementsByTagName('time')[0];
+          const countElement = items[i].getElementsByTagName('count')[0];
+          
+          if (timeElement && countElement) {
+            result.push({
+              time: timeElement.textContent,
+              count: parseInt(countElement.textContent) || 0
+            });
+          }
+        }
+        
+        console.log('XML 파싱 결과:', result);
+        return result;
+      } catch (parseError) {
+        console.error('XML 파싱 오류:', parseError);
+        
+        // 정규식으로 간단히 파싱 시도
+        const timeMatches = response.data.match(/<time>([^<]+)<\/time>/g);
+        const countMatches = response.data.match(/<count>([^<]+)<\/count>/g);
+        
+        if (timeMatches && countMatches && timeMatches.length === countMatches.length) {
+          const result = [];
+          
+          for (let i = 0; i < timeMatches.length; i++) {
+            const time = timeMatches[i].replace(/<time>|<\/time>/g, '');
+            const count = parseInt(countMatches[i].replace(/<count>|<\/count>/g, '')) || 0;
+            
+            result.push({ time, count });
+          }
+          
+          console.log('정규식 파싱 결과:', result);
+          return result;
+        }
+      }
     }
     
-    return response.data
+    // JSON 응답 처리 시도
+    try {
+      const jsonData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      
+      // XML이 JSON으로 변환된 형태 (List.item 구조)
+      if (jsonData && jsonData.List && jsonData.List.item) {
+        const items = Array.isArray(jsonData.List.item) ? jsonData.List.item : [jsonData.List.item];
+        const result = items.map(item => ({
+          time: item.time,
+          count: parseInt(item.count) || 0
+        }));
+        console.log('List.item 구조 파싱 결과:', result);
+        return result;
+      }
+      
+      // 일반 JSON 배열 형식
+      if (Array.isArray(jsonData)) {
+        const result = jsonData.map(item => ({
+          time: item.time || '',
+          count: item.count || item.value || 0
+        }));
+        console.log('JSON 배열 파싱 결과:', result);
+        return result;
+      }
+      
+      console.warn('알 수 없는 JSON 응답 형식:', jsonData);
+      return jsonData;
+    } catch (jsonError) {
+      console.error('JSON 파싱 오류:', jsonError);
+    }
+    
+    console.warn('응답 데이터 파싱 실패, 원본 반환:', response.data);
+    return [];
   } catch (error) {
     console.error('에러 발생 건수 데이터 조회 실패:', error)
     // 백엔드 API가 아직 없을 경우 샘플 데이터 반환
