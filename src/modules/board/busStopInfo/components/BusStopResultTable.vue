@@ -113,4 +113,8 @@ th:nth-child(6) {
 .bus-stop-result-table a:hover {
   color: #0a3f94;
 }
+
+.fa-map-marker-alt{
+  color: #0062ff;
+}
 </style>
