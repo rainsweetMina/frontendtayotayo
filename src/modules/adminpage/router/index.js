@@ -32,6 +32,8 @@ import BusRouteAllView from "@/modules/busRoute/views/BusRouteAllView.vue";
 import BusRouteAddView from "@/modules/busRoute/views/BusRouteAddView.vue";
 import BusRouteInfoView from "@/modules/busRoute/views/BusRouteInfoView.vue";
 import BusRouteEditView from "@/modules/busRoute/views/BusRouteEditView.vue";
+import UserListView from "@/modules/adminpage/dashboard/views/UserListView.vue";
+import UserApiKeyManagementView from "@/modules/adminpage/dashboard/views/UserApiKeyManagementView.vue";
 
 // 광고 회사 관리 컴포넌트들
 import AdCompanyList from '@/modules/ad/views/adcompany/adCompanyList.vue'
@@ -236,6 +238,18 @@ export const adminRoutes = {
       component: BusRouteEditView,
       meta: { requiresAuth: true, role: 'ADMIN' },
       props: true
+    },
+    {
+      path: '/admin/user',
+      name: 'AdminUserList',
+      component: UserListView,
+      meta: { requiresAuth: true, adminOnly: true }
+    },
+    {
+      path: '/admin/apikey',
+      name: 'AdminApiKeyManagement',
+      component: UserApiKeyManagementView,
+      meta: { requiresAuth: true, adminOnly: true }
     },
     // QnA 관리
     {

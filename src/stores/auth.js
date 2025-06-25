@@ -31,17 +31,17 @@ export const useAuthStore = defineStore('auth', {
             this.email = email;
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
-            
+
             // 토큰 만료 시간 설정 (초 단위)
             if (expiresIn) {
                 this.tokenExpiry = new Date().getTime() + (expiresIn * 1000);
             }
-            
+
             // JWT 토큰을 localStorage에 저장
             if (accessToken) {
                 localStorage.setItem('accessToken', accessToken);
             }
-            
+
             if (refreshToken) {
                 localStorage.setItem('refreshToken', refreshToken);
             }
@@ -50,19 +50,19 @@ export const useAuthStore = defineStore('auth', {
         setTokens(accessToken, refreshToken, expiresIn = 3600) {
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
-            
+
             // 토큰 만료 시간 설정 (초 단위)
             if (expiresIn) {
                 this.tokenExpiry = new Date().getTime() + (expiresIn * 1000);
             }
-            
+
             // localStorage에 토큰 저장
             if (accessToken) {
                 localStorage.setItem('accessToken', accessToken);
             } else {
                 localStorage.removeItem('accessToken');
             }
-            
+
             if (refreshToken) {
                 localStorage.setItem('refreshToken', refreshToken);
             } else {
@@ -72,12 +72,12 @@ export const useAuthStore = defineStore('auth', {
 
         setAccessToken(token, expiresIn = 3600) {
             this.accessToken = token;
-            
+
             // 토큰 만료 시간 설정 (초 단위)
             if (expiresIn) {
                 this.tokenExpiry = new Date().getTime() + (expiresIn * 1000);
             }
-            
+
             if (token) {
                 localStorage.setItem('accessToken', token);
             } else {
@@ -99,11 +99,11 @@ export const useAuthStore = defineStore('auth', {
         restoreTokens() {
             const accessToken = localStorage.getItem('accessToken');
             const refreshToken = localStorage.getItem('refreshToken');
-            
+
             if (accessToken) {
                 this.accessToken = accessToken;
             }
-            
+
             if (refreshToken) {
                 this.refreshToken = refreshToken;
             }
@@ -112,7 +112,7 @@ export const useAuthStore = defineStore('auth', {
         init() {
             // 로컬 스토리지에서 토큰 복원
             this.restoreTokens();
-            
+
             // 인증 상태 확인
             if (!this.accessToken) {
                 this.logout(true);

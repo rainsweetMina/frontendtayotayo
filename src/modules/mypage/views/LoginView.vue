@@ -62,7 +62,7 @@ onMounted(() => {
     userId.value = savedId
     rememberId.value = true
   } else {
-    userId.value = 'user'
+    userId.value = 'admin'
   }
 })
 
@@ -76,7 +76,7 @@ const handleLogin = async () => {
   error.value = ''
 
   try {
-    // ✅ 기존 로그인 정보 완전 초기화 (Pinia + 캐시 + localStorage)
+    // 🔄 로그인 상태 초기화
     auth.logout(true)
     resetUserInfo()
 
@@ -89,21 +89,35 @@ const handleLogin = async () => {
       withCredentials: true
     })
 
-    // ✅ 백엔드에서 JSON 형태로 accessToken을 전송받을 때 처리
+    // ✅ accessToken 저장
     if (response.data && response.data.accessToken) {
-      // auth store를 통해 accessToken 관리
       auth.setAccessToken(response.data.accessToken)
+
+      if (rememberId.value) {
+        localStorage.setItem('savedUserId', userId.value)
+      }
     }
 
-    // ✅ 로그인 후 사용자 정보 강제 재요청
+    // 🔄 사용자 정보 불러오기
     const success = await fetchUserInfo(true)
     if (!success) {
       error.value = '사용자 정보를 불러오지 못했습니다.'
       return
     }
 
-    const redirectPath =
-        route.query.redirect || (auth.role === 'ADMIN' ? '/admin/dashboard' : '/mypage')
+    // ✅ 리다이렉트 경로 결정
+    const redirectQuery = route.query.redirect
+    const role = auth.role
+
+    let redirectPath = '/'
+    if (redirectQuery) {
+      redirectPath = redirectQuery
+    } else if (role === 'ADMIN' || role === 'BUS') {
+      redirectPath = '/admin/dashboard'  // 🔁 ADMIN, BUS 모두 동일하게 이동
+    } else if (role === 'USER') {
+      redirectPath = '/mypage'
+    }
+
     router.push(redirectPath)
 
   } catch (err) {
@@ -128,7 +142,6 @@ const loginWithKakao = () => {
   window.location.href = 'https://localhost:8081/oauth2/authorization/kakao'
 }
 </script>
-
 
 <style scoped>
 .login-wrapper {
