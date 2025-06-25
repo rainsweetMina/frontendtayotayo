@@ -136,7 +136,11 @@
         <div class="p-5">
           <h3 class="text-lg leading-6 font-medium text-gray-900">API 응답 시간</h3>
           <div class="mt-2">
-            <canvas ref="apiResponseChart" height="200"></canvas>
+            <LineChart />
+            <div v-if="false" class="text-center text-gray-500 py-4">
+              <!-- 로딩 또는 오류 상태를 위한 폴백 UI (필요시 표시) -->
+              <p>데이터를 불러오는 중입니다...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -159,7 +163,7 @@
         <div class="p-5">
           <h3 class="text-lg leading-6 font-medium text-gray-900">시간별 요청 처리량</h3>
           <div class="mt-2">
-            <canvas ref="requestVolumeChart" height="200"></canvas>
+            <BarChart :data="requestVolumeData" />
           </div>
         </div>
       </div>
@@ -213,11 +217,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import Chart from 'chart.js/auto'
-import { getDashboardStats, getApiResponseTimes, getPostsStats, getUserStats, getRequestVolume, getErrorCounts } from '@/api/admin'
+import { getDashboardStats, getPostsStats, getUserStats, getRequestVolume, getErrorCounts } from '@/api/admin'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import axios from '@/api/axiosInstance'
 import PostsStatsCard from '../components/PostsStatsCard.vue'
+import LineChart from '../components/charts/LineChart.vue'
+import BarChart from '../components/charts/BarChart.vue'
 
 // 상태 데이터
 const stats = ref({
@@ -254,17 +260,21 @@ const activityColors = {
 }
 
 // 차트 참조
-const apiResponseChart = ref(null)
 const redisMemoryChart = ref(null)
 const requestVolumeChart = ref(null)
 const errorCountChart = ref(null)
 let redisChart = null
-let responseTimeChart = null
 let requestVolumeChartInstance = null
 let errorCountChartInstance = null
 
 // WebSocket 연결
 let stompClient = null
+
+// 요청 처리량 데이터
+const requestVolumeData = ref({
+  categories: [],
+  data: []
+});
 
 const connectWebSocket = () => {
   console.log('Attempting to connect to WebSocket...')
@@ -590,6 +600,7 @@ const loadDashboardData = async () => {
   try {
     // 게시물 통계 데이터 로드
     const postsData = await getPostsStats()
+    console.log('게시물 통계 데이터 로드 완료:', postsData)
     postsStats.value = postsData
     
     // 회원 통계 데이터 로드
@@ -650,134 +661,38 @@ const loadDashboardData = async () => {
   }
 }
 
-// API 응답 시간 차트 업데이트
-const updateApiResponseChart = (data) => {
-  if (!apiResponseChart.value) return;
-  
-  // 기존 차트가 있다면 제거
-  if (responseTimeChart) {
-    responseTimeChart.destroy();
-  }
-
-  // 차트 데이터 준비
-  const chartData = {
-    labels: ['09:00', '09:30', '10:00'],
-    datasets: [{
-      label: '평균 응답 시간 (ms)',
-      data: [50, 75, 100],
-      borderColor: 'rgb(59, 130, 246)',
-      tension: 0.1,
-      fill: false
-    }]
-  };
-  
-  // 실제 데이터가 있으면 사용
-  if (Array.isArray(data) && data.length > 0) {
-    chartData.labels = data.map(item => item.date || item.time || item.timestamp);
-    chartData.datasets[0].data = data.map(item => item.averageResponseTime || item.responseTime || item.value);
-  }
-
-  // 차트 생성
-  responseTimeChart = new Chart(apiResponseChart.value, {
-    type: 'line',
-    data: chartData,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `응답 시간: ${context.parsed.y.toFixed(2)} ms`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: '평균 응답 시간 (ms)'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: '시간'
-          }
-        }
-      }
-    }
-  });
-}
-
 // 요청 처리량 차트 업데이트
 const updateRequestVolumeChart = (data) => {
-  if (!requestVolumeChart.value) return;
-  
-  // 기존 차트가 있다면 제거
-  if (requestVolumeChartInstance) {
-    requestVolumeChartInstance.destroy();
-  }
-
-  // 차트 데이터 준비
-  const chartData = {
-    labels: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
-    datasets: [{
-      label: '요청 건수',
-      data: [120, 145, 168, 132, 157, 189, 201],
-      backgroundColor: 'rgba(54, 162, 235, 0.2)',
-      borderColor: 'rgb(54, 162, 235)',
-      borderWidth: 2,
-      tension: 0.1
-    }]
-  };
-  
-  // 실제 데이터가 있으면 사용
   if (Array.isArray(data) && data.length > 0) {
-    chartData.labels = data.map(item => item.time || item.date || item.timestamp);
-    chartData.datasets[0].data = data.map(item => item.count || item.value);
-  }
-
-  // 차트 생성
-  requestVolumeChartInstance = new Chart(requestVolumeChart.value, {
-    type: 'bar',
-    data: chartData,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `요청 건수: ${context.parsed.y}건`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: '요청 건수'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: '시간'
-          }
-        }
+    // 시간 카테고리 추출
+    const categories = data.map(item => {
+      if (item.time) {
+        return item.time;
+      } else if (item.date) {
+        return item.date;
+      } else if (item.timestamp) {
+        const date = new Date(item.timestamp);
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
       }
-    }
-  });
-}
+      return '';
+    });
+    
+    // 데이터 값 추출
+    const values = data.map(item => item.count || item.value || 0);
+    
+    // BarChart 컴포넌트에 전달할 데이터 업데이트
+    requestVolumeData.value = {
+      categories,
+      data: values
+    };
+  } else {
+    // 기본 데이터 설정
+    requestVolumeData.value = {
+      categories: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+      data: [30, 70, 45, 50, 49, 80, 70, 30]
+    };
+  }
+};
 
 // 에러 발생 건수 차트 업데이트
 const updateErrorCountChart = (data) => {
@@ -803,7 +718,17 @@ const updateErrorCountChart = (data) => {
   
   // 실제 데이터가 있으면 사용
   if (Array.isArray(data) && data.length > 0) {
-    chartData.labels = data.map(item => item.time || item.date || item.timestamp);
+    chartData.labels = data.map(item => {
+      if (item.time) {
+        return item.time;
+      } else if (item.date) {
+        return item.date;
+      } else if (item.timestamp) {
+        const date = new Date(item.timestamp);
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+      }
+      return '';
+    });
     chartData.datasets[0].data = data.map(item => item.count || item.value);
   }
 
@@ -863,16 +788,6 @@ const setupWebSocket = () => {
 onMounted(async () => {
   await loadDashboardData();
   
-  // API 응답 시간 데이터 로드 및 차트 업데이트
-  try {
-    const apiResponseData = await getApiResponseTimes();
-    updateApiResponseChart(apiResponseData);
-  } catch (error) {
-    console.error('API 응답 시간 데이터 로드 중 오류 발생:', error);
-    // 기본 데이터로 차트 초기화
-    updateApiResponseChart([]);
-  }
-  
   // 요청 처리량 데이터 로드 및 차트 업데이트
   try {
     const requestVolumeData = await getRequestVolume();
@@ -907,14 +822,8 @@ onUnmounted(() => {
   if (redisChart) {
     redisChart.destroy()
   }
-  if (responseTimeChart) {
-    responseTimeChart.destroy()
-  }
-  if (requestVolumeChartInstance) {
-    requestVolumeChartInstance.destroy()
-  }
   if (errorCountChartInstance) {
     errorCountChartInstance.destroy()
   }
 })
-</script> 
+</script>

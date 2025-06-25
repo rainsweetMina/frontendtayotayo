@@ -37,6 +37,9 @@ onMounted(() => {
 
 const handleSearch = () => {
   if (searchText.value.trim()) {
+    // 검색어를 searchStore에 설정
+    searchStore.setKeyword(searchText.value);
+    
     // 검색 이벤트 발생
     emit('search', { 
       keyword: searchText.value

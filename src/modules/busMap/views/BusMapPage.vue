@@ -72,12 +72,22 @@ function handleSearch({ keyword, newStart, newEnd }) {
 
   // 검색 수행
   store.setKeyword(keyword)
+  
+  // 사이드바 열기 (검색 결과 표시를 위해)
   store.toggleSidebar(true)
+  
+  console.log('검색 API 호출:', keyword);
 
   axios.get('/api/bus/searchBSorBN', { params: { keyword } })
       .then(({ data }) => {
+        console.log('검색 결과:', data);
         busStops.value = data.busStops || []
         busRoutes.value = data.busNumbers || []
+        
+        // 검색 결과를 스토어에도 저장 (사이드바에 표시하기 위해)
+        store.busStops = busStops.value
+        store.busRoutes = busRoutes.value
+        
         drawBusStopMarkersWithArrival(window.leafletMap, busStops.value)
         
         // 검색 결과가 있으면 지도 중심 이동
@@ -164,18 +174,20 @@ watch(() => store.selectedRoute, (route) => {
 onMounted(() => {
   const keyword = route.query.keyword
   if (keyword) {
+    console.log('URL에서 검색어 발견:', keyword);
     store.setKeyword(keyword)
     searchKeyword.value = keyword
     
     // 지도가 로드된 후 검색 실행
     setTimeout(() => {
+      console.log('지도 로드 후 검색 실행:', keyword);
       // handleSearch 함수를 직접 호출하여 검색 로직 통일
       handleSearch({ 
         keyword, 
         newStart: store.startCoord, 
         newEnd: store.endCoord 
       })
-    }, 500) // 지도 로드 시간을 고려한 지연 시간
+    }, 1000) // 지도 로드 시간을 고려한 지연 시간 증가
   }
 })
 </script>

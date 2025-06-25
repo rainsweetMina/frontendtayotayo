@@ -13,7 +13,7 @@
     <section class="search-section">
       <div class="search-container">
         <search-bar 
-          placeholder="『정류소, 노선, 목적지』를 입력하세요." 
+          placeholder="정류소, 노선을 입력하세요."
           @search="handleSearch"
         />
         <div class="search-history" v-if="searchStore.recentSearches.length > 0">

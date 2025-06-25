@@ -217,12 +217,19 @@ onMounted(async () => {
   color: #333;
   font-weight: 500;
   background-color: rgba(255, 255, 255, 0.8);
-  padding: 0.35rem 0.6rem;
+  padding: 0.25rem 0.4rem;
   border-radius: 4px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1.2;
   margin: 0;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+@media (min-width: 640px) {
+  .weather-display {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.95rem;
+  }
 }
 </style>
