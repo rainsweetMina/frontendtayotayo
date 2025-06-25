@@ -307,7 +307,7 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
         
         // 전체 URL 생성
         const url = `${baseUrl}/${path}?${queryString}`;
-        console.log('생성된 원본 URL:', url);
+        // console.log('생성된 원본 URL:', url);
         
         // CORS 프록시 서버 목록
         const corsProxies = [
@@ -319,7 +319,7 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
         
         // 첫 번째 시도는 직접 호출
         try {
-            console.log('직접 API 호출 시도:', url);
+            // console.log('직접 API 호출 시도:', url);
             const response = await fetch(url);
             const text = await response.text();
             
