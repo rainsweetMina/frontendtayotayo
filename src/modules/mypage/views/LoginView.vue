@@ -112,8 +112,10 @@ const handleLogin = async () => {
     let redirectPath = '/'
     if (redirectQuery) {
       redirectPath = redirectQuery
-    } else if (role === 'ADMIN' || role === 'BUS') {
+    } else if (role === 'ADMIN') {
       redirectPath = '/admin/dashboard'  // 🔁 ADMIN, BUS 모두 동일하게 이동
+    } else if (role === 'BUS') {
+      redirectPath = '/admin/lost'
     } else if (role === 'USER') {
       redirectPath = '/mypage'
     }
