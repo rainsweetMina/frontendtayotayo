@@ -255,22 +255,22 @@ export const adminRoutes = {
     {
       path: 'qna',
       name: 'AdminQnaList',
-      component: () => import('@/modules/qna/QnaList.vue')
+      component: () => import('@/modules/qna/admin/QnaList.vue')
     },
     {
       path: 'qna/:id/answer',
       name: 'AdminQnaAnswerWrite',
-      component: () => import('@/modules/qna/QnaAnswerWrite.vue')
+      component: () => import('@/modules/qna/admin/QnaAnswerWrite.vue')
     },
     {
       path: 'qna/:id/edit',
       name: 'AdminQnaAnswerEdit',
-      component: () => import('@/modules/qna/QnaAnswerEdit.vue')
+      component: () => import('@/modules/qna/admin/QnaAnswerEdit.vue')
     },
     {
       path: 'qna/:id',
       name: 'AdminQnaDetail',
-      component: () => import('@/modules/qna/QnaDetail.vue')
+      component: () => import('@/modules/qna/admin/QnaDetail.vue')
     },
   ],
   meta: { requiresAuth: true }

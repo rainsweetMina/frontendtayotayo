@@ -7,6 +7,54 @@
     <div class="mb-6">
       <SearchBar placeholder="제목, 내용, 작성자, 답변 검색" @search="handleSearch" @reset="resetSearch" />
     </div>
+    
+    <!-- 필터 버튼들 -->
+    <div class="mb-6 flex flex-wrap gap-3">
+      <button 
+        @click="setFilter('all')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'all' 
+            ? 'bg-blue-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        전체 ({{ qnaList.length }})
+      </button>
+      <button 
+        @click="setFilter('unanswered')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'unanswered' 
+            ? 'bg-red-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        미답변 ({{ unansweredCount }})
+      </button>
+      <button 
+        @click="setFilter('answered')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'answered' 
+            ? 'bg-green-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        답변완료 ({{ answeredCount }})
+      </button>
+      <button 
+        @click="setFilter('deleted')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'deleted' 
+            ? 'bg-gray-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        삭제됨 ({{ deletedCount }})
+      </button>
+    </div>
     <div class="bg-white shadow-lg rounded-xl overflow-x-auto w-full">
       <table class="w-full text-base">
         <thead>
@@ -32,7 +80,8 @@
           <td class="py-3 px-4 text-center">
             <span v-if="qna.deleted" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-500">삭제됨</span>
             <span v-else-if="!qna.visible" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-200 text-gray-500">숨김</span>
-            <span v-else class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-green-100 text-green-700">정상</span>
+            <span v-else-if="!qna.answer" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-600">미답변</span>
+            <span v-else class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-green-100 text-green-700">답변완료</span>
           </td>
           <td class="py-3 px-4">
             <div class="flex justify-center items-center gap-2">
@@ -106,9 +155,21 @@ const searchKeyword = ref('')
 const filteredQnaList = ref([])
 const page = ref(1)
 const pageSize = 10
+const currentFilter = ref('all')
 const totalPages = computed(() => Math.ceil(filteredQnaList.value.length / pageSize))
 const pagedQnaList = computed(() =>
   filteredQnaList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+)
+
+// 필터별 개수 계산
+const unansweredCount = computed(() => 
+  qnaList.value.filter(qna => !qna.answer && !qna.deleted).length
+)
+const answeredCount = computed(() => 
+  qnaList.value.filter(qna => qna.answer && !qna.deleted).length
+)
+const deletedCount = computed(() => 
+  qnaList.value.filter(qna => qna.deleted).length
 )
 
 const fetchQnaList = async () => {
@@ -128,23 +189,45 @@ const handleSearch = (keyword) => {
 
 const resetSearch = () => {
   searchKeyword.value = ''
+  currentFilter.value = 'all'
   filterQna()
 }
 
 const filterQna = () => {
-  if (!searchKeyword.value) {
-    filteredQnaList.value = qnaList.value
-    return
+  let filtered = qnaList.value
+
+  // 필터 적용
+  switch (currentFilter.value) {
+    case 'unanswered':
+      filtered = filtered.filter(qna => !qna.answer && !qna.deleted)
+      break
+    case 'answered':
+      filtered = filtered.filter(qna => qna.answer && !qna.deleted)
+      break
+    case 'deleted':
+      filtered = filtered.filter(qna => qna.deleted)
+      break
+    case 'all':
+    default:
+      // 전체는 필터링하지 않음
+      break
   }
-  const keyword = searchKeyword.value.toLowerCase()
-  filteredQnaList.value = qnaList.value.filter(qna => {
-    return (
-      (qna.title && qna.title.toLowerCase().includes(keyword)) ||
-      (qna.content && qna.content.toLowerCase().includes(keyword)) ||
-      (qna.username && qna.username.toLowerCase().includes(keyword)) ||
-      (qna.answer && qna.answer.toLowerCase().includes(keyword))
-    )
-  })
+
+  // 검색어 적용
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    filtered = filtered.filter(qna => {
+      return (
+        (qna.title && qna.title.toLowerCase().includes(keyword)) ||
+        (qna.content && qna.content.toLowerCase().includes(keyword)) ||
+        (qna.username && qna.username.toLowerCase().includes(keyword)) ||
+        (qna.answer && qna.answer.toLowerCase().includes(keyword))
+      )
+    })
+  }
+
+  filteredQnaList.value = filtered
+  page.value = 1 // 필터 변경 시 첫 페이지로 이동
 }
 
 const rowClass = (qna) => {
@@ -182,6 +265,11 @@ const handleDelete = async (id) => {
 const formatDate = (date) => {
   if (!date) return '-'
   return date.length > 10 ? date.slice(0, 10) : date
+}
+
+const setFilter = (filter) => {
+  currentFilter.value = filter
+  filterQna()
 }
 
 onMounted(fetchQnaList)

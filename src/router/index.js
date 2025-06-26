@@ -10,6 +10,7 @@ import boardRoutes from '@/modules/board/router'
 import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
 import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
+import { publicQnaRoutes } from '@/modules/qna/public/router'
 
 import { useAuthStore } from '@/stores/auth'
 import { useUserInfo } from "@/modules/mypage/composables/useUserInfo.js"
@@ -25,6 +26,7 @@ const routes = [
     ...noticeRoutes,
     ...lowFloorBusRoutes,
     ...boardRoutes,
+    ...publicQnaRoutes,
 ]
 
 const router = createRouter({
