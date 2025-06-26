@@ -1,12 +1,31 @@
 import axios from '@/api/axiosInstance';
 
 export function useLowFloorBusApi() {
-  const getLowFloorBuses = async (page = 1, pageSize = 10) => {
+  const getLowFloorBuses = async (page = 1, pageSize = 10, searchType = '', searchKeyword = '') => {
     try {
-      const response = await axios.get('/api/admin/lowfloorbuses', {
-        params: { page: page - 1, size: pageSize }
+      console.log(`API 요청: 페이지 ${page}, 사이즈 ${pageSize}, 검색타입: ${searchType}, 키워드: ${searchKeyword}`);
+      
+      const params = { page: page - 1, size: pageSize };
+      
+      // 검색어가 있는 경우 검색 파라미터 추가
+      if (searchKeyword && searchKeyword.trim() !== '') {
+        if (searchType === 'title') {
+          params.title = searchKeyword;
+        } else if (searchType === 'content') {
+          params.content = searchKeyword;
+        } else {
+          // 전체 검색인 경우
+          params.keyword = searchKeyword;
+        }
+      }
+      
+      const response = await axios.get('/api/admin/lowfloorbuses', { params });
+      console.log('API 응답 구조:', {
+        status: response.status,
+        hasContent: response.data && response.data.content ? true : false,
+        isArray: Array.isArray(response.data),
+        dataType: typeof response.data
       });
-      console.log('Fetched lowFloorBuses:', response.data);
       return response;
     } catch (error) {
       console.error('Error fetching lowFloorBuses:', error);

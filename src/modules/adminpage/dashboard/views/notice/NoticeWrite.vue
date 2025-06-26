@@ -1,114 +1,119 @@
 <template>
-  <div class="p-6 max-w-3xl mx-auto">
-    <div class="mb-8 border-b pb-4">
-      <h2 class="text-2xl font-bold text-gray-800">{{ isEdit ? '공지사항 수정' : '새 공지사항 작성' }}</h2>
-    </div>
+  <div>
+    <!-- Breadcrumb -->
+    <Breadcrumb :breadcrumb="isEdit ? '공지사항 수정' : '공지사항 작성'" />
 
-    <div class="bg-white rounded-lg shadow p-8">
-      <form @submit.prevent="handleSubmit">
-        <div v-if="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
-          {{ errorMessage }}
-        </div>
+    <div class="mt-4">
+      <div class="p-6 bg-white rounded-md shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 capitalize mb-4">
+          {{ isEdit ? '공지사항 수정' : '새 공지사항 작성' }}
+        </h2>
 
-        <div class="mb-6">
-          <label for="title" class="block text-sm font-medium text-gray-700 mb-2">제목</label>
-          <input
-            id="title"
-            v-model="form.title"
-            type="text"
-            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base px-4 py-2"
-            required
-            placeholder="제목을 입력하세요"
-            :disabled="isSubmitting"
-          />
-        </div>
-        
-        <div class="mb-6">
-          <label for="content" class="block text-sm font-medium text-gray-700 mb-2">내용</label>
-          <QuillEditor
-            v-model:content="form.content"
-            contentType="html"
-            toolbar="full"
-            theme="snow"
-            :disabled="isSubmitting"
-            ref="quillEditor"
-            class="quill-editor border rounded-md"
-          />
-        </div>
+        <form @submit.prevent="handleSubmit">
+          <div v-if="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+            {{ errorMessage }}
+          </div>
 
-        <div class="mb-6">
-          <label for="file" class="block text-sm font-medium text-gray-700 mb-2">첨부파일</label>
-          <input
-            id="file"
-            type="file"
-            class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            @change="handleFileChange"
-            multiple
-            :disabled="isSubmitting"
-          />
-          <small class="text-gray-400">* 파일은 선택사항입니다</small>
-          <div v-if="form.files.length > 0" class="mt-2 space-y-2">
-            <div v-for="(file, index) in form.files" :key="index" class="flex items-center space-x-2">
-              <span class="text-gray-700">{{ file.name }}</span>
-              <button type="button" class="text-xs text-red-600 hover:underline" @click="removeFile(index)">
-                삭제
-              </button>
+          <div class="mb-6">
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">제목</label>
+            <input
+              id="title"
+              v-model="form.title"
+              type="text"
+              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base px-4 py-2"
+              required
+              placeholder="제목을 입력하세요"
+              :disabled="isSubmitting"
+            />
+          </div>
+          
+          <div class="mb-6">
+            <label for="content" class="block text-sm font-medium text-gray-700 mb-2">내용</label>
+            <QuillEditor
+              v-model:content="form.content"
+              contentType="html"
+              toolbar="full"
+              theme="snow"
+              :disabled="isSubmitting"
+              ref="quillEditor"
+              class="quill-editor border rounded-md"
+            />
+          </div>
+
+          <div class="mb-6">
+            <label for="file" class="block text-sm font-medium text-gray-700 mb-2">첨부파일</label>
+            <input
+              id="file"
+              type="file"
+              class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              @change="handleFileChange"
+              multiple
+              :disabled="isSubmitting"
+            />
+            <small class="text-gray-400">* 파일은 선택사항입니다</small>
+            <div v-if="form.files.length > 0" class="mt-2 space-y-2">
+              <div v-for="(file, index) in form.files" :key="index" class="flex items-center space-x-2">
+                <span class="text-gray-700">{{ file.name }}</span>
+                <button type="button" class="text-xs text-red-600 hover:underline" @click="removeFile(index)">
+                  삭제
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="mb-6 flex items-center">
-          <input
-            v-model="form.showPopup"
-            type="checkbox"
-            class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
-            :disabled="isSubmitting"
-            id="showPopup"
-          />
-          <label for="showPopup" class="text-sm text-gray-700">팝업으로 표시</label>
-        </div>
-
-        <div v-if="form.showPopup" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label for="popupStart" class="block text-sm font-medium text-gray-700 mb-2">팝업 시작일</label>
+          <div class="mb-6 flex items-center">
             <input
-              id="popupStart"
-              v-model="form.popupStart"
-              type="datetime-local"
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+              v-model="form.showPopup"
+              type="checkbox"
+              class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
               :disabled="isSubmitting"
+              id="showPopup"
             />
+            <label for="showPopup" class="text-sm text-gray-700">팝업으로 표시</label>
           </div>
-          <div>
-            <label for="popupEnd" class="block text-sm font-medium text-gray-700 mb-2">팝업 종료일</label>
-            <input
-              id="popupEnd"
-              v-model="form.popupEnd"
-              type="datetime-local"
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
-              :disabled="isSubmitting"
-            />
-          </div>
-        </div>
 
-        <div class="flex justify-end space-x-3 mt-8">
-          <button
-            type="button"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            @click="$router.push('/admin/notices')"
-            :disabled="isSubmitting"
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            :disabled="isSubmitting"
-          >
-            {{ isSubmitting ? '저장 중...' : (isEdit ? '수정' : '등록') }}
-          </button>
-        </div>
-      </form>
+          <div v-if="form.showPopup" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label for="popupStart" class="block text-sm font-medium text-gray-700 mb-2">팝업 시작일</label>
+              <input
+                id="popupStart"
+                v-model="form.popupStart"
+                type="datetime-local"
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                :disabled="isSubmitting"
+              />
+            </div>
+            <div>
+              <label for="popupEnd" class="block text-sm font-medium text-gray-700 mb-2">팝업 종료일</label>
+              <input
+                id="popupEnd"
+                v-model="form.popupEnd"
+                type="datetime-local"
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                :disabled="isSubmitting"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 mt-8">
+            <button
+              type="button"
+              class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              @click="$router.push('/admin/notices')"
+              :disabled="isSubmitting"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              :disabled="isSubmitting"
+            >
+              {{ isSubmitting ? '저장 중...' : (isEdit ? '수정' : '등록') }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
@@ -122,6 +127,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import ImageUploader from 'quill-image-uploader';
 import Quill from 'quill';
 import axios from '@/api/axiosInstance.js';
+import Breadcrumb from '../../partials/AppBreadcrumb.vue';
 
 // Base64 형식의 이미지를 Blob으로 변환
 function dataURLtoBlob(dataURL) {
@@ -315,7 +321,8 @@ const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) =
 export default {
   name: 'NoticeWrite',
   components: {
-    QuillEditor
+    QuillEditor,
+    Breadcrumb
   },
   setup() {
     const route = useRoute();
