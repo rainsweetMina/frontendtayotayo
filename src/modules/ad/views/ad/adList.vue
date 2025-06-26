@@ -17,6 +17,65 @@
       />
     </div>
 
+    <!-- 필터 버튼들 -->
+    <div class="mb-6 flex flex-wrap gap-3 px-8">
+      <button 
+        @click="setFilter('all')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'all' 
+            ? 'bg-blue-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        전체 ({{ adList.length }})
+      </button>
+      <button 
+        @click="setFilter('scheduled')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'scheduled' 
+            ? 'bg-yellow-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        예정 ({{ scheduledCount }})
+      </button>
+      <button 
+        @click="setFilter('ongoing')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'ongoing' 
+            ? 'bg-green-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        진행중 ({{ ongoingCount }})
+      </button>
+      <button 
+        @click="setFilter('ending_soon')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'ending_soon' 
+            ? 'bg-orange-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        종료임박 ({{ endingSoonCount }})
+      </button>
+      <button 
+        @click="setFilter('ended')"
+        :class="[
+          'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+          currentFilter === 'ended' 
+            ? 'bg-gray-600 text-white' 
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        종료됨 ({{ endedCount }})
+      </button>
+    </div>
+
     <div class="bg-white shadow-lg rounded-xl overflow-x-auto w-full">
       <table class="w-full text-base">
         <thead>
@@ -165,6 +224,7 @@ const router = useRouter()
 const adList = ref([])
 const detailAd = ref(null)
 const searchKeyword = ref('')
+const currentFilter = ref('all')
 const page = ref(1)
 const pageSize = 10
 
@@ -186,20 +246,44 @@ const handleSearch = (keyword) => {
 
 const resetSearch = () => {
   searchKeyword.value = ''
+  currentFilter.value = 'all'
 }
 
 // 필터링된 광고 목록
 const filteredAdList = computed(() => {
-  if (!searchKeyword.value) {
-    return adList.value
+  let filtered = adList.value
+
+  // 필터 적용
+  switch (currentFilter.value) {
+    case 'scheduled':
+      filtered = filtered.filter(ad => ad.status === 'SCHEDULED')
+      break
+    case 'ongoing':
+      filtered = filtered.filter(ad => ad.status === 'ONGOING')
+      break
+    case 'ending_soon':
+      filtered = filtered.filter(ad => ad.status === 'ENDING_SOON')
+      break
+    case 'ended':
+      filtered = filtered.filter(ad => ad.status === 'ENDED')
+      break
+    case 'all':
+    default:
+      // 전체는 필터링하지 않음
+      break
   }
-  
-  const keyword = searchKeyword.value.toLowerCase()
-  return adList.value.filter(ad => 
-    ad.title.toLowerCase().includes(keyword) ||
-    ad.companyName.toLowerCase().includes(keyword) ||
-    statusText(ad.status).toLowerCase().includes(keyword)
-  )
+
+  // 검색어 적용
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    filtered = filtered.filter(ad => 
+      ad.title.toLowerCase().includes(keyword) ||
+      ad.companyName.toLowerCase().includes(keyword) ||
+      statusText(ad.status).toLowerCase().includes(keyword)
+    )
+  }
+
+  return filtered
 })
 
 // 수정 버튼 클릭 이벤트
@@ -231,10 +315,29 @@ const formatDate = (date) => {
   return date.length > 10 ? date.slice(0, 10) : date
 }
 
-const totalPages = computed(() => Math.ceil(adList.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredAdList.value.length / pageSize))
 const pagedAdList = computed(() =>
-  adList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+  filteredAdList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
 )
+
+// 필터별 개수 계산
+const scheduledCount = computed(() => 
+  adList.value.filter(ad => ad.status === 'SCHEDULED').length
+)
+const ongoingCount = computed(() => 
+  adList.value.filter(ad => ad.status === 'ONGOING').length
+)
+const endingSoonCount = computed(() => 
+  adList.value.filter(ad => ad.status === 'ENDING_SOON').length
+)
+const endedCount = computed(() => 
+  adList.value.filter(ad => ad.status === 'ENDED').length
+)
+
+const setFilter = (filter) => {
+  currentFilter.value = filter
+  page.value = 1 // 필터 변경 시 첫 페이지로 이동
+}
 
 onMounted(fetchData)
 </script>

@@ -1,25 +1,48 @@
 <template>
-  <div class="card p-4 bg-light">
-    <h5 class="text-center mb-4">
+  <div>
+    <h2 class="text-xl font-semibold text-gray-900 text-center mb-6">
       {{ props.initialData ? '분실물 수정' : '분실물 등록' }}
-    </h5>
-    <form @submit.prevent="onSubmit" class="mb-4">
+    </h2>
+    
+    <form @submit.prevent="onSubmit" class="space-y-6">
       <!-- 1. 분실물 -->
-      <div class="mb-3">
-        <label class="form-label">분실물</label>
-        <input v-model="form.title" type="text" class="form-control" required />
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          분실물 <span class="text-red-500">*</span>
+        </label>
+        <input 
+          v-model="form.title" 
+          type="text" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+          placeholder="분실한 물건을 입력해주세요"
+          required 
+        />
       </div>
 
       <!-- 2. 분실일 -->
-      <div class="mb-3">
-        <label class="form-label">분실일</label>
-        <input v-model="form.lostTime" type="datetime-local" class="form-control" required />
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          분실일 <span class="text-red-500">*</span>
+        </label>
+        <input 
+          v-model="form.lostTime" 
+          type="datetime-local" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+          required 
+        />
       </div>
 
       <!-- 3. 버스 회사 -->
-      <div class="mb-3">
-        <label class="form-label">버스 회사</label>
-        <select v-model="form.busCompanyId" @change="fetchBuses" class="form-select" required>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          버스 회사 <span class="text-red-500">*</span>
+        </label>
+        <select 
+          v-model="form.busCompanyId" 
+          @change="fetchBuses" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+          required
+        >
           <option disabled value="">선택하세요</option>
           <option v-for="company in busCompanies" :key="company.id" :value="company.id">
             {{ company.companyName }}
@@ -28,24 +51,48 @@
       </div>
 
       <!-- 4. 노선번호 -->
-      <div class="mb-3">
-        <label class="form-label">노선번호</label>
-        <select v-model="form.busNumber" class="form-select" required>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          노선번호 <span class="text-red-500">*</span>
+        </label>
+        <select 
+          v-model="form.busNumber" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+          required
+        >
           <option disabled value="">선택하세요</option>
           <option v-for="bus in buses" :key="bus" :value="bus">{{ bus }}</option>
         </select>
       </div>
 
       <!-- 5. 내용 -->
-      <div class="mb-3">
-        <label class="form-label">내용</label>
-        <textarea v-model="form.content" class="form-control" rows="3"></textarea>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          내용
+        </label>
+        <textarea 
+          v-model="form.content" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
+          rows="4"
+          placeholder="분실물에 대한 추가 설명을 입력해주세요"
+        ></textarea>
       </div>
 
       <!-- 등록/수정 버튼 -->
-      <button type="submit" class="btn btn-primary">
-        {{ props.initialData ? '수정' : '등록' }}
-      </button>
+      <div class="flex justify-center pt-4">
+        <button 
+          type="submit" 
+          class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          <svg v-if="!props.initialData" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          <svg v-else class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          {{ props.initialData ? '수정' : '등록' }}
+        </button>
+      </div>
     </form>
   </div>
 </template>
