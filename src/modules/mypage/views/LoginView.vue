@@ -105,6 +105,11 @@ const handleLogin = async () => {
       return
     }
 
+    if (auth.userInfo.withdraw === true) {
+      error.value = '탈퇴 처리된 계정입니다.'
+      return
+    }
+
     // ✅ 리다이렉트 경로 결정
     const redirectQuery = route.query.redirect
     const role = auth.role

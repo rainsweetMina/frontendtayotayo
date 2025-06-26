@@ -7,11 +7,12 @@ import fs from 'fs'
 import history from 'connect-history-api-fallback'
 import { fileURLToPath, URL } from 'node:url'
 
+
 export default defineConfig({
     plugins: [
         vue(),
         vueDevTools(),
-        basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
+        // basicSsl() // ✅ HTTPS 인증서 적용 (개발 환경에서 자체 서명 인증서 사용)
     ],
     resolve: {
         alias: {
@@ -34,7 +35,11 @@ export default defineConfig({
         port: 5173,
         host: '0.0.0.0',
         open: false,
-        https: true, // basicSsl 플러그인이 자체 서명 인증서를 생성함
+        // https: true, // basicSsl 플러그인이 자체 서명 인증서를 생성함
+        https: {
+            key: fs.readFileSync('./localhost+2-key.pem'),
+            cert: fs.readFileSync('./localhost+2.pem')
+        },
         proxy: {
             '/api': {
                 target: 'https://localhost:8081',
