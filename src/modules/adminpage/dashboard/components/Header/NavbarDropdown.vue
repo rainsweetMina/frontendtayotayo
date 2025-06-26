@@ -1,7 +1,7 @@
 <template>
-  <li class="relative inline-block mx-3">
+  <li class="relative inline-block mx-1 sm:mx-2">
     <button
-      class="px-3 py-2 text-gray-700 font-medium whitespace-nowrap rounded hover:bg-gray-50 focus:outline-none transition-colors duration-200"
+      class="px-2 sm:px-3 py-1 sm:py-2 text-gray-700 font-medium whitespace-nowrap rounded hover:bg-gray-50 focus:outline-none transition-colors duration-200"
       :class="{ 'bg-gray-100': isOpen, 'hover:text-primary-600': !isOpen }"
       :id="id"
       @click="toggleDropdown"
@@ -63,6 +63,13 @@ export default {
 <style scoped>
 button {
   position: relative;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 640px) {
+  button {
+    font-size: 1rem;
+  }
 }
 
 button::after {

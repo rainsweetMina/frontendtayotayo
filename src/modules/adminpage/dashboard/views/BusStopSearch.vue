@@ -666,10 +666,62 @@ const getAddressFromCoordinates = async (lat, lng) => {
     return addressCache.value[cacheKey];
   }
   
+  // 현재 진행 중인 역지오코딩 요청 수 확인 및 제한
+  if (!window._activeGeocodingRequests) {
+    window._activeGeocodingRequests = 0;
+  }
+  
+  // 동시 요청이 5개를 초과하면 대기
+  if (window._activeGeocodingRequests >= 5) {
+    // 기본 주소 반환 (나중에 백그라운드에서 업데이트)
+    const tempAddress = '주소 정보 로딩 중...';
+    
+    // 백그라운드에서 나중에 로드 시도
+    setTimeout(() => {
+      getAddressFromCoordinates(lat, lng).then(address => {
+        if (address && address !== '주소 정보 로딩 중...') {
+          addressCache.value[cacheKey] = address;
+          
+          // 마커 팝업 내용 업데이트 (해당 좌표의 마커 찾기)
+          const marker = markers.value.find(m => {
+            const pos = m.getLatLng();
+            return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001;
+          });
+          
+          if (marker && marker.getPopup()) {
+            // 마커의 팝업 내용 업데이트
+            const popupContent = marker.getPopup().getContent();
+            if (popupContent) {
+              const updatedContent = popupContent.replace(/주소 정보 로딩 중\.\.\./, address);
+              marker.getPopup().setContent(updatedContent);
+            }
+          }
+          
+          // 선택된 정류장의 주소도 업데이트
+          if (selectedStop.value) {
+            const stopLat = selectedStop.value.yPos || selectedStop.value.ypos;
+            const stopLng = selectedStop.value.xPos || selectedStop.value.xpos;
+            
+            if (Math.abs(stopLat - lat) < 0.0001 && Math.abs(stopLng - lng) < 0.0001) {
+              selectedStop.value.geocodedAddress = address;
+            }
+          }
+        }
+      }).catch(error => {
+        console.warn('백그라운드 주소 로드 실패:', error);
+      });
+    }, Math.random() * 2000 + 1000); // 1-3초 사이 랜덤 딜레이
+    
+    return tempAddress;
+  }
+  
   try {
-    // API 호출 시간 제한 설정 (3초)
+    // 활성 요청 카운터 증가
+    window._activeGeocodingRequests++;
+    
+    // API 호출 시간 제한 설정 (5초로 증가)
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('역지오코딩 API 타임아웃')), 3000)
+      setTimeout(() => reject(new Error('역지오코딩 API 타임아웃')), 5000)
     );
     
     // API 호출과 타임아웃 중 먼저 완료되는 것 처리
@@ -706,6 +758,10 @@ const getAddressFromCoordinates = async (lat, lng) => {
           const formattedAddress = addressParts.join(' ');
           // 결과를 캐시에 저장
           addressCache.value[cacheKey] = formattedAddress;
+          
+          // 활성 요청 카운터 감소
+          window._activeGeocodingRequests--;
+          
           return formattedAddress;
         }
       }
@@ -714,6 +770,10 @@ const getAddressFromCoordinates = async (lat, lng) => {
       const formattedAddress = address.trim();
       // 결과를 캐시에 저장
       addressCache.value[cacheKey] = formattedAddress;
+      
+      // 활성 요청 카운터 감소
+      window._activeGeocodingRequests--;
+      
       return formattedAddress;
     }
   } catch (error) {
@@ -725,8 +785,14 @@ const getAddressFromCoordinates = async (lat, lng) => {
     // 오류 발생 시에도 캐시에 저장 (반복적인 API 호출 방지)
     addressCache.value[cacheKey] = fallbackAddress;
     
+    // 활성 요청 카운터 감소
+    window._activeGeocodingRequests--;
+    
     return fallbackAddress;
   }
+  
+  // 활성 요청 카운터 감소 (여기까지 도달하면 오류 발생)
+  window._activeGeocodingRequests--;
   
   return null;
 }
@@ -1244,6 +1310,9 @@ const createMarkers = async () => {
 // 현재 화면에 표시되는 정류장의 주소 정보 로드
 const loadAddressesForVisibleStops = async () => {
   // 현재 페이지에 표시되는 정류장만 처리
+  const promises = [];
+  let loadCount = 0;
+  
   for (const stop of displayedBusStops.value) {
     if (!stop.city && !stop.district && !stop.neighborhood && !stop.geocodedAddress) {
       // 좌표 정보 확인 (대소문자 모두 확인)
@@ -1274,56 +1343,92 @@ const loadAddressesForVisibleStops = async () => {
       // 로드 중 플래그 설정
       stop.addressLoading = true;
       
-      try {
-        const address = await getAddressFromCoordinates(lat, lng);
-        if (address) {
-          // 플래그 해제
-          stop.addressLoading = false;
-          Object.assign(stop, { geocodedAddress: address });
-          console.log(`정류장 ${stop.bsId} 역지오코딩 주소:`, address);
-          
-          // 마커 팝업 내용도 업데이트
-          const marker = markers.value.find(m => {
-            const pos = m.getLatLng()
-            return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001
-          });
-          
-          if (marker && marker.getPopup()) {
-            marker.getPopup().setContent(`
-              <div class="popup-content">
-                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #2563eb;">${stop.bsNm}</h3>
-                <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">ID: ${stop.bsId}</p>
-                <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">${address}</p>
-              </div>
-            `);
-          }
-        }
-      } catch (geoError) {
-        // 플래그 해제
-        stop.addressLoading = false;
-        console.warn('역지오코딩 실패:', geoError);
+      // 한 번에 최대 3개까지만 동시 로드
+      if (loadCount < 3) {
+        loadCount++;
         
-                 // 오류 시 주소 정보 없음으로 표시
-         const fallbackAddress = '주소 정보 없음';
-         Object.assign(stop, { geocodedAddress: fallbackAddress });
+        // 약간의 딜레이 추가 (각 요청 사이에 100-300ms 간격)
+        const delayTime = loadCount * (Math.random() * 200 + 100);
         
-        // 마커 팝업 내용도 업데이트
-        const marker = markers.value.find(m => {
-          const pos = m.getLatLng()
-          return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001
+        const loadPromise = new Promise(resolve => {
+          setTimeout(async () => {
+            try {
+              const address = await getAddressFromCoordinates(lat, lng);
+              if (address) {
+                // 플래그 해제
+                stop.addressLoading = false;
+                Object.assign(stop, { geocodedAddress: address });
+                
+                // 마커 팝업 내용도 업데이트
+                const marker = markers.value.find(m => {
+                  const pos = m.getLatLng()
+                  return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001
+                });
+                
+                if (marker && marker.getPopup()) {
+                  marker.getPopup().setContent(`
+                    <div class="popup-content">
+                      <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #2563eb;">${stop.bsNm}</h3>
+                      <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">ID: ${stop.bsId}</p>
+                      <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">${address}</p>
+                    </div>
+                  `);
+                }
+              }
+            } catch (geoError) {
+              // 플래그 해제
+              stop.addressLoading = false;
+              console.warn('역지오코딩 실패:', geoError);
+              
+              // 오류 시 주소 정보 없음으로 표시
+              const fallbackAddress = '주소 정보 없음';
+              Object.assign(stop, { geocodedAddress: fallbackAddress });
+              
+              // 마커 팝업 내용도 업데이트
+              const marker = markers.value.find(m => {
+                const pos = m.getLatLng()
+                return Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001
+              });
+              
+              if (marker && marker.getPopup()) {
+                marker.getPopup().setContent(`
+                  <div class="popup-content">
+                    <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #2563eb;">${stop.bsNm}</h3>
+                    <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">ID: ${stop.bsId}</p>
+                    <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">주소 정보 없음</p>
+                  </div>
+                `);
+              }
+            }
+            resolve();
+          }, delayTime);
         });
         
-        if (marker && marker.getPopup()) {
-          marker.getPopup().setContent(`
-            <div class="popup-content">
-              <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #2563eb;">${stop.bsNm}</h3>
-              <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">ID: ${stop.bsId}</p>
-              <p style="margin: 2px 0; font-size: 13px; color: #4b5563;">주소 정보 없음</p>
-            </div>
-          `);
-        }
+        promises.push(loadPromise);
+      } else {
+        // 나머지는 기본 주소로 표시하고 나중에 백그라운드에서 로드
+        Object.assign(stop, { geocodedAddress: '주소 정보 로딩 중...' });
+        
+        // 백그라운드 로드를 위해 타이머 설정 (5-10초 후)
+        setTimeout(() => {
+          if (stop.addressLoading) {
+            getAddressFromCoordinates(lat, lng).then(address => {
+              if (address) {
+                stop.addressLoading = false;
+                Object.assign(stop, { geocodedAddress: address });
+              }
+            }).catch(() => {
+              stop.addressLoading = false;
+            });
+          }
+        }, 5000 + Math.random() * 5000);
       }
     }
+  }
+  
+  // 모든 주소 로딩 완료 대기 (최대 3개)
+  if (promises.length > 0) {
+    await Promise.all(promises);
   }
 };
 
@@ -1404,6 +1509,11 @@ const loadBusStopsInView = async () => {
     // 지도 이동 시에는 초기화된 상태로 설정하여 범위 재설정 방지
     map._mapInitialized = true;
     await createMarkers();
+    
+    // 주소 정보는 점진적으로 로드 (한 번에 모두 로드하지 않음)
+    nextTick(() => {
+      loadAddressesForVisibleStops();
+    });
     
   } catch (error) {
     console.error('지도 영역 내 정류장 검색 실패:', error);

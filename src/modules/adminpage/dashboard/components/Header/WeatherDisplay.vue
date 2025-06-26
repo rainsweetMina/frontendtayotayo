@@ -88,6 +88,23 @@ function jsonpRequest(url, callback) {
   });
 }
 
+// 오늘 날짜를 YYYYMMDD 형식으로 반환하는 함수
+function getToday() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+// 현재 시간을 HHMM 형식으로 반환하는 함수
+function getCurrentTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}${minutes}`;
+}
+
 // 날씨 정보 조회 함수
 async function fetchWeather() {
   try {
@@ -118,10 +135,10 @@ async function fetchWeather() {
               dataType: 'JSON',
               items: {
                 item: [
-                  { category: 'T1H', fcstValue: '22', fcstDate: base_date, fcstTime: '1400' },
-                  { category: 'SKY', fcstValue: '1', fcstDate: base_date, fcstTime: '1400' },
-                  { category: 'PTY', fcstValue: '0', fcstDate: base_date, fcstTime: '1400' },
-                  { category: 'REH', fcstValue: '60', fcstDate: base_date, fcstTime: '1400' }
+                  { category: 'T1H', fcstValue: '22', fcstDate: getToday(), fcstTime: '1400' },
+                  { category: 'SKY', fcstValue: '1', fcstDate: getToday(), fcstTime: '1400' },
+                  { category: 'PTY', fcstValue: '0', fcstDate: getToday(), fcstTime: '1400' },
+                  { category: 'REH', fcstValue: '60', fcstDate: getToday(), fcstTime: '1400' }
                 ]
               }
             }
@@ -200,12 +217,19 @@ onMounted(async () => {
   color: #333;
   font-weight: 500;
   background-color: rgba(255, 255, 255, 0.8);
-  padding: 0.35rem 0.6rem;
+  padding: 0.25rem 0.4rem;
   border-radius: 4px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1.2;
   margin: 0;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+@media (min-width: 640px) {
+  .weather-display {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.95rem;
+  }
 }
 </style>

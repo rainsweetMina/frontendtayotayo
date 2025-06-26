@@ -35,7 +35,10 @@
               </div>
               <div class="ml-3">
                 <p class="text-sm font-medium text-gray-900">Q&A</p>
-                <p class="text-xs text-gray-500">총 {{ stats.qna.total }}개</p>
+                <p class="text-xs text-gray-500">
+                  총 {{ stats.qna.total }}개
+                  <span class="text-xs text-gray-400"></span>
+                </p>
               </div>
             </div>
             <div class="bg-green-100 rounded-full px-3 py-1 text-sm font-semibold text-green-800">
@@ -55,7 +58,10 @@
               </div>
               <div class="ml-3">
                 <p class="text-sm font-medium text-gray-900">광고</p>
-                <p class="text-xs text-gray-500">총 {{ stats.advertisements.total }}개</p>
+                <p class="text-xs text-gray-500">
+                  총 {{ stats.advertisements.total }}개
+                  <span class="text-xs text-gray-400"></span>
+                </p>
               </div>
             </div>
             <div class="bg-purple-100 rounded-full px-3 py-1 text-sm font-semibold text-purple-800">

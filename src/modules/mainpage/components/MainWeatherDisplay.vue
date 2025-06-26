@@ -15,7 +15,7 @@
         <span class="dust-value" :class="getDustClass(dustStatus)">{{ dustStatus }}</span>
       </div>
       <div class="dust-item">
-        <span class="dust-label">초미세먼지</span>
+        <span class="dust-label">초미세</span>
         <span class="dust-value" :class="getDustClass(fineDustStatus)">{{ fineDustStatus }}</span>
       </div>
     </div>
@@ -92,6 +92,24 @@ function convertToGrid(lat, lon) {
   return { nx: x, ny: y }
 }
 
+// 오늘 날짜를 YYYYMMDD 형식으로 반환하는 함수
+function getToday() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+// 현재 시간을 HHMM 형식으로 반환하는 함수
+function getCurrentTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}${minutes}`;
+}
+
+// 기상청 API 호출을 위한 기준 날짜와 시간 계산
 function getBaseDateTime() {
   const now = new Date()
   now.setMinutes(now.getMinutes() - 40)
@@ -107,79 +125,72 @@ async function fetchWeather() {
     const { nx, ny } = convertToGrid(35.860533, 128.595014)
     const { base_date, base_time } = getBaseDateTime()
 
-    try {
-      // 공공 API 호출 (유틸리티 함수 사용)
-      const data = await callPublicApi(
-        'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0', 
-        'getUltraSrtFcst', 
-        {
-          pageNo: 1,
-          numOfRows: 100,
-          dataType: 'JSON',
-          base_date: base_date,
-          base_time: base_time,
-          nx: nx,
-          ny: ny
-        },
-        {
-          // 인코딩되지 않은 원본 API 키 사용
-          apiKey: 'oDPMcPKGx7dsFyVw5YzReqSK07UuJoUrABe2dbwM7zt9yVfOjSlE7SQtdIir+EW+DWAcIvio0lm1rR2sMnW7iw==',
-          // 목업 데이터 제공
-          mockData: {
-            response: {
-              header: { resultCode: '00', resultMsg: 'NORMAL_SERVICE' },
-              body: {
-                dataType: 'JSON',
-                items: {
-                  item: [
-                    { category: 'T1H', fcstValue: '22', fcstDate: getToday(), fcstTime: '1400' },
-                    { category: 'SKY', fcstValue: '1', fcstDate: getToday(), fcstTime: '1400' },
-                    { category: 'PTY', fcstValue: '0', fcstDate: getToday(), fcstTime: '1400' },
-                    { category: 'REH', fcstValue: '60', fcstDate: getToday(), fcstTime: '1400' }
-                  ]
-                }
+    // 공공 API 호출 (유틸리티 함수 사용)
+    const data = await callPublicApi(
+      'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0', 
+      'getUltraSrtFcst', 
+      {
+        pageNo: 1,
+        numOfRows: 100,
+        dataType: 'JSON',
+        base_date: base_date,
+        base_time: base_time,
+        nx: nx,
+        ny: ny
+      },
+      {
+        // 인코딩되지 않은 원본 API 키 사용
+        apiKey: 'lIuYX2niKlocef22bmi40PfIT9fT2VuJdhz5wULQUmCMHm4yit0AxNRDUinnB/J9WU/pEOMof3VV11vrnYpUdw==',
+        // 목업 데이터 제공
+        mockData: {
+          response: {
+            header: { resultCode: '00', resultMsg: 'NORMAL_SERVICE' },
+            body: {
+              dataType: 'JSON',
+              items: {
+                item: [
+                  { category: 'T1H', fcstValue: '22', fcstDate: getToday(), fcstTime: '1400' },
+                  { category: 'SKY', fcstValue: '1', fcstDate: getToday(), fcstTime: '1400' },
+                  { category: 'PTY', fcstValue: '0', fcstDate: getToday(), fcstTime: '1400' },
+                  { category: 'REH', fcstValue: '60', fcstDate: getToday(), fcstTime: '1400' }
+                ]
               }
             }
           }
         }
-      );
-
-      console.log('날씨 API 응답 데이터:', data);
-
-      if (data?.response?.body?.items?.item) {
-        const items = data.response.body.items.item
-
-        function getVal(cat) {
-          const now = new Date()
-          const nowTime = now.getHours() * 100 + (now.getMinutes() < 30 ? 0 : 30)
-          const nowFull = parseInt(now.toISOString().slice(0, 10).replace(/-/g, '') + String(nowTime).padStart(4, '0'))
-
-          return items
-              .filter(i => i.category === cat)
-              .sort((a, b) => {
-                const aTime = parseInt(a.fcstDate + a.fcstTime)
-                const bTime = parseInt(b.fcstDate + b.fcstTime)
-                return Math.abs(aTime - nowFull) - Math.abs(bTime - nowFull)
-              })[0]?.fcstValue ?? 'N/A'
-        }
-
-        const temp = getVal('T1H')
-        const sky = getVal('SKY')
-        const pty = getVal('PTY')
-
-        const skyMap = { '1': '☀️', '3': '⛅', '4': '☁️' }
-        const ptyMap = { '0': '', '1': '🌧️', '2': '🌨️', '3': '❄️', '4': '🌦️', '5': '💧' }
-
-        weatherSymbol.value = (pty !== '0' && pty !== 'N/A') ? ptyMap[pty] : (skyMap[sky] || '❓')
-        temperature.value = temp !== 'N/A' ? temp : '--'
-      } else {
-        throw new Error('데이터가 비어 있거나 형식이 다릅니다.')
       }
-    } catch (error) {
-      console.warn('날씨 API 호출 실패, 목업 데이터 사용:', error)
-      const currentHour = new Date().getHours()
-      weatherSymbol.value = currentHour >= 6 && currentHour < 18 ? '☀️' : '🌙'
-      temperature.value = currentHour >= 6 && currentHour < 18 ? '22' : '18'
+    );
+
+    console.log('날씨 API 응답 데이터:', data);
+
+    if (data?.response?.body?.items?.item) {
+      const items = data.response.body.items.item
+
+      function getVal(cat) {
+        const now = new Date()
+        const nowTime = now.getHours() * 100 + (now.getMinutes() < 30 ? 0 : 30)
+        const nowFull = parseInt(now.toISOString().slice(0, 10).replace(/-/g, '') + String(nowTime).padStart(4, '0'))
+
+        return items
+            .filter(i => i.category === cat)
+            .sort((a, b) => {
+              const aTime = parseInt(a.fcstDate + a.fcstTime)
+              const bTime = parseInt(b.fcstDate + b.fcstTime)
+              return Math.abs(aTime - nowFull) - Math.abs(bTime - nowFull)
+            })[0]?.fcstValue ?? 'N/A'
+      }
+
+      const temp = getVal('T1H')
+      const sky = getVal('SKY')
+      const pty = getVal('PTY')
+
+      const skyMap = { '1': '☀️', '3': '⛅', '4': '☁️' }
+      const ptyMap = { '0': '', '1': '🌧️', '2': '🌨️', '3': '❄️', '4': '🌦️', '5': '💧' }
+
+      weatherSymbol.value = (pty !== '0' && pty !== 'N/A') ? ptyMap[pty] : (skyMap[sky] || '❓')
+      temperature.value = temp !== 'N/A' ? temp : '--'
+    } else {
+      throw new Error('데이터가 비어 있거나 형식이 다릅니다.')
     }
 
     // 미세먼지 정보 가져오기
@@ -191,10 +202,11 @@ async function fetchWeather() {
       dustStatus.value = '보통'
       fineDustStatus.value = '좋음'
     }
-  } catch (err) {
-    console.error('날씨 API 오류:', err)
-    temperature.value = '--'
-    weatherSymbol.value = '❓'
+  } catch (error) {
+    console.warn('날씨 API 호출 실패, 목업 데이터 사용:', error)
+    const currentHour = new Date().getHours()
+    weatherSymbol.value = currentHour >= 6 && currentHour < 18 ? '☀️' : '🌙'
+    temperature.value = currentHour >= 6 && currentHour < 18 ? '22' : '18'
   }
 }
 
@@ -279,11 +291,11 @@ onMounted(async () => {
   try {
     await fetchWeather()
     // 오류 발생 시에도 계속 시도하도록 설정
-    setInterval(fetchWeather, 1000 * 60 * 30) // 30분마다 갱신
+    setInterval(fetchWeather, 1000 * 60 * 10) // 10분마다 갱신
   } catch (err) {
     console.error('날씨 정보 초기화 실패:', err)
     // 오류 발생해도 타이머는 계속 실행
-    setInterval(fetchWeather, 1000 * 60 * 30) // 30분마다 갱신
+    setInterval(fetchWeather, 1000 * 60 * 10) // 10분마다 갱신
   }
 })
 </script>
@@ -299,7 +311,7 @@ onMounted(async () => {
   color: white;
   transition: background 0.5s ease;
   border-radius: 10px;
-  padding: 20px;
+  padding: 15px;
   text-align: center;
 }
 
@@ -327,13 +339,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 h3 {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin: 0 0 0 10px;
+  margin: 0 0 0 8px;
 }
 
 .weather-info {
@@ -341,15 +353,15 @@ h3 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .weather-icon {
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .temperature {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -357,7 +369,7 @@ h3 {
 .weather-details {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 15px;
   width: 100%;
 }
 
@@ -368,16 +380,16 @@ h3 {
 }
 
 .dust-label {
-  font-size: 0.9rem;
-  margin-bottom: 5px;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
   opacity: 0.9;
 }
 
 .dust-value {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.2);
 }
 

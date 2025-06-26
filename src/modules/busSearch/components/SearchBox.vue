@@ -32,14 +32,14 @@ onMounted(() => {
 
 // store.keyword가 변경될 때 자동 검색 실행 (URL 쿼리 파라미터로부터 설정된 경우)
 watch(() => store.keyword, (newKeyword, oldKeyword) => {
-  // 초기 로딩 시 또는 검색어가 변경될 때 자동 검색
-  if (newKeyword && newKeyword.trim()) {
-    // 이전 검색어와 다른 경우에만 검색 실행
-    if (newKeyword !== oldKeyword) {
-      onSearch()
-    }
+  // URL 쿼리 파라미터로부터 설정된 경우에만 자동 검색 실행
+  // (oldKeyword가 없고 newKeyword가 있는 경우)
+  if (!oldKeyword && newKeyword && newKeyword.trim()) {
+    // 검색 실행
+    console.log('자동 검색 실행:', newKeyword);
+    onSearch();
   }
-}, { immediate: true })
+}, { immediate: true });
 
 function onSearch() {
   if (!store.keyword.trim()) return

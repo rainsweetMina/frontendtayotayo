@@ -22,6 +22,10 @@ import EmptyLayout from "@/layouts/components/EmptyLayout.vue"
 // ✅ Axios 전역 설정 적용
 import './api/axiosInstance'
 
+import './assets/main.css'
+
+import VueApexCharts from 'vue3-apexcharts'
+
 // ✅ Pinia 생성 및 persist 적용
 const pinia = createPinia()
 pinia.use(piniaPersistedState)
@@ -30,6 +34,7 @@ pinia.use(piniaPersistedState)
 const app = createApp(App)
 app.use(pinia)
 app.use(router)
+app.use(VueApexCharts)
 app.component("empty-layout", EmptyLayout)
 
 app.mount('#app')
