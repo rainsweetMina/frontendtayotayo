@@ -36,10 +36,13 @@
       <div class="feature-buttons">
         <div class="feature-button" @click="navigateTo('bus-routes')">
           <div class="feature-icon">
-            <img src="/src/assets/icons/bus-route.svg" alt="노선개편 버스검색">
-            <span class="new-badge" v-if="true">NEW</span>
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+              <ellipse cx="36" cy="60" rx="20" ry="8" fill="#e6f0fa"/>
+              <path d="M36 12C26.4 12 19 19.8 19 30c0 10.2 14.4 25.6 15 26.2.4.4 1 .4 1.4 0 .6-.6 15-16 15-26.2 0-10.2-7.4-18-17-18zm0 22a6 6 0 1 1 0-12 6 6 0 0 1 0 12z" fill="#1e73c9"/>
+              <circle cx="36" cy="30" r="6" fill="white"/>
+            </svg>
           </div>
-          <span class="feature-text">노선개편 버스검색</span>
+          <span class="feature-text">지도 보기</span>
         </div>
         <div class="feature-button" @click="navigateTo('bus-schedule')">
           <div class="feature-icon">
@@ -55,15 +58,24 @@
         </div>
         <div class="feature-button" @click="navigateTo('bus-usage')">
           <div class="feature-icon">
-            <img src="/src/assets/icons/bus-usage.svg" alt="버스 이용 현황">
+            <!-- 돋보기(검색) SVG -->
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#1e73c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
           </div>
-          <span class="feature-text">버스 이용 현황</span>
+          <span class="feature-text">습득물 조회</span>
         </div>
         <div class="feature-button" @click="navigateTo('announcement')">
           <div class="feature-icon">
-            <img src="/src/assets/icons/announcement.svg" alt="승객용 공지">
+            <!-- 분실/경고 SVG -->
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#1e73c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <circle cx="12" cy="16" r="1.2" />
+            </svg>
           </div>
-          <span class="feature-text">승객용 공지</span>
+          <span class="feature-text">분실물 신고</span>
         </div>
       </div>
     </section>
@@ -71,7 +83,9 @@
     <!-- 팝업 광고 -->
     <div
         v-if="showPopup && popupAd"
-        class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[9999] bg-white p-4 shadow-2xl rounded-xl w-[400px]"
+        class="fixed z-[9999] bg-white p-4 shadow-2xl rounded-xl w-[400px] cursor-move"
+        :style="{ top: popupPosition.top + 'px', left: popupPosition.left + 'px' }"
+        @mousedown="onPopupMouseDown"
     >
       <button
           class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl font-bold"
@@ -91,7 +105,6 @@
           하루 동안 보지 않기
         </button>
       </div>
-
     </div>
 
     <!-- 슬라이더 영역 -->
@@ -199,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
@@ -223,6 +236,41 @@ const error = ref('');
 const popupAd = ref(null)
 const showPopup = ref(false)
 
+// 팝업 위치 관리
+const popupPosition = ref({ top: 0, left: 0 })
+const isDragging = ref(false)
+const dragOffset = ref({ x: 0, y: 0 })
+
+const setInitialPopupPosition = () => {
+  // 더 아래쪽, 더 좌측 위치로 초기화
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  popupPosition.value = {
+    top: vh * 0.20,
+    left: vw * 0.15 - 200 // 팝업 너비 400px 기준
+  }
+}
+
+const onPopupMouseDown = (e) => {
+  isDragging.value = true;
+  dragOffset.value = {
+    x: e.clientX - popupPosition.value.left,
+    y: e.clientY - popupPosition.value.top
+  }
+  document.addEventListener('mousemove', onPopupMouseMove)
+  document.addEventListener('mouseup', onPopupMouseUp)
+}
+const onPopupMouseMove = (e) => {
+  if (!isDragging.value) return;
+  popupPosition.value.left = e.clientX - dragOffset.value.x;
+  popupPosition.value.top = e.clientY - dragOffset.value.y;
+}
+const onPopupMouseUp = () => {
+  isDragging.value = false;
+  document.removeEventListener('mousemove', onPopupMouseMove)
+  document.removeEventListener('mouseup', onPopupMouseUp)
+}
+
 const fetchPopupAd = async () => {
   try {
     const res = await axios.get('https://localhost:8081/api/ad/popup')
@@ -233,6 +281,8 @@ const fetchPopupAd = async () => {
     if (!dismissed[`${today}_${ad.id}`]) {
       popupAd.value = ad
       showPopup.value = true
+      await nextTick()
+      setInitialPopupPosition()
     }
   } catch (e) {
     console.log('팝업 광고 없음 또는 오류:', e)
@@ -431,13 +481,13 @@ const useHistoryItem = (keyword) => {
 
 const navigateTo = (route) => {
   const routeMap = {
-    'bus-routes': '/bus/routes',
+    'bus-routes': '/bus/map',
     'bus-stops': '/bus/stops',
     'bus-map': '/bus/map',
     'bus-schedule': '/bus/timetable',
     'special-service': '/bus/special-service',
-    'bus-usage': '/bus/usage',
-    'announcement': '/notice',
+    'bus-usage': '/found',
+    'announcement': '/lost',
     'notices': '/notice',
     'bus-stops-update': '/bus/stops/update',
     'homepage-guide': '/guide/homepage',
@@ -628,9 +678,12 @@ onMounted(async () => {
 }
 
 .feature-icon {
-  margin-bottom: 10px;
-  position: relative;
-  display: inline-block;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px auto;
 }
 
 .feature-icon img {
@@ -981,5 +1034,21 @@ onMounted(async () => {
 .weather-banner-container {
   flex: 0 0 300px;
   max-width: 300px;
+}
+
+.feature-emoji {
+  font-size: 2.5rem;
+  display: block;
+  line-height: 1;
+}
+
+.feature-icon.map-pin-bg {
+  background: #1e73c9;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style> 
