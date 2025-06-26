@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="!authStore.isAuthenticated" class="flex items-center gap-2 p-4 mb-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+    <div v-if="authStore.role !== 'ADMIN' && authStore.role !== 'BUS'" class="flex items-center gap-2 p-4 mb-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
       <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
       <span class="font-medium">관리자 로그인이 필요한 기능입니다.</span>
     </div>
