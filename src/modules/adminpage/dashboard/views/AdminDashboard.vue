@@ -32,7 +32,7 @@
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-5">
       <!-- 요청 처리량 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
+        <div class="p-5 flex items-center h-full">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg class="h-6 w-6 text-gray-400 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,9 +40,9 @@
                       d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <div class="ml-5 w-0 flex-1">
+            <div class="ml-5 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">요청 처리량</dt>
+                <dt class="text-sm font-medium text-gray-500">요청 처리량</dt>
                 <dd class="flex items-center leading-none mt-1">
                   <div class="text-2xl font-semibold text-gray-900">{{ stats.requestVolume }}</div>
                   <div class="ml-2 flex items-center text-sm font-semibold text-green-600 leading-none">
@@ -62,7 +62,7 @@
 
       <!-- 일반 회원 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
+        <div class="p-5 flex items-center h-full">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg class="h-6 w-6 text-blue-400 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,19 +70,19 @@
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <div class="ml-5 w-0 flex-1">
+            <div class="ml-5 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">일반 회원</dt>
+                <dt class="text-sm font-medium text-gray-500">일반 회원</dt>
                 <dd class="flex items-center leading-none mt-1">
                   <div class="text-2xl font-semibold text-gray-900">{{ stats.usersByType?.USER || 0 }}</div>
-                  <div v-if="stats.usersIncrease > 0"
+                  <div v-if="stats.newUsersToday > 0"
                        class="ml-2 flex items-center text-sm font-semibold text-green-600 leading-none">
                     <svg class="h-5 w-5 text-green-500 align-middle" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd"
                             d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
                             clip-rule="evenodd" />
                     </svg>
-                    <span class="ml-1">{{ stats.usersIncrease }}%</span>
+                    <span class="ml-1">+{{ stats.newUsersToday }}</span>
                   </div>
                 </dd>
               </dl>
@@ -93,7 +93,7 @@
 
       <!-- BUS 회원 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
+        <div class="p-5 flex items-center h-full">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg class="h-6 w-6 text-yellow-400 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,9 +101,9 @@
                       d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
               </svg>
             </div>
-            <div class="ml-5 w-0 flex-1">
+            <div class="ml-5 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">BUS 회원</dt>
+                <dt class="text-sm font-medium text-gray-500">BUS 회원</dt>
                 <dd class="leading-none mt-1">
                   <div class="text-2xl font-semibold text-gray-900">{{ stats.usersByType?.BUS || 0 }}</div>
                 </dd>
@@ -115,7 +115,7 @@
 
       <!-- ADMIN 회원 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
+        <div class="p-5 flex items-center h-full">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <svg class="h-6 w-6 text-red-400 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -123,9 +123,9 @@
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <div class="ml-5 w-0 flex-1">
+            <div class="ml-5 flex-1">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">ADMIN 회원</dt>
+                <dt class="text-sm font-medium text-gray-500">ADMIN 회원</dt>
                 <dd class="leading-none mt-1">
                   <div class="text-2xl font-semibold text-gray-900">{{ stats.usersByType?.ADMIN || 0 }}</div>
                 </dd>
@@ -138,10 +138,12 @@
 
       <!-- Redis 메모리 사용량 카드 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5 flex flex-col justify-center items-center">
-          <h3 class="text-sm font-medium text-gray-500 mb-2">Redis 메모리 사용량</h3>
-          <div class="flex justify-center items-center" style="height: 80px;">
-            <canvas ref="redisMemoryChart"></canvas>
+        <div class="p-5 flex items-center h-full">
+          <div class="flex flex-col justify-center items-center w-full">
+            <h3 class="text-sm font-medium text-gray-500 mb-2">Redis 메모리 사용량</h3>
+            <div class="flex justify-center items-center" style="height: 80px;">
+              <canvas ref="redisMemoryChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -174,18 +176,7 @@
       </div>
     </div>
 
-    <!-- 추가 차트 섹션 -->
-    <div class="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-1">
-      <!-- 에러 발생 건수 차트 -->
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="p-5">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">시간별 에러 발생 건수</h3>
-          <div class="mt-2">
-            <canvas ref="errorCountChart" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- 최근 활동 목록 -->
     <div class="mt-6">
@@ -225,7 +216,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import Chart from 'chart.js/auto'
-import { getDashboardStats, getPostsStats, getUserStats, getRequestVolume, getErrorCounts } from '@/api/admin'
+import { getDashboardStats, getPostsStats, getUserStats, getRequestVolume } from '@/api/admin'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import axios from '@/api/axiosInstance'
@@ -239,6 +230,7 @@ const stats = ref({
   requestVolumeIncrease: 0,
   users: 0,
   usersIncrease: 0,
+  newUsersToday: 0,
   pendingQna: 0,
   usersByType: {
     USER: 0,
@@ -270,10 +262,8 @@ const activityColors = {
 // 차트 참조
 const redisMemoryChart = ref(null)
 const requestVolumeChart = ref(null)
-const errorCountChart = ref(null)
 let redisChart = null
 let requestVolumeChartInstance = null
-let errorCountChartInstance = null
 
 // WebSocket 연결
 let stompClient = null
@@ -611,6 +601,7 @@ const loadDashboardData = async () => {
       
       stats.value.users = userData.totalUsers || 0
       stats.value.usersIncrease = userData.increaseRate || 0
+      stats.value.newUsersToday = userData.newUsersToday || 0
     
       // 회원 타입별 데이터 설정
       if (userData.usersByType) {
@@ -632,6 +623,7 @@ const loadDashboardData = async () => {
       // 오류 발생 시 기본 데이터 설정
       stats.value.users = 1000
       stats.value.usersIncrease = 5
+      stats.value.newUsersToday = 10
       stats.value.usersByType = {
         USER: 850,
         BUS: 120,
@@ -764,102 +756,7 @@ const updateRequestVolumeChart = (data) => {
   return false; // 기본 데이터 사용됨
 };
 
-// 에러 발생 건수 차트 업데이트
-const updateErrorCountChart = (data) => {
-  console.log('에러 발생 건수 차트 업데이트 함수 호출, 데이터:', data);
-  
-  if (!errorCountChart.value) {
-    console.warn('차트 참조가 없습니다');
-    return;
-  }
-  
-  // 기존 차트가 있다면 제거
-  if (errorCountChartInstance) {
-    errorCountChartInstance.destroy();
-  }
 
-  // 차트 데이터 준비
-  const chartData = {
-    labels: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
-    datasets: [{
-      label: '에러 건수',
-      data: [3, 2, 5, 1, 4, 2, 3],
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      borderColor: 'rgb(255, 99, 132)',
-      borderWidth: 2,
-      tension: 0.1
-    }]
-  };
-  
-  // 실제 데이터가 있으면 사용
-  if (Array.isArray(data) && data.length > 0) {
-    chartData.labels = data.map(item => {
-      if (item.time) {
-        return item.time;
-      } else if (item.date) {
-        return item.date;
-      } else if (item.timestamp) {
-        const date = new Date(item.timestamp);
-        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-      }
-      return '';
-    });
-    
-    chartData.datasets[0].data = data.map(item => {
-      if (typeof item.count === 'number') {
-        return item.count;
-      } else if (typeof item.count === 'string') {
-        return parseInt(item.count) || 0;
-      } else if (typeof item.value === 'number') {
-        return item.value;
-      } else if (typeof item.value === 'string') {
-        return parseInt(item.value) || 0;
-      }
-      return 0;
-    });
-    
-    console.log('에러 차트 데이터 변환 결과:', { 
-      labels: chartData.labels, 
-      data: chartData.datasets[0].data 
-    });
-  }
-
-  // 차트 생성
-  errorCountChartInstance = new Chart(errorCountChart.value, {
-    type: 'line',
-    data: chartData,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `에러 건수: ${context.parsed.y}건`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: '에러 건수'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: '시간'
-          }
-        }
-      }
-    }
-  });
-}
 
 // WebSocket 설정 및 연결
 const setupWebSocket = () => {
@@ -929,24 +826,7 @@ onMounted(async () => {
     updateRequestVolumeChart([]);
   }
   
-  // 에러 발생 건수 데이터 로드 및 차트 업데이트
-  try {
-    console.log('에러 발생 건수 데이터 로드 시작');
-    const errorData = await getErrorCounts();
-    console.log('백엔드에서 받아온 원본 에러 발생 건수 데이터:', errorData);
-    
-    if (Array.isArray(errorData) && errorData.length > 0) {
-      console.log('유효한 에러 발생 건수 데이터 확인됨, 항목 수:', errorData.length);
-      updateErrorCountChart(errorData);
-    } else {
-      console.warn('유효한 에러 발생 건수 데이터가 없음, 기본 데이터 사용');
-      updateErrorCountChart([]);
-    }
-  } catch (error) {
-    console.error('에러 발생 건수 데이터 로드 중 오류 발생:', error);
-    // 기본 데이터로 차트 초기화
-    updateErrorCountChart([]);
-  }
+
   
   // WebSocket 설정
   setupWebSocket();
@@ -964,9 +844,6 @@ onUnmounted(() => {
   }
   if (redisChart) {
     redisChart.destroy()
-  }
-  if (errorCountChartInstance) {
-    errorCountChartInstance.destroy()
   }
 })
 </script>

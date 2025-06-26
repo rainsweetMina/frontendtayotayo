@@ -21,58 +21,9 @@ export const getApiResponseTimes = async () => {
       const response = await axios.get(`${BASE_URL}/api/admin/metrics/response-time/5min/3`)
       console.log('5분 단위 API 응답 시간 데이터 원본 응답:', response.data)
       
-      // 데이터 형식 변환 및 정렬
+      // 원본 데이터가 있으면 그대로 반환
       if (Array.isArray(response.data) && response.data.length > 0) {
-        const formattedData = response.data.map(item => {
-          // 날짜 문자열을 Date 객체로 변환
-          let timestamp;
-          try {
-            if (item.timestamp) {
-              timestamp = new Date(item.timestamp).getTime();
-            } else if (item.date) {
-              timestamp = new Date(item.date).getTime();
-            } else if (item.time || item.date) {
-              // time이 HH:mm 형식인 경우 오늘 날짜와 결합
-              const today = new Date();
-              const timeStr = item.time || item.date;
-              const [hours, minutes] = timeStr.split(':').map(Number);
-              today.setHours(hours, minutes, 0, 0);
-              timestamp = today.getTime();
-            } else {
-              // 타임스탬프가 없는 경우 현재 시간 사용
-              timestamp = new Date().getTime();
-            }
-          } catch (error) {
-            console.error('날짜 변환 오류:', error, item);
-            timestamp = new Date().getTime();
-          }
-          
-          // 응답 시간 값 추출
-          let responseTime = 0;
-          if (typeof item.averageResponseTime === 'number') {
-            responseTime = item.averageResponseTime;
-          } else if (typeof item.responseTime === 'number') {
-            responseTime = item.responseTime;
-          } else if (typeof item.value === 'number') {
-            responseTime = item.value;
-          }
-          
-          return {
-            x: timestamp,
-            y: responseTime
-          };
-        });
-        
-        // 유효한 데이터만 필터링 (NaN 제거)
-        const validData = formattedData.filter(item => 
-          !isNaN(item.x) && !isNaN(item.y) && item.x > 0
-        );
-        
-        // 시간순 정렬
-        validData.sort((a, b) => a.x - b.x);
-        
-        console.log('5분 단위 API 응답 시간 데이터 변환 결과:', validData);
-        return validData;
+        return response.data;
       }
     } catch (error) {
       console.error('5분 단위 API 응답 시간 데이터 조회 실패:', error);
@@ -86,56 +37,7 @@ export const getApiResponseTimes = async () => {
       console.log('시간별 API 응답 시간 데이터 원본 응답:', response.data)
       
       if (Array.isArray(response.data) && response.data.length > 0) {
-        const formattedData = response.data.map(item => {
-          // 날짜 문자열을 Date 객체로 변환
-          let timestamp;
-          try {
-            if (item.timestamp) {
-              timestamp = new Date(item.timestamp).getTime();
-            } else if (item.date) {
-              timestamp = new Date(item.date).getTime();
-            } else if (item.time || item.date) {
-              // time이 HH:mm 형식인 경우 오늘 날짜와 결합
-              const today = new Date();
-              const timeStr = item.time || item.date;
-              const [hours, minutes] = timeStr.split(':').map(Number);
-              today.setHours(hours, minutes || 0, 0, 0);
-              timestamp = today.getTime();
-            } else {
-              // 타임스탬프가 없는 경우 현재 시간 사용
-              timestamp = new Date().getTime();
-            }
-          } catch (error) {
-            console.error('날짜 변환 오류:', error, item);
-            timestamp = new Date().getTime();
-          }
-          
-          // 응답 시간 값 추출
-          let responseTime = 0;
-          if (typeof item.averageResponseTime === 'number') {
-            responseTime = item.averageResponseTime;
-          } else if (typeof item.responseTime === 'number') {
-            responseTime = item.responseTime;
-          } else if (typeof item.value === 'number') {
-            responseTime = item.value;
-          }
-          
-          return {
-            x: timestamp,
-            y: responseTime
-          };
-        });
-        
-        // 유효한 데이터만 필터링 (NaN 제거)
-        const validData = formattedData.filter(item => 
-          !isNaN(item.x) && !isNaN(item.y) && item.x > 0
-        );
-        
-        // 시간순 정렬
-        validData.sort((a, b) => a.x - b.x);
-        
-        console.log('시간별 API 응답 시간 데이터 변환 결과:', validData);
-        return validData;
+        return response.data;
       }
     } catch (error) {
       console.error('시간별 API 응답 시간 데이터 조회 실패:', error);
@@ -148,15 +50,18 @@ export const getApiResponseTimes = async () => {
     console.error('API 응답 시간 데이터 조회 실패:', error)
     
     // 오류 발생 시 테스트 데이터 반환
-    const now = new Date().getTime();
-    const testData = [];
-    
-    for (let i = 0; i < 10; i++) {
-      testData.push({
-        x: now - (10 - i) * 60000, // 1분 간격
-        y: Math.floor(Math.random() * 50) + 50 // 50-100ms 사이 랜덤 값
-      });
-    }
+    const testData = [
+      {date: '09:00', averageResponseTime: 60.5},
+      {date: '09:05', averageResponseTime: 82.3},
+      {date: '09:10', averageResponseTime: 95.1},
+      {date: '09:15', averageResponseTime: 57.8},
+      {date: '09:20', averageResponseTime: 85.2},
+      {date: '09:25', averageResponseTime: 70.9},
+      {date: '09:30', averageResponseTime: 50.4},
+      {date: '09:35', averageResponseTime: 75.6},
+      {date: '09:40', averageResponseTime: 90.3},
+      {date: '09:45', averageResponseTime: 65.7}
+    ];
     
     console.log('API 응답 시간 테스트 데이터 생성:', testData);
     return testData;

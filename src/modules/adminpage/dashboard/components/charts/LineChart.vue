@@ -170,7 +170,61 @@ const loadApiResponseData = async () => {
     console.log('API 응답 시간 데이터 로드 성공:', data);
     
     if (Array.isArray(data) && data.length > 0) {
-      // 데이터 유효성 검사
+      // 백엔드에서 받은 데이터 형식 확인
+      console.log('첫 번째 데이터 항목 형식:', data[0]);
+      
+      // 데이터 형식 변환 (date와 averageResponseTime 형식 처리)
+      if (data[0] && (data[0].date || data[0].averageResponseTime !== undefined)) {
+        const formattedData = data.map(item => {
+          // 날짜 문자열을 Date 객체로 변환
+          let timestamp;
+          try {
+            if (item.date) {
+              // date가 HH:mm 형식인 경우 오늘 날짜와 결합
+              const today = new Date();
+              const [hours, minutes] = item.date.split(':').map(Number);
+              today.setHours(hours, minutes, 0, 0);
+              timestamp = today.getTime();
+            } else {
+              // 타임스탬프가 없는 경우 현재 시간 사용
+              timestamp = new Date().getTime();
+            }
+          } catch (error) {
+            console.error('날짜 변환 오류:', error, item);
+            timestamp = new Date().getTime();
+          }
+          
+          // 응답 시간 값 추출
+          let responseTime = 0;
+          if (typeof item.averageResponseTime === 'number') {
+            responseTime = item.averageResponseTime;
+          } else if (typeof item.averageResponseTime === 'string') {
+            responseTime = parseFloat(item.averageResponseTime) || 0;
+          }
+          
+          return {
+            x: timestamp,
+            y: responseTime
+          };
+        });
+        
+        // 유효한 데이터만 필터링 (NaN 제거)
+        const validData = formattedData.filter(item => 
+          !isNaN(item.x) && !isNaN(item.y) && item.x > 0
+        );
+        
+        // 시간순 정렬
+        validData.sort((a, b) => a.x - b.x);
+        
+        console.log('변환된 API 응답 시간 데이터:', validData);
+        
+        if (validData.length > 0) {
+          series.value[0].data = validData;
+          return;
+        }
+      }
+      
+      // 기존 x, y 형식 처리 (백업 로직)
       const validData = data.filter(item => {
         // x와 y가 유효한 숫자인지 확인
         const isValid = 
