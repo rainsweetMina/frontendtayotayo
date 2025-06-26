@@ -165,8 +165,6 @@ api.interceptors.response.use(
             } else {
                 // 리프레시 토큰이 없는 경우
                 if (!isAdminPage && !isPublicPage) {
-                    console.warn('[api] 401 응답 → /login 이동');
-                    window.location.href = '/login';
                 }
             }
         } else if (status === 403) {
