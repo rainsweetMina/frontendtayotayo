@@ -16,13 +16,20 @@
         <!-- 왼쪽 -->
         <td>{{ left.district }} {{ left.neighborhood || '' }}</td>
         <td>{{ left.busStop?.bsNm || left.bsNm }}</td>
-        <td :title="left.busStop?.bsNm || left.bsNm">
+<!--        <td :title="left.busStop?.bsNm || left.bsNm">
           <a
               :href="`/bus/map?bsId=${left.busStop?.bsId || left.bsId}&bsNm=${encodeURIComponent(left.busStop?.bsNm || left.bsNm)}`"
               target="_blank"
           >
             <i class="fa fa-map-marker-alt"></i>
           </a>
+        </td>-->
+        <td :title="left.busStop?.bsNm || left.bsNm">
+          <!-- ✅ Vue Router로 이동 -->
+          <i
+              class="fa fa-map-marker-alt clickable-icon"
+              @click="goToMap(left.busStop?.bsNm || left.bsNm)"
+          ></i>
         </td>
 
         <!-- 오른쪽 -->
@@ -31,13 +38,20 @@
           <td>
             {{ rightStops[index].busStop?.bsNm || rightStops[index].bsNm }}
           </td>
-          <td :title="rightStops[index].busStop?.bsNm || rightStops[index].bsNm">
+<!--          <td :title="rightStops[index].busStop?.bsNm || rightStops[index].bsNm">
             <a
                 :href="`/bus/map?bsId=${rightStops[index].busStop?.bsId || rightStops[index].bsId}&bsNm=${encodeURIComponent(rightStops[index].busStop?.bsNm || rightStops[index].bsNm)}`"
                 target="_blank"
             >
               <i class="fa fa-map-marker-alt"></i>
             </a>
+          </td>-->
+          <td :title="rightStops[index].busStop?.bsNm || rightStops[index].bsNm">
+            <!-- ✅ Vue Router로 이동 -->
+            <i
+                class="fa fa-map-marker-alt clickable-icon"
+                @click="goToMap(rightStops[index].busStop?.bsNm || rightStops[index].bsNm)"
+            ></i>
           </td>
         </template>
         <template v-else>
@@ -60,6 +74,13 @@ const props = defineProps({
     required: true
   }
 })
+
+function goToMap(stopName) {
+  if (!stopName) return
+  const keyword = encodeURIComponent(stopName)
+  const url = `/bus/map?keyword=${keyword}`
+  window.open(url, '_blank')
+}
 
 const leftStops = computed(() => {
   const half = Math.ceil(props.stops.length / 2)
@@ -116,5 +137,10 @@ th:nth-child(6) {
 
 .fa-map-marker-alt{
   color: #0062ff;
+}
+
+.bus-stop-result-table a:hover,
+.clickable-icon:hover {
+  cursor: pointer;
 }
 </style>
