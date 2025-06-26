@@ -72,7 +72,7 @@ function handleSearch({ keyword, newStart, newEnd }) {
 
   // 검색 수행
   store.setKeyword(keyword)
-  
+
   // 사이드바 열기 (검색 결과 표시를 위해)
   store.toggleSidebar(true)
   
@@ -95,9 +95,16 @@ function handleSearch({ keyword, newStart, newEnd }) {
           const firstStop = busStops.value[0]
           const lat = parseFloat(firstStop.yPos ?? firstStop.ypos)
           const lng = parseFloat(firstStop.xPos ?? firstStop.xpos)
-          
+
           if (!isNaN(lat) && !isNaN(lng)) {
-            window.leafletMap.setView([lat, lng], 15)
+            const map = window.leafletMap
+            const targetLatLng = L.latLng(lat, lng)
+
+            const point = map.project(targetLatLng, map.getZoom())
+            const offsetPoint = point.subtract([50, 0])
+            const offsetLatLng = map.unproject(offsetPoint, map.getZoom())
+
+            map.flyTo(offsetLatLng, 15)
           }
         }
       })
@@ -177,15 +184,15 @@ onMounted(() => {
     console.log('URL에서 검색어 발견:', keyword);
     store.setKeyword(keyword)
     searchKeyword.value = keyword
-    
+
     // 지도가 로드된 후 검색 실행
     setTimeout(() => {
       console.log('지도 로드 후 검색 실행:', keyword);
       // handleSearch 함수를 직접 호출하여 검색 로직 통일
-      handleSearch({ 
-        keyword, 
-        newStart: store.startCoord, 
-        newEnd: store.endCoord 
+      handleSearch({
+        keyword,
+        newStart: store.startCoord,
+        newEnd: store.endCoord
       })
     }, 1000) // 지도 로드 시간을 고려한 지연 시간 증가
   }
