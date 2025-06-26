@@ -146,8 +146,15 @@ export const useSearchStore = defineStore('searchStore', {
         setEndBsId(bsId) {
             this.endBsId = bsId
         },
-
-        // ✅ selectingField에 따라 자동 할당
+        fetchStopsByKeyword(keyword) {
+            fetch(`/api/bus/searchBSorBN?keyword=${encodeURIComponent(keyword)}`)
+                .then(res => res.json())
+                .then(data => {
+                    this.busStops = data.busStops // store에 반영
+                    // 필요한 경우 추가 필드도 반영
+                })
+                .catch(err => console.error('검색 실패:', err))
+        },
         setSelectedStop(stop) {
             if (this.selectingField === 'start') {
                 this.setStartStop(stop)
