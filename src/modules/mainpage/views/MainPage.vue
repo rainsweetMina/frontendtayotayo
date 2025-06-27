@@ -173,45 +173,50 @@
       </div>
     </section>
     
-    <!-- 이용안내 & 다운로드 영역 -->
-    <section class="info-download">
-      <div class="info-container">
-        <div class="info-box">
-          <h3 class="info-title">이용안내</h3>
-          <h4 class="info-subtitle">USER GUIDE</h4>
-          <div class="info-links">
-            <a href="#" @click.prevent="navigateTo('homepage-guide')">홈페이지 이용안내</a>
-            <a href="#" @click.prevent="navigateTo('mobile-guide')">모바일 이용안내</a>
+    <!-- 푸터 영역 -->
+    <footer class="main-footer">
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-logo">
+            <img src="/src/assets/icons/bus-icon.svg" alt="버스 아이콘" class="footer-logo-img" />
+            <div class="footer-logo-text">
+              <h3>대구 버스정보 타바요</h3>
+              <p>Daegu Bus Information Tabayo</p>
+            </div>
+          </div>
+          <div class="footer-links">
+            <div class="footer-link-group">
+              <h4>이용안내</h4>
+              <ul>
+                <li><a href="#">이용약관</a></li>
+                <li><a href="#">개인정보처리방침</a></li>
+              </ul>
+            </div>
+            <div class="footer-link-group">
+              <h4>고객지원</h4>
+              <ul>
+                <li><a href="#">문의하기</a></li>
+                <li><a href="#">오류신고</a></li>
+              </ul>
+            </div>
+            <div class="footer-link-group">
+              <h4>관련사이트</h4>
+              <ul>
+                <li><a href="https://www.daegu.go.kr/index.do" target="_blank">대구광역시청</a></li>
+                <li><a href="https://car.daegu.go.kr/" target="_blank">대구교통종합정보</a></li>
+              </ul>
+            </div>
           </div>
         </div>
-        
-        <div class="download-box">
-          <h3 class="info-title">자료 다운로드</h3>
-          <div class="download-links">
-            <a href="#" @click.prevent="downloadFile('route-info')">
-              <span class="download-icon">•</span>
-              <span>노선별 정류소 목록</span>
-              <span class="download-button">DOWNLOAD</span>
-            </a>
-            <a href="#" @click.prevent="downloadFile('stop-timetable')">
-              <span class="download-icon">•</span>
-              <span>노선별 정류버스시간표</span>
-              <span class="download-button">DOWNLOAD</span>
-            </a>
-            <a href="#" @click.prevent="downloadFile('bus-location')">
-              <span class="download-icon">•</span>
-              <span>버스위치목록</span>
-              <span class="download-button">DOWNLOAD</span>
-            </a>
-            <a href="#" @click.prevent="downloadFile('stop-location')">
-              <span class="download-icon">•</span>
-              <span>노선안내 책자</span>
-              <span class="download-button">DOWNLOAD</span>
-            </a>
+        <div class="footer-bottom">
+          <p class="copyright">© {{ currentYear }} 대구 버스정보시스템 타바요. All rights reserved.</p>
+          <div class="footer-contact">
+            <p>주소: 대구광역시 동구 동부로 108</p>
+            <p>전화: 053-123-4567</p>
           </div>
         </div>
       </div>
-    </section>
+    </footer>
   </div>
 </template>
 
@@ -244,6 +249,8 @@ const showPopup = ref(false)
 const popupPosition = ref({ top: 0, left: 0 })
 const isDragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
+
+const currentYear = ref(new Date().getFullYear());
 
 const setInitialPopupPosition = () => {
   // 더 아래쪽, 더 좌측 위치로 초기화
@@ -494,8 +501,6 @@ const navigateTo = (route) => {
     'announcement': '/lost',
     'notices': '/notice',
     'bus-stops-update': '/bus/stops/update',
-    'homepage-guide': '/guide/homepage',
-    'mobile-guide': '/guide/mobile',
     'lowfloorbus': '/lowfloorbus'
   };
   
@@ -512,22 +517,6 @@ const viewLowFloorBus = (busId) => {
   // 저상버스 대체안내 상세 페이지로 라우팅
   console.log(`저상버스 대체안내 클릭: ID=${busId}`);
   router.push(`/lowfloorbus/${busId}`);
-};
-
-const downloadFile = (fileType) => {
-  const fileMap = {
-    'route-info': '/downloads/route-info.xlsx',
-    'stop-timetable': '/downloads/stop-timetable.xlsx',
-    'bus-location': '/downloads/bus-location.xlsx',
-    'stop-location': '/downloads/stop-location.pdf'
-  };
-  
-  const url = fileMap[fileType];
-  if (url) {
-    // 실제 구현에서는 서버 API를 통해 다운로드할 수 있음
-    console.log(`파일 다운로드: ${url}`);
-    window.open(url, '_blank');
-  }
 };
 
 const fetchBanners = async () => {
@@ -923,87 +912,6 @@ onMounted(async () => {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* 이용안내 & 다운로드 영역 */
-.info-download {
-  max-width: 1200px;
-  margin: 0 auto 30px;
-  padding: 0 20px;
-}
-
-.info-container {
-  display: flex;
-  gap: 20px;
-}
-
-.info-box, .download-box {
-  flex: 1;
-  background-color: white;
-  border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.info-title {
-  font-size: 1.3rem;
-  margin: 0 0 5px 0;
-  font-weight: 600;
-  color: #333;
-}
-
-.info-subtitle {
-  font-size: 0.9rem;
-  color: #888;
-  margin: 0 0 20px 0;
-  text-transform: uppercase;
-}
-
-.info-links {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.info-links a {
-  color: #333;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.info-links a:hover {
-  color: #1e73c9;
-}
-
-.download-links {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.download-links a {
-  display: flex;
-  align-items: center;
-  color: #333;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.download-links a:hover {
-  color: #1e73c9;
-}
-
-.download-icon {
-  margin-right: 10px;
-  color: #1e73c9;
-}
-
-.download-button {
-  margin-left: auto;
-  font-size: 0.8rem;
-  color: #1e73c9;
-  text-transform: uppercase;
-}
-
 /* 반응형 스타일 */
 @media (max-width: 1024px) {
   .feature-buttons {
@@ -1085,5 +993,170 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 푸터 영역 */
+.main-footer {
+  background-color: #1e2a3b;
+  color: #fff;
+  padding: 20px 0 10px;
+  margin-top: 20px;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.footer-logo-img {
+  width: 40px;
+  height: 40px;
+  filter: brightness(0) invert(1);
+  margin-right: 10px;
+}
+
+.footer-logo-text h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.footer-logo-text p {
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.footer-link-group h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #fff;
+}
+
+.footer-link-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-link-group li {
+  margin-bottom: 5px;
+}
+
+.footer-link-group a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.footer-link-group a:hover {
+  color: #fff;
+}
+
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.copyright {
+  margin: 0 0 5px 0;
+}
+
+.footer-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.footer-contact p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+  }
+  
+  .footer-links {
+    margin-top: 10px;
+    gap: 15px;
+  }
+  
+  .footer-link-group {
+    flex: 0 0 calc(50% - 10px);
+  }
+  
+  .footer-bottom {
+    flex-direction: column;
+  }
+  
+  .footer-contact {
+    margin-top: 5px;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-footer {
+    padding: 15px 0 8px;
+  }
+  
+  .footer-top {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .footer-links {
+    flex-direction: row;
+  }
+  
+  .footer-link-group {
+    flex: 0 0 calc(50% - 8px);
+  }
+  
+  .footer-link-group h4 {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  
+  .footer-link-group a {
+    font-size: 0.8rem;
+  }
+  
+  .footer-logo-text h3 {
+    font-size: 1rem;
+  }
+  
+  .footer-logo-text p {
+    font-size: 0.7rem;
+  }
 }
 </style> 
