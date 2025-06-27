@@ -109,7 +109,7 @@ onMounted(async () => {
     form.value = {
       title: data.title,
       content: data.content,
-      isSecret: data.isSecret,
+      isSecret: data.isSecret ?? data.secret ?? false,
     };
   }
 });
