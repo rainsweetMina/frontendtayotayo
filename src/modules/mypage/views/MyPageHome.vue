@@ -22,7 +22,7 @@
       </div>
       <div class="summary-card" @click="$router.push('/mypage/lost')">
         <h3>📦 분실물</h3>
-        <p>최근 신고 {{ lostItems }}건</p>
+        <p>나의 신고 {{ lostItems }}건</p>
       </div>
       <div class="summary-card" @click="$router.push('/mypage/qna')">
         <h3>💬 Q&A</h3>
@@ -82,18 +82,29 @@ const formattedLastLogin = computed(() => formatDate(user.value?.lastLoginAt))
 
 const fetchAllSummaries = async () => {
   try {
-    const [favRes, apiRes, notiRes, qnaRes] = await Promise.all([
+    const [
+      favRes,
+      apiRes,
+      notiRes,
+      qnaRes,
+      lostRes
+    ] = await Promise.all([
       api.get('/api/mypage/favorites/summary'),
       api.get('/api/user/apikey/summary'),
       api.get('/api/mypage/notifications/count'),
-      api.get('/api/qna/count')
+      api.get('/api/qna/count'),
+      api.get('/api/mypage/lost/count')
     ])
 
-    favorites.value = favRes.data
-    apiKeyStatusText.value = apiRes.data?.status === 'APPROVED' ? '승인됨' :
-        apiRes.data?.status === 'PENDING' ? '승인 대기 중' : '없음'
+    favorites.value        = favRes.data
+    apiKeyStatusText.value = apiRes.data?.status === 'APPROVED'
+        ? '승인됨'
+        : apiRes.data?.status === 'PENDING'
+            ? '승인 대기 중'
+            : '없음'
     notificationCount.value = notiRes.data.count
-    qnaCount.value = qnaRes.data.count
+    qnaCount.value          = qnaRes.data.count
+    lostItems.value         = lostRes.data.count
   } catch (err) {
     console.error('❌ 데이터 요약 로딩 실패:', err)
   }
@@ -121,11 +132,15 @@ onMounted(async () => {
 .welcome-box {
   background-color: #f5f8ff;
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.5rem 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  margin-bottom: 1.5rem;
+  margin: 0 auto 1.5rem;
   text-align: center;
+  max-width: 500px;      /* ✅ 최대 너비 제한 */
+  width: 100%;           /* ✅ auto 마진 동작 위해 너비 설정 */
+  display: block;        /* ✅ 필요 시 명시적으로 block */
 }
+
 .welcome-box h2 {
   font-size: 1.75rem;
   margin-bottom: 0.5rem;
