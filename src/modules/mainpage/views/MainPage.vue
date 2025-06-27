@@ -2,9 +2,16 @@
   <div class="main-page">
     <!-- 상단 헤더 영역 -->
     <header class="main-header">
-      <div class="header-content">
-        <div class="header-center">
-          <h1 class="title">버스정보 통합검색</h1>
+      <div class="bus-info-banner">
+        <div class="bus-info-content">
+          <div class="bus-icon">
+            <img src="/src/assets/icons/bus-icon.svg" alt="버스 아이콘" class="bus-svg" />
+          </div>
+          <div class="banner-text">
+            <h1 class="banner-title">BUS 정보</h1>
+            <h2 class="banner-subtitle">통합검색</h2>
+            <p class="banner-description">정류소·노선·도착 시간 변환에!</p>
+          </div>
         </div>
       </div>
     </header>
@@ -552,50 +559,81 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* 메인 페이지 스타일 */
 .main-page {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  min-height: calc(100vh - 80px);
-  background-color: #f9fafb;
+  background-color: #f5f7fa;
+  min-height: 100vh;
 }
 
-/* 헤더 영역 스타일 */
+/* 상단 헤더 영역 */
 .main-header {
-  background-color: #1e73c9;
-  color: white;
-  padding: 70px 0;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border: none;
+  width: 100%;
 }
 
-.header-content {
+.bus-info-banner {
+  background-color: #1e73c9;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSIzNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgb3BhY2l0eT0iLjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSI4MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjIyMCIgY3k9IjE4MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjM1MCIgY3k9IjEyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjQ4MCIgY3k9IjIyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjY0MCIgY3k9IjE1MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjgwMCIgY3k9IjIyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjkzMCIgY3k9IjEyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjExMDAiIGN5PSI4MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEyNTAiIGN5PSIxODAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMzUwIiBjeT0iMTAwIiByPSI4IiBmaWxsPSIjZmZmZmZmIi8+PHBhdGggZD0iTTEwMCA4MEwyMjAgMTgwTTIyMCAxODBMMzUwIDEyME0zNTAgMTIwTDQ4MCAyMjBNNDgwIDIyMEw2NDAgMTUwTTY0MCAxNTBMODAwIDIyME04MDAgMjIwTDkzMCAxMjBNOTMwIDEyMEwxMTAwIDgwTTExMDAgODBMMTI1MCAxODBNMTI1MCAxODBMMTM1MCAxMDAiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iODAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIyMjAiIGN5PSIxODAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIzNTAiIGN5PSIxMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI0ODAiIGN5PSIyMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI2NDAiIGN5PSIxNTAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI4MDAiIGN5PSIyMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI5MzAiIGN5PSIxMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIxMTAwIiBjeT0iODAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIxMjUwIiBjeT0iMTgwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iMTM1MCIgY3k9IjEwMCIgcj0iMTIiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNSIvPjwvZz48L3N2Zz4=');
+  background-size: cover;
+  background-position: center;
+  height: 300px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  padding: 0 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bus-info-content {
+  display: flex;
   align-items: center;
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+  width: 100%;
+  z-index: 1;
 }
 
-.header-center {
-  text-align: center;
+.bus-icon {
+  margin-right: 30px;
 }
 
-.title {
-  font-size: 2.8rem;
+.bus-svg {
+  width: 120px;
+  height: 120px;
+  filter: brightness(0) invert(1);
+}
+
+.banner-text {
+  color: white;
+}
+
+.banner-title {
+  font-size: 4rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  line-height: 1;
+  letter-spacing: -1px;
 }
 
-/* 검색 섹션 스타일 */
+.banner-subtitle {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.banner-description {
+  font-size: 1.4rem;
+  margin-top: 15px;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+/* 검색 영역 */
 .search-section {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: -50px auto 30px;
+  padding: 0 20px;
   position: relative;
   z-index: 10;
 }

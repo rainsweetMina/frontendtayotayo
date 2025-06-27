@@ -154,8 +154,16 @@
       <!-- API 응답 시간 차트 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
         <div class="p-5">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">API 응답 시간</h3>
-          <div class="mt-2">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">API 응답 시간</h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              실시간
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 mb-4">
+            API 요청에 대한 평균 응답 시간을 밀리초(ms) 단위로 보여줍니다. 낮을수록 성능이 좋습니다.
+          </p>
+          <div class="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100" style="height: 350px;">
             <LineChart />
             <div v-if="false" class="text-center text-gray-500 py-4">
               <!-- 로딩 또는 오류 상태를 위한 폴백 UI (필요시 표시) -->
@@ -168,8 +176,16 @@
       <!-- 요청 처리량 차트 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
         <div class="p-5">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">시간별 요청 처리량</h3>
-          <div class="mt-2">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">시간별 요청 처리량</h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              시간별
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 mb-4">
+            시간대별 처리된 API 요청 건수를 표시합니다. 트래픽 패턴을 분석하는 데 유용합니다.
+          </p>
+          <div class="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100" style="height: 350px;">
             <BarChart :data="requestVolumeData" />
           </div>
         </div>
@@ -847,3 +863,15 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style>
+/* Pretendard 폰트 적용 */
+.apexcharts-text,
+.apexcharts-title-text,
+.apexcharts-legend-text,
+.apexcharts-yaxis-title-text,
+.apexcharts-xaxis-title-text,
+.apexcharts-tooltip {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif !important;
+}
+</style>
