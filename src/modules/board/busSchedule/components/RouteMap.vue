@@ -75,17 +75,17 @@ function stopScroll() {
 }
 
 watch(
-    () => props.routeId,
+    [() => props.routeId, () => props.moveDir],
     async () => {
-      if (!props.routeId) return
+      if (!props.routeId) return;
 
-      const params = { routeId: props.routeId }
-      if (props.moveDir !== undefined && props.moveDir !== null && props.moveDir !== '') {
-        params.moveDir = props.moveDir
+      const params = { routeId: props.routeId };
+      if (props.moveDir != null) {
+        params.moveDir = props.moveDir;
       }
 
-      const res = await api.get('/api/route-map', { params })
-      routeMapData.value = res.data
+      const res = await api.get('/api/route-map', { params });
+      routeMapData.value = res.data;
     },
     { immediate: true }
 )
