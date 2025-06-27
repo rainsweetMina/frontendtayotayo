@@ -2,10 +2,21 @@
   <div class="w-full px-0 py-8">
     <div class="flex justify-between items-center mb-8 px-8">
       <h2 class="text-3xl font-extrabold">등록된 광고 목록</h2>
-      <router-link
-          to="/admin/ad/create"
-          class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-      >광고 등록</router-link>
+      <div class="flex items-center gap-4">
+        <button
+          @click="downloadAds"
+          class="px-6 py-2 bg-green-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-green-700 transition flex items-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          엑셀 다운로드
+        </button>
+        <router-link
+            to="/admin/ad/create"
+            class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        >광고 등록</router-link>
+      </div>
     </div>
 
     <!-- 검색바 -->
@@ -337,6 +348,85 @@ const endedCount = computed(() =>
 const setFilter = (filter) => {
   currentFilter.value = filter
   page.value = 1 // 필터 변경 시 첫 페이지로 이동
+}
+
+const downloadAds = async () => {
+  try {
+    // 현재 필터링된 데이터를 기반으로 다운로드할지, 전체 데이터를 다운로드할지 선택
+    const downloadData = currentFilter.value === 'all' ? adList.value : filteredAdList.value;
+    
+    if (downloadData.length === 0) {
+      alert('다운로드할 광고 데이터가 없습니다.');
+      return;
+    }
+
+    // 파일 다운로드 요청
+    const response = await fetch('/api/ad/download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      },
+      body: JSON.stringify({
+        ads: downloadData,
+        filter: currentFilter.value,
+        searchKeyword: searchKeyword.value
+      })
+    })
+    
+    // HTTP 상태 코드 확인
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`다운로드 오류 응답 (${response.status}):`, errorText);
+      throw new Error(`서버 응답 오류 ${response.status}: ${errorText}`);
+    }
+    
+    // 응답 헤더에서 콘텐츠 타입과 파일명 확인
+    const contentType = response.headers.get('Content-Type');
+    const contentDisposition = response.headers.get('Content-Disposition');
+    console.log('응답 콘텐츠 타입:', contentType);
+    console.log('응답 Content-Disposition:', contentDisposition);
+    
+    const blob = await response.blob()
+    
+    // Blob의 타입을 Excel MIME 타입으로 설정
+    const excelBlob = new Blob([blob], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    
+    const url = window.URL.createObjectURL(excelBlob)
+    const a = document.createElement('a')
+    a.href = url
+    
+    // 파일명 생성 (현재 필터와 날짜 포함)
+    let filename = 'ads-list.xlsx';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1];
+      }
+    } else {
+      // 기본 파일명에 필터 정보 추가
+      const now = new Date().toISOString().slice(0, 10);
+      const filterText = currentFilter.value === 'all' ? '전체' : 
+                        currentFilter.value === 'scheduled' ? '예정' :
+                        currentFilter.value === 'ongoing' ? '진행중' :
+                        currentFilter.value === 'ending_soon' ? '종료임박' :
+                        currentFilter.value === 'ended' ? '종료됨' : '전체';
+      filename = `광고목록_${filterText}_${now}.xlsx`;
+    }
+    
+    a.download = filename;
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    
+    alert(`${downloadData.length}개의 광고 데이터가 엑셀 파일로 다운로드되었습니다.`);
+  } catch (error) {
+    console.error('광고 다운로드 실패:', error)
+    alert('광고 데이터 다운로드 중 오류가 발생했습니다: ' + error.message)
+  }
 }
 
 onMounted(fetchData)

@@ -3,8 +3,9 @@
     <div class="flex justify-between items-center mb-8 px-8">
       <h2 class="text-3xl font-extrabold">등록된 습득물 목록</h2>
       <button
-        class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         @click="goToCreatePage"
+        :disabled="authStore.role !== 'BUS'"
       >습득물 등록</button>
     </div>
     <div class="px-8 mb-6">
@@ -50,8 +51,8 @@
               <button
                 class="px-4 py-1 rounded bg-green-50 text-green-700 font-semibold border border-green-200 hover:bg-green-100 transition"
                 @click="goToEditPage(item.id)"
-                :disabled="item.isDeleted || item.deleted"
-                :class="inactiveBtnClass(item)"
+                :disabled="item.isDeleted || item.deleted || authStore.role !== 'BUS'"
+                :class="[inactiveBtnClass(item), (item.isDeleted || item.deleted || authStore.role !== 'BUS') ? 'opacity-50 cursor-not-allowed' : '']"
               >수정</button>
               <button
                 class="px-4 py-1 rounded bg-gray-50 text-gray-700 font-semibold border border-gray-200 hover:bg-gray-100 transition"
@@ -106,6 +107,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getFoundItemsForAdmin, hideFoundItem, deleteFoundItem } from '@/modules/lostFound/api/foundAdmin'
 import SearchBar from "@/modules/lostFound/components/SearchBar.vue";
+import { useAuthStore } from '@/stores/auth'
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -117,6 +119,8 @@ const totalPages = computed(() => Math.ceil(foundItems.value.length / pageSize))
 const pagedFoundItems = computed(() =>
   foundItems.value.slice((page.value - 1) * pageSize, page.value * pageSize)
 )
+
+const authStore = useAuthStore()
 
 const handleSearch = async (keyword) => {
   try {

@@ -6,7 +6,7 @@
         습득물 상세 정보
       </h2>
       <div class="flex gap-2">
-        <button @click="goToEditPage" class="px-4 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition flex items-center">
+        <button @click="goToEditPage" :disabled="authStore.role !== 'BUS'" class="px-4 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6 6M3 17v4h4l11-11a2.828 2.828 0 10-4-4L3 17z" /></svg>
           수정
         </button>
@@ -49,12 +49,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
 const item = ref(null)
 const loading = ref(true)
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
+const authStore = useAuthStore()
 
 const goBack = () => {
   router.push('/admin/found')

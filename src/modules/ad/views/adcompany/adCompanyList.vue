@@ -2,10 +2,21 @@
   <div class="w-full">
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-3xl font-extrabold">광고 회사 관리</h2>
-      <router-link
-          to="/admin/adcompany/create"
-          class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-      >회사 등록</router-link>
+      <div class="flex items-center gap-4">
+        <button
+          @click="downloadCompanies"
+          class="px-6 py-2 bg-green-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-green-700 transition flex items-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          엑셀 다운로드
+        </button>
+        <router-link
+            to="/admin/adcompany/create"
+            class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        >회사 등록</router-link>
+      </div>
     </div>
 
     <!-- 검색바 -->
@@ -233,6 +244,80 @@ const handleDeleteFromDetail = async (id) => {
     alert('삭제되었습니다.')
   } catch (e) {
     alert('삭제에 실패했습니다.')
+  }
+}
+
+const downloadCompanies = async () => {
+  try {
+    // 현재 검색된 데이터를 기반으로 다운로드
+    const downloadData = filteredCompanyList.value;
+    
+    if (downloadData.length === 0) {
+      alert('다운로드할 광고 회사 데이터가 없습니다.');
+      return;
+    }
+
+    // 파일 다운로드 요청
+    const response = await fetch('/api/ad/companies/download', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      },
+      body: JSON.stringify({
+        companies: downloadData,
+        searchKeyword: searchKeyword.value
+      })
+    })
+    
+    // HTTP 상태 코드 확인
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`다운로드 오류 응답 (${response.status}):`, errorText);
+      throw new Error(`서버 응답 오류 ${response.status}: ${errorText}`);
+    }
+    
+    // 응답 헤더에서 콘텐츠 타입과 파일명 확인
+    const contentType = response.headers.get('Content-Type');
+    const contentDisposition = response.headers.get('Content-Disposition');
+    console.log('응답 콘텐츠 타입:', contentType);
+    console.log('응답 Content-Disposition:', contentDisposition);
+    
+    const blob = await response.blob()
+    
+    // Blob의 타입을 Excel MIME 타입으로 설정
+    const excelBlob = new Blob([blob], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    
+    const url = window.URL.createObjectURL(excelBlob)
+    const a = document.createElement('a')
+    a.href = url
+    
+    // 파일명 생성 (검색어와 날짜 포함)
+    let filename = 'ad-companies-list.xlsx';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1];
+      }
+    } else {
+      // 기본 파일명에 검색어 정보 추가
+      const now = new Date().toISOString().slice(0, 10);
+      const searchText = searchKeyword.value ? `_${searchKeyword.value}` : '';
+      filename = `광고회사목록${searchText}_${now}.xlsx`;
+    }
+    
+    a.download = filename;
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+    
+    alert(`${downloadData.length}개의 광고 회사 데이터가 엑셀 파일로 다운로드되었습니다.`);
+  } catch (error) {
+    console.error('광고 회사 다운로드 실패:', error)
+    alert('광고 회사 데이터 다운로드 중 오류가 발생했습니다: ' + error.message)
   }
 }
 
