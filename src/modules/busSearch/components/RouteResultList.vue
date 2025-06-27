@@ -9,7 +9,7 @@
     >
       <!-- 🔻 경로 정보 -->
       <div @click="toggleRoute(idx, route)" class="flex items-center cursor-pointer">
-        <span class="text-xs py-0.5 px-1.5 rounded text-white mr-2.5" 
+        <span class="text-xs py-0.5 px-1.5 rounded text-white mr-2.5"
               :class="route.type === '직통' ? 'bg-green-600' : 'bg-orange-500'">
           {{ route.type }}
         </span>
@@ -24,8 +24,9 @@
             {{ route.estimatedMinutes }}분 소요 · {{ route.stationIds?.length - 1 || 0 }}개 정류장
           </span>
         <span
-            class="transform transition-transform duration-200"
-            :class="{ 'rotate-180': openedIndex === idx }"
+            class="transform transition-transform duration-200 dropdown-icon"
+            :class="{ open: openedRouteId === route.routeId }"
+            @click.stop="toggleOnlyOpen(route.routeId)"
         >
           ▼
         </span>
@@ -55,18 +56,22 @@
 </template>
 
 <script setup>
-import { useSearchStore } from '@/stores/searchStore'
+import {useSearchStore} from '@/stores/searchStore'
 import {ref, computed} from 'vue'
 import axios from 'axios'
 
 const store = useSearchStore()
-const props = defineProps({routes: Array})
+const props = defineProps({
+  routes: Array,
+  selectedRouteId: String
+})
 const emit = defineEmits([
   'selectRoute',     // 👉 클릭 시 상위 컴포넌트에 선택된 경로 전달
   'drawRoutePath'    // 👉 ORS 경로 데이터 전달
 ])
 
 const openedIndex = ref(null)
+const openedRouteId = ref(null)
 const selectedRouteId = ref(null)
 
 const filteredRoutes = computed(() => {
@@ -76,9 +81,20 @@ const filteredRoutes = computed(() => {
       .slice(0, 5)
 })
 
+function toggleOnlyOpen(routeId) {
+  const idx = filteredRoutes.value.findIndex(r => r.routeId === routeId)
+
+  if (openedRouteId.value === routeId) {
+    openedRouteId.value = null
+    openedIndex.value = null
+  } else {
+    openedRouteId.value = routeId
+    openedIndex.value = idx
+  }
+}
+
 // ✅ 직통 소요시간 100분 초과 제거
 async function toggleRoute(idx, route = null) {
-  openedIndex.value = openedIndex.value === idx ? null : idx
   if (!route) return
 
   selectedRouteId.value = route.routeId
@@ -102,8 +118,8 @@ async function toggleRoute(idx, route = null) {
     const res = await axios.post('/api/bus/ors/polyline', coords)
     if (isResponseHandled) return
 
-    isResponseHandled = true
     clearTimeout(timeoutId)
+    isResponseHandled = true
 
     const polyline = res.data
     const firstStop = route.stationIds[0]
@@ -169,100 +185,12 @@ async function toggleRoute(idx, route = null) {
 </script>
 
 <style scoped>
-.route-item {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  background: #fff;
-}
-
-.route-item:hover {
-  background: #f9f9f9;
-}
-
-.route-type {
-  display: flex;
-  align-items: center;
-}
-
-.badge {
-  font-size: 0.8em;
-  padding: 3px 6px;
-  border-radius: 4px;
-  margin-right: 10px;
-  color: white;
-}
-
-.route-item.selected {
-  border-color: #2196f3;
-  background-color: #e3f2fd;
-}
-
-.badge.direct {
-  background-color: #4caf50;
-}
-
-.badge.transfer {
-  background-color: #ff9800;
-}
-
-.route-main {
-  font-weight: bold;
-  flex: 1;
-}
-
-.duration {
-  font-size: 0.9em;
-  color: #666;
-  margin-top: 4px;
-}
-
-.summary {
-  font-size: 0.9em;
-  margin-top: 8px;
-}
-
-.station-list {
-  margin-top: 4px;
-  padding-left: 20px;
-}
-
-.station-item {
-  padding: 2px 0;
-  font-size: 14px;
-  list-style-type: circle;
-}
-
-.transfer-inline {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #007bff;
-  font-weight: bold;
-  margin-left: -4px;
-}
-
-.transfer-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.transfer-inline-label {
-  font-size: 14px;
-}
-
-.duration {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .dropdown-icon {
   transition: transform 0.2s ease;
   display: inline-block;
   margin-left: 6px;
   font-size: 0.9em;
+  cursor: pointer;
   color: #888;
 }
 

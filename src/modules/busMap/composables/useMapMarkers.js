@@ -27,6 +27,29 @@ export function useMapMarkers(map) {
             }
             window[key] = null;
         });
+
+        if (window.busStopMarkers?.length) {
+            window.busStopMarkers.forEach(m => {
+                if (map.value.hasLayer(m)) map.value.removeLayer(m);
+            });
+            window.busStopMarkers = [];
+        }
+
+        // 🔽 추가: 실시간 버스 마커
+        if (window.busLocationMarkers?.length) {
+            window.busLocationMarkers.forEach(m => {
+                if (map.value.hasLayer(m)) map.value.removeLayer(m);
+            });
+            window.busLocationMarkers = [];
+        }
+
+        // 🔽 추가: 노선 폴리라인
+        if (window.routePolylines?.length) {
+            window.routePolylines.forEach(line => {
+                if (map.value.hasLayer(line)) map.value.removeLayer(line);
+            });
+            window.routePolylines = [];
+        }
     }
 
     function clearManualMarkers() {

@@ -5,6 +5,7 @@
     <RouteResultList
         v-if="store.routeResults.length && !isLoadingRoutes"
         :routes="store.routeResults"
+        :selectedRouteId="store.selectedRoute?.routeId"
         @selectRoute="selectRouteFromPath"
         @drawRoutePath="drawOrsPolyline"
     />
@@ -46,6 +47,7 @@ import startIcon from '@/assets/icons/start_icon.png'
 import arrivalIcon from '@/assets/icons/arrival_icon.png'
 
 import {ref, watch, onMounted, computed} from 'vue'
+import { debounce } from 'lodash'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import {useSearchStore} from '@/stores/searchStore'
@@ -340,7 +342,7 @@ async function bindArrivalPopup(marker, bsId, bsNm) {
   }
 }
 
-watch(() => store.lastSearchedKeyword, async (keyword) => {
+watch(() => store.lastSearchedKeyword, debounce(async (keyword) => {
   if (!keyword.trim()) return
   try {
     const map = window.leafletMap
@@ -359,5 +361,5 @@ watch(() => store.lastSearchedKeyword, async (keyword) => {
   } catch (err) {
     console.error('❌ 자동 검색 실패:', err)
   }
-}, {immediate: true})
+}, 300), { immediate: true })
 </script>
