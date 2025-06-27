@@ -146,8 +146,6 @@ async function fetchWeather() {
         }
       }
     );
-    
-    console.log('날씨 API 응답 데이터:', data);
 
     const items = data?.response?.body?.items?.item || []
 
