@@ -1,7 +1,7 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
+  <div class="page-container">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">저상버스 대체 안내</h1>
+      <h1 class="title">저상버스 대체 안내</h1>
       <router-link
         v-if="isAdmin"
         to="/admin/lowfloorbus/new"
@@ -12,40 +12,40 @@
     </div>
 
     <!-- 로딩 인디케이터 -->
-    <div v-if="isLoading" class="flex justify-center items-center py-12">
+    <div v-if="isLoading && !selectedLowFloorBus" class="flex justify-center items-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
     </div>
 
     <!-- 오류 메시지 -->
-    <div v-else-if="error" class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+    <div v-else-if="error && !selectedLowFloorBus" class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
       {{ error }}
-      <button @click="fetchLowFloorBuses(1)" class="ml-4 text-blue-500 hover:underline">
+      <button @click="fetchLowFloorBuses()" class="ml-4 text-blue-500 hover:underline">
         다시 시도
       </button>
     </div>
 
     <!-- 저상버스 대체 안내 상세 페이지 -->
-    <div v-else-if="selectedLowFloorBus" class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <div v-else-if="selectedLowFloorBus" class="content-card p-6 mb-6">
       <h2 class="text-2xl font-bold mb-4">{{ selectedLowFloorBus.title }}</h2>
       <div class="flex justify-between text-gray-600 mb-6 border-b pb-4">
         <div>작성일: {{ formatDate(selectedLowFloorBus.createdAt) }}</div>
         <div>조회수: {{ selectedLowFloorBus.viewCount || 0 }}</div>
       </div>
-      
+
       <!-- HTML 콘텐츠 렌더링 -->
       <div v-if="selectedLowFloorBus.content" v-html="selectedLowFloorBus.content" class="html-content max-w-none mb-8"></div>
       <div v-else class="text-gray-500 italic mb-8">본문 내용이 없습니다.</div>
-      
+
       <!-- 첨부파일 다운로드 섹션 -->
       <div v-if="selectedLowFloorBus.files && selectedLowFloorBus.files.length > 0" class="mt-6 p-4 bg-gray-50 rounded-md">
         <h3 class="text-lg font-medium text-gray-900 mb-2">첨부파일</h3>
-        
+
         <div v-for="(file, index) in selectedLowFloorBus.files" :key="index" class="mb-3">
           <!-- 이미지 파일인 경우 직접 표시 -->
           <div v-if="isImageFile(file)" class="mb-3">
             <div class="flex justify-center bg-gray-100 rounded-md p-3 mb-2">
-              <img 
-                :src="getImageUrl(file, index)" 
+              <img
+                :src="getImageUrl(file, index)"
                 :alt="file.originalName"
                 class="max-h-64 rounded-md"
               />
@@ -64,7 +64,7 @@
               </button>
             </div>
           </div>
-          
+
           <!-- 이미지 파일이 아닌 경우 다운로드 버튼만 표시 -->
           <div v-else class="flex items-center mb-2">
             <button
@@ -80,10 +80,10 @@
           </div>
         </div>
       </div>
-      
+
       <div class="mt-6 flex justify-between">
-        <button 
-          @click="goBack" 
+        <button
+          @click="goBack"
           class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md"
         >
           목록으로
@@ -92,7 +92,7 @@
     </div>
 
     <!-- 저상버스 대체 안내 목록 -->
-    <div v-else-if="lowFloorBuses.length > 0" class="bg-white shadow overflow-hidden rounded-lg">
+    <div v-else-if="pagedLowFloorBuses.length > 0" class="content-card">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -111,9 +111,9 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="(lowFloorBus, index) in lowFloorBuses" :key="lowFloorBus.id" class="hover:bg-gray-50">
+          <tr v-for="(lowFloorBus, index) in pagedLowFloorBuses" :key="lowFloorBus.id" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ lowFloorBuses.length - index }}
+              {{ lowFloorBuses.length - ((currentPage - 1) * pageSize + index) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
               <router-link
@@ -138,9 +138,9 @@
         </tbody>
       </table>
     </div>
-    
+
     <!-- 저상버스 대체 안내 없음 -->
-    <div v-else class="bg-white shadow rounded-md p-8 text-center">
+    <div v-else class="content-card p-8 text-center">
       <p class="text-gray-500 text-lg">등록된 저상버스 대체 안내가 없습니다.</p>
     </div>
 
@@ -148,17 +148,31 @@
     <div v-if="!selectedLowFloorBus && totalPages > 1" class="mt-6 flex justify-center">
       <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
         <button
+          @click.prevent="changePage(currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+          :class="{ 'text-gray-300 cursor-not-allowed': currentPage === 1 }"
+        >
+          이전
+        </button>
+
+        <button
           v-for="page in totalPages"
           :key="page"
-          @click="fetchLowFloorBuses(page)"
-          :class="[
-            page === currentPage
-              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-            'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-          ]"
+          @click.prevent="changePage(page)"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          :class="{ 'z-10 bg-blue-50 border-blue-500 text-blue-600': currentPage === page }"
         >
           {{ page }}
+        </button>
+
+        <button
+          @click.prevent="changePage(currentPage + 1)"
+          :disabled="currentPage === totalPages"
+          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+          :class="{ 'text-gray-300 cursor-not-allowed': currentPage === totalPages }"
+        >
+          다음
         </button>
       </nav>
     </div>
@@ -166,7 +180,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 // Quill 스타일 가져오기
@@ -174,7 +188,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const lowFloorBuses = ref([])
 const currentPage = ref(1)
-const totalPages = ref(1)
+const pageSize = 10 // 한 페이지당 표시할 항목 수
 const isAdmin = ref(false)
 const selectedLowFloorBus = ref(null)
 const route = useRoute()
@@ -182,17 +196,29 @@ const router = useRouter()
 const isLoading = ref(false)
 const error = ref('')
 
-const fetchLowFloorBuses = async (page = 1) => {
+// 현재 페이지에 표시할 저상버스 대체 안내 목록
+const pagedLowFloorBuses = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  return lowFloorBuses.value.slice(startIndex, endIndex);
+});
+
+// 전체 페이지 수 계산
+const totalPages = computed(() => {
+  return Math.ceil(lowFloorBuses.value.length / pageSize);
+});
+
+const fetchLowFloorBuses = async () => {
   try {
     isLoading.value = true;
     error.value = '';
-    console.log(`저상버스 대체 안내 목록 조회 요청: 페이지=${page}`);
-    
+    console.log('저상버스 대체 안내 목록 조회 요청');
+
     try {
       // 일반 사용자용 저상버스 대체 안내 API 호출
       const response = await axios.get(`https://localhost:8081/api/public/lowfloorbuses`);
       console.log('저상버스 대체 안내 목록 응답:', response.data);
-      
+
       if (response.data && Array.isArray(response.data)) {
         // 배열 형태 응답 (public API 응답 형식)
         lowFloorBuses.value = response.data.map(lowFloorBus => ({
@@ -201,7 +227,6 @@ const fetchLowFloorBuses = async (page = 1) => {
           content: lowFloorBus.content || '',
           viewCount: lowFloorBus.viewCount || 0
         }));
-        totalPages.value = 1;
       } else if (response.data && response.data.content) {
         // 페이징된 응답 구조
         lowFloorBuses.value = response.data.content.map(lowFloorBus => ({
@@ -210,7 +235,6 @@ const fetchLowFloorBuses = async (page = 1) => {
           content: lowFloorBus.content || '',
           viewCount: lowFloorBus.viewCount || 0
         }));
-        totalPages.value = response.data.totalPages || 1;
       } else if (response.data) {
         // 단일 객체 응답
         lowFloorBuses.value = [{
@@ -219,12 +243,11 @@ const fetchLowFloorBuses = async (page = 1) => {
           content: response.data.content || '',
           viewCount: response.data.viewCount || 0
         }];
-        totalPages.value = 1;
       } else {
         throw new Error('응답 데이터가 없습니다');
       }
-      
-      currentPage.value = page;
+
+      console.log(`총 ${lowFloorBuses.value.length}개 저상버스 대체 안내 로드 완료, 전체 페이지: ${totalPages.value}`);
     } catch (apiError) {
       console.error('API 호출 오류:', apiError);
       throw apiError;
@@ -234,13 +257,20 @@ const fetchLowFloorBuses = async (page = 1) => {
     console.error('응답 데이터:', error.response?.data);
     console.error('응답 상태:', error.response?.status);
     error.value = '저상버스 대체 안내를 불러오는데 실패했습니다.';
-    
+
     // 목업 데이터 제거
     lowFloorBuses.value = [];
   } finally {
     isLoading.value = false;
   }
 }
+
+const changePage = (newPage) => {
+  if (newPage < 1 || newPage > totalPages.value) return;
+  currentPage.value = newPage;
+  // 페이지 변경 시 상단으로 스크롤
+  if (typeof window !== 'undefined') window.scrollTo({top: 0, behavior: 'smooth'});
+};
 
 const checkAdminRole = async () => {
   try {
@@ -258,11 +288,11 @@ const fetchLowFloorBusDetail = async (id) => {
     isLoading.value = true;
     error.value = '';
     console.log(`저상버스 대체 안내 상세 조회 요청: ID=${id}`);
-    
+
     try {
       const response = await axios.get(`https://localhost:8081/api/public/lowfloorbuses/${id}`);
       console.log('저상버스 대체 안내 상세 응답:', response.data);
-      
+
       if (response.data) {
         selectedLowFloorBus.value = {
           ...response.data,
@@ -328,26 +358,68 @@ watch(() => route.params.id, (newId) => {
     fetchLowFloorBusDetail(newId);
   } else {
     selectedLowFloorBus.value = null;
-    fetchLowFloorBuses(1);
+    currentPage.value = 1; // 목록으로 돌아올 때 첫 페이지로 초기화
+    fetchLowFloorBuses();
   }
 }, { immediate: true });
 
 onMounted(async () => {
   await checkAdminRole();
   if (!route.params.id) {
-    fetchLowFloorBuses(1);
+    fetchLowFloorBuses();
   }
 });
 </script>
 
-<style scoped>
+<style>
 .html-content {
   max-width: 100%;
   overflow-x: auto;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .html-content img {
   max-width: 100%;
   height: auto;
+  display: block;
+  margin: 1rem 0;
+  border-radius: 4px;
 }
-</style> 
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2c3e50;
+  border-left: 6px solid #4d9eff;
+}
+
+.page-container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.fare-page-container {
+  max-width: 1240px;
+  margin: 20px auto;
+  padding: 20px 20px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+</style>

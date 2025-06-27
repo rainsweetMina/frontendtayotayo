@@ -31,7 +31,9 @@ api.interceptors.response.use(
 );
 
 export default {
-    getAll: () => api.get('/'),
+    getAll: (page = 0, size = 10) => api.get('/', {
+        params: { page, size }
+    }),
     getOne: (id) => api.get(`/${id}`),
     create: (formData) => api.post('/', formData),
     update: (id, formData) => api.put(`/${id}`, formData),

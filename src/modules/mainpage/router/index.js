@@ -1,5 +1,4 @@
 import MainPage from '../views/MainPage.vue'
-import BusFarePage from '../views/BusFarePage.vue'
 
 const mainPageRoutes = [
   {
@@ -18,14 +17,6 @@ const mainPageRoutes = [
     meta: {
       layout: 'default',
       title: '대구 버스 정보 - 메인'
-    }
-  },
-  {
-    path: '/fare2',
-    name: 'BusFare',
-    component: BusFarePage,
-    meta: {
-      title: '버스 요금'
     }
   }
 ]
