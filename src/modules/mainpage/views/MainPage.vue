@@ -83,16 +83,10 @@
     <!-- 팝업 광고 -->
     <div
         v-if="showPopup && popupAd"
-        class="fixed z-[9999] bg-white p-4 shadow-2xl rounded-xl w-[400px] cursor-move"
+        class="fixed z-[9999] bg-white p-4 shadow-2xl rounded-xl w-[500px] cursor-move border-2 border-gray-200"
         :style="{ top: popupPosition.top + 'px', left: popupPosition.left + 'px' }"
         @mousedown="onPopupMouseDown"
     >
-      <button
-          class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl font-bold"
-          @click="closePopup"
-      >
-        &times;
-      </button>
       <a :href="popupAd.linkUrl" target="_blank">
         <img
             :src="`${IMAGE_BASE_URL}/ad/${popupAd.imageUrl}`"
@@ -100,9 +94,12 @@
             class="w-full h-auto rounded"
         />
       </a>
-      <div class="text-right mt-2">
+      <div class="text-right mt-2 flex justify-end gap-4">
         <button @click="dismissToday" class="text-sm text-gray-500 hover:text-black">
           하루 동안 보지 않기
+        </button>
+        <button @click="closePopup" class="text-sm text-gray-500 hover:text-black">
+          닫기
         </button>
       </div>
     </div>

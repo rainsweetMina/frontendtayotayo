@@ -48,6 +48,11 @@ const fetchItems = async () => {
     // 등록일 또는 분실일 기준으로 7일 이내인 것만 표시
     const itemDate = item.createdAt ? new Date(item.createdAt) : new Date(item.lostTime);
     return itemDate >= sevenDaysAgo;
+  }).sort((a, b) => {
+    // 최신 등록순 정렬 (createdAt 기준, 없으면 lostTime)
+    const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a.lostTime);
+    const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b.lostTime);
+    return dateB - dateA;
   });
 };
 

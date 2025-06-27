@@ -299,8 +299,14 @@ const fetchItems = async () => {
 };
 
 const pagedItems = computed(() => {
+  // 최신 등록순 정렬 (createdAt 기준, 없으면 lostTime)
+  const sorted = [...lostItems.value].sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a.lostTime);
+    const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b.lostTime);
+    return dateB - dateA;
+  });
   const start = (page.value - 1) * pageSize;
-  return lostItems.value.slice(start, start + pageSize);
+  return sorted.slice(start, start + pageSize);
 });
 
 const totalPages = computed(() => Math.ceil(lostItems.value.length / pageSize));

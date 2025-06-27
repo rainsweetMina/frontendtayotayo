@@ -155,9 +155,9 @@ function formatDate(dateStr) {
 
 // 작성자 이름 마스킹 함수
 function maskWriterName(name) {
-  if (!name || isAdmin.value) return name;
-  if (name.length <= 2) return name;
-  return name.charAt(0) + '*'.repeat(name.length - 1);
+  if (!name || isAdmin.value) return name;  // 관리자는 전체 이름 표시
+  if (name.length === 1) return '*';        // 1글자는 *로 표시
+  return name.charAt(0) + '*'.repeat(name.length - 1);  // 첫글자 + 나머지는 *
 }
 
 onMounted(async () => {

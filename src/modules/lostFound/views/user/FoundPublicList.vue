@@ -12,6 +12,17 @@
           </h1>
         </div>
       </div>
+      <!-- 한달 후 폐기 안내 -->
+      <div class="px-6 py-3 bg-yellow-50 border-l-4 border-yellow-400">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <p class="text-sm text-yellow-800 font-medium">
+            습득물은 한달 후 폐기됩니다. 분실물을 찾으시는 경우 빠른 시일 내에 확인해주세요.
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- 🔍 검색 카드 -->
@@ -123,7 +134,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr 
-              v-for="item in items" 
+              v-for="item in sortedItems" 
               :key="item.id" 
               @click="goToItemDetail(item.id)" 
               class="hover:bg-gray-50 cursor-pointer transition-colors"
@@ -171,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/foundPublic';
@@ -188,6 +199,10 @@ const busRoutes = ref([]);
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
 const items = ref([]);
+
+const sortedItems = computed(() => {
+  return [...items.value].sort((a, b) => (b.id || 0) - (a.id || 0));
+});
 
 // 🗓 날짜 계산
 const getStartDate = (daysAgo) => {
@@ -217,7 +232,11 @@ const fetchFoundItems = async (isSearch = false) => {
       console.log("✅ [검색 파라미터]", params);
 
       const { data } = await axios.get('/api/found/search', { params });
-      items.value = data;
+      items.value = data.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : (a.foundTime ? new Date(a.foundTime) : 0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : (b.foundTime ? new Date(b.foundTime) : 0);
+        return dateB - dateA;
+      });
     } else {
       // 초기 로딩 시에도 날짜 범위 적용
       const params = {
@@ -225,7 +244,11 @@ const fetchFoundItems = async (isSearch = false) => {
         endDate
       };
       const { data } = await axios.get('/api/found/search', { params });
-      items.value = data;
+      items.value = data.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : (a.foundTime ? new Date(a.foundTime) : 0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : (b.foundTime ? new Date(b.foundTime) : 0);
+        return dateB - dateA;
+      });
     }
   } catch (e) {
     items.value = [];
