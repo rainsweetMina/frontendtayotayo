@@ -1,15 +1,20 @@
 import axios from 'axios'
-import {ref} from 'vue'
-import {useUserInfo} from '@/modules/mypage/composables/useUserInfo'
+import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router' // 추가
 
 export function useFavoriteBusStop() {
     const favoriteSet = ref(new Set())
-    const favoriteList = ref([]) // 🕒 전체 객체 리스트 (bsId + createdAt 등)
+    const favoriteList = ref([]) // 전체 객체 리스트 (bsId + createdAt 등)
     const favoriteStops = ref([])
+
+    const router = useRouter() // 라우터 인스턴스
+    const route = useRoute()   // 현재 라우트 정보
 
     const fetchFavorites = async () => {
         try {
-            const res = await axios.get('/api/mypage/favorite/bus-stop', {withCredentials: true})
+            const res = await axios.get('/api/mypage/favorite/bus-stop', {
+                withCredentials: true
+            })
             favoriteStops.value = res.data
             favoriteSet.value = new Set(res.data.map(f => f.bsId))
         } catch (e) {
@@ -28,26 +33,29 @@ export function useFavoriteBusStop() {
         }
 
         try {
-            await axios.post('/api/mypage/favorite/bus-stop',
-                {bsId: stop.bsId},
-                {withCredentials: true})
+            await axios.post('/api/mypage/favorite/bus-stop', { bsId: stop.bsId }, {
+                withCredentials: true
+            })
             await fetchFavorites()
         } catch (e) {
-            handleAuthError(e, '로그인이 필요합니다')
+            handleAuthError(e, '로그인이 필요합니다.')
         }
     }
 
     const deleteFavoriteStop = async (bsId) => {
         try {
-            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`, {withCredentials: true})
+            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`, {
+                withCredentials: true
+            })
             favoriteStops.value = favoriteStops.value.filter(s => s.bsId !== bsId)
         } catch (e) {
             handleAuthError(e, '정류장 즐겨찾기 삭제에 실패했습니다.')
         }
     }
 
-    const isFavorited = (bsId) =>
-        favoriteStops.value.some(stop => stop.bsId === bsId)
+    const isFavorited = (bsId) => {
+        return favoriteStops.value.some(stop => stop.bsId === bsId)
+    }
 
     const toggleFavorite = async (stop) => {
         if (isFavorited(stop.bsId)) {
@@ -67,9 +75,15 @@ export function useFavoriteBusStop() {
         const status = e?.response?.status
         const message = e?.response?.data
 
-        if (status === 401 || (typeof message === 'string' && message.includes('Null'))) {
+        if (
+            status === 401 ||
+            (typeof message === 'string' && message.includes('Null'))
+        ) {
             alert('로그인이 필요합니다.')
-            window.location.href = '/login'
+            router.push({
+                path: '/login',
+                query: { redirect: encodeURIComponent(route.fullPath) }
+            })
         } else {
             console.error('❌ 오류 발생:', e)
             alert(customMessage)

@@ -1,40 +1,46 @@
 // main.js
-
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 
-// ✅ Pinia 및 Persist 플러그인
+/* ── Pinia & Persist ─────────────────────────────── */
 import { createPinia } from 'pinia'
 import piniaPersistedState from 'pinia-plugin-persistedstate'
 
-// ✅ 스타일 및 CSS - Bootstrap과 Tailwind 충돌 방지를 위한 로딩 순서 조정
-// Bootstrap JS는 필요한 경우에만 로드
+/* ── 글로벌 스타일 ───────────────────────────────── */
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-// Leaflet CSS
 import 'leaflet/dist/leaflet.css'
-// Tailwind CSS를 마지막에 로드하여 우선 적용
 import './assets/css/tailwind.css'
-
-// ✅ 레이아웃 컴포넌트
-import EmptyLayout from "@/layouts/components/EmptyLayout.vue"
-
-// ✅ Axios 전역 설정 적용
-import './api/axiosInstance'
-
 import './assets/main.css'
 
+/* ── 전역 컴포넌트 & 플러그인 ───────────────────── */
+import EmptyLayout   from '@/layouts/components/EmptyLayout.vue'
 import VueApexCharts from 'vue3-apexcharts'
 
-// ✅ Pinia 생성 및 persist 적용
-const pinia = createPinia()
-pinia.use(piniaPersistedState)
+/* ── AuthStore (세션 동기화용) ───────────────────── */
+import { useAuthStore } from '@/stores/auth'
 
-// ✅ 앱 생성 및 구성 요소 등록
-const app = createApp(App)
-app.use(pinia)
-app.use(router)
-app.use(VueApexCharts)
-app.component("empty-layout", EmptyLayout)
+/* ───────────────────────────────────────────────── */
 
-app.mount('#app')
+async function bootstrap() {
+    /* 1️⃣ Pinia 인스턴스 + persist 플러그인 */
+    const pinia = createPinia()
+    pinia.use(piniaPersistedState)
+
+    /* 2️⃣ 앱 생성 및 플러그인/컴포넌트 등록 */
+    const app = createApp(App)
+    app.use(pinia)
+    app.use(router)
+    app.use(VueApexCharts)
+    app.component('empty-layout', EmptyLayout)
+
+    /* 3️⃣ 세션 동기화 (토큰 → 서버 확인) */
+    const auth = useAuthStore()
+    await auth.syncSession()          // ← 여기서 로그인 상태/토큰 검증
+
+    /* 4️⃣ 라우터 준비 후 마운트 */
+    await router.isReady()
+    app.mount('#app')
+}
+
+bootstrap()   // 부트스트랩 실행

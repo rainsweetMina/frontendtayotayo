@@ -15,11 +15,12 @@
 
 <script setup>
 import { computed, ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo.js'
 
 const router = useRouter()
+const route  = useRoute()
 const auth = useAuthStore()
 const { user, isLoggedIn, resetUserInfo } = useUserInfo()
 
@@ -39,20 +40,24 @@ const userRole = computed(() => {
 
 const handleLogout = async () => {
   try {
-    // 로그아웃 API 호출
-    await fetch('/api/logout', {
-      method: 'POST',
-      credentials: 'include'
-    })
+    await fetch('/api/logout', {method: 'POST', credentials: 'include'})
   } catch (err) {
     console.error('로그아웃 API 호출 실패:', err)
   } finally {
-    // 클라이언트 측 정리 작업
-    auth.logout(true) // accessToken도 함께 제거
+    // 1️⃣ 클라이언트 정리
+    auth.logout(true)
     resetUserInfo()
-    
-    // 로그인 페이지로 리다이렉트
-    router.push('/login')
+
+    // 2️⃣ 현재 경로가 보호 페이지인지 확인
+    const path = route.fullPath
+    const isProtected = path.startsWith('/admin') || path.startsWith('/mypage')
+
+    // 3️⃣ 보호 페이지면 메인으로, 아니면 그대로 머무르기
+    if (isProtected) {
+      router.push('/main')
+    } else {
+      router.replace(path)     // 같은 페이지에 머무르며 UI만 갱신
+    }
   }
 }
 
