@@ -23,7 +23,7 @@
     </div>
 
     <!-- 본문 -->
-    <div class="main-content p-0">
+    <div class="main-content">
       <main>
         <slot/>
       </main>
@@ -107,7 +107,7 @@ const toggleSidebar = () => {
 
 /* 본문 영역 */
 .main-content {
-  padding: 1rem;
+  padding: 0;
   transition: margin-left 0.3s ease;
 }
 </style>

@@ -1,14 +1,16 @@
 <template>
   <div class="bus-map-page">
     <!-- 로고 + 검색창 맵 위에 띄우기 (네비게이션 바가 열리지 않았을 때만 표시) -->
-    <div v-show="!store.sidebarOpen" 
-         class="fixed top-4 left-4 z-[9999] flex items-center flex-nowrap gap-2.5">
-      <router-link to="/" class="flex items-center">
+    <div v-show="!store.sidebarOpen" class="logo-search-bar">
+      <router-link to="/" class="logo-link">
         <Logo />
       </router-link>
-      <div class="flex-1 w-[300px] max-w-none">
-        <SearchBox v-model="searchKeyword" @search="handleSearch" />
-      </div>
+
+      <SearchBox
+          v-model="searchKeyword"
+          @search="handleSearch"
+          class="search-box -ml-8 w-[320px]"
+      />
     </div>
 
     <div class="flex-grow w-full transition-[margin-left] duration-300 ease-in-out" 
@@ -203,4 +205,16 @@ onMounted(() => {
 .bus-map-page {
   @apply flex h-screen overflow-hidden relative;
 }
+
+.logo-search-bar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+}
+
+
 </style>
