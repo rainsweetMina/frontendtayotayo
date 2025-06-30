@@ -162,6 +162,13 @@ const toggleSidebar = () => {
   padding: 0;
   transition: margin-left 0.3s ease;
   padding-top: 80px; /* 헤더 높이만큼 상단 여백 추가 */
+  flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content main {
+  flex: 1; /* main 태그도 남은 공간을 모두 차지하도록 설정 */
 }
 
 /* 푸터 영역 */
