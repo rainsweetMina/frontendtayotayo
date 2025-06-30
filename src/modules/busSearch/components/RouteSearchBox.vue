@@ -183,7 +183,7 @@ async function searchRoutes() {
           startY: startCoord.y,
           endX: startCoord.x, // 임시 (필수 파라미터 대응용)
           endY: startCoord.y,
-          radius: 200
+          radius: 300
         }
       })
 
@@ -205,7 +205,7 @@ async function searchRoutes() {
           startY: endCoord.y,
           endX: endCoord.x, // 임시 대응
           endY: endCoord.y,
-          radius: 200
+          radius: 300
         }
       })
 

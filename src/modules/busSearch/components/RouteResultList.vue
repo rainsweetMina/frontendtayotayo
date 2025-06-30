@@ -8,7 +8,7 @@
         @click="toggleRoute(idx, route)"
     >
       <!-- 🔻 경로 정보 -->
-      <div @click="toggleRoute(idx, route)" class="flex items-center cursor-pointer">
+      <div class="flex items-center cursor-pointer">
         <span class="text-xs py-0.5 px-1.5 rounded text-white mr-2.5"
               :class="route.type === '직통' ? 'bg-green-600' : 'bg-orange-500'">
           {{ route.type }}
@@ -106,20 +106,8 @@ async function toggleRoute(idx, route = null) {
 
   if (coords.length < 2) return
 
-  let isResponseHandled = false
-  const timeoutId = setTimeout(() => {
-    if (!isResponseHandled) {
-      emit('selectRoute', route)
-      isResponseHandled = true
-    }
-  }, 2000)
-
   try {
     const res = await axios.post('/api/bus/ors/polyline', coords)
-    if (isResponseHandled) return
-
-    clearTimeout(timeoutId)
-    isResponseHandled = true
 
     const polyline = res.data
     const firstStop = route.stationIds[0]
@@ -128,21 +116,21 @@ async function toggleRoute(idx, route = null) {
         ? route.stationIds.find(s => s.bsId === route.transferStationId)
         : null
 
-    setTimeout(() => {
-      store.autoTriggered = {
-        startMarker: true,
-        endMarker: true
-      }
-      store.setStartCoord({
-        lat: firstStop.yPos ?? firstStop.ypos,
-        lng: firstStop.xPos ?? firstStop.xpos
-      })
-      store.setEndCoord({
-        lat: lastStop.yPos ?? lastStop.ypos,
-        lng: lastStop.xPos ?? lastStop.xpos
-      })
-    }, 0)
+    // ✅ 출발/도착 좌표를 store에 설정 (마커 표시용)
+    store.autoTriggered = {
+      startMarker: true,
+      endMarker: true
+    }
+    store.setStartCoord({
+      lat: firstStop.yPos ?? firstStop.ypos,
+      lng: firstStop.xPos ?? firstStop.xpos
+    })
+    store.setEndCoord({
+      lat: lastStop.yPos ?? lastStop.ypos,
+      lng: lastStop.xPos ?? lastStop.xpos
+    })
 
+    // ✅ 지도에 경로 그리기
     emit('drawRoutePath', {
       polyline,
       start: {
@@ -162,7 +150,7 @@ async function toggleRoute(idx, route = null) {
       afterColor: 'orange'
     })
 
-    // 👉 출발/도착 좌표도 함께 포함시켜서 emit
+    // ✅ 최종적으로 선택된 route emit
     emit('selectRoute', {
       ...route,
       __startCoord: {
@@ -176,12 +164,12 @@ async function toggleRoute(idx, route = null) {
     })
   } catch (err) {
     console.error('❌ ORS 경로 요청 실패:', err)
-    if (!isResponseHandled) {
-      emit('selectRoute', route)
-      isResponseHandled = true
-    }
+
+    // ✅ fallback emit (좌표 없이 단순 경로 정보만 전달)
+    emit('selectRoute', route)
   }
 }
+
 </script>
 
 <style scoped>
