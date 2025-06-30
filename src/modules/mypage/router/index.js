@@ -88,7 +88,7 @@ export default [
 
             const auth = useAuthStore()
             auth.logout()
-            next('/login')
+            next('/main')   // ✅ 메인 화면으로 리다이렉트
         },
         meta: { layout: 'none' }
     },

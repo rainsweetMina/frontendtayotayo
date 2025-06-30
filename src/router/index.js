@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import busSearchRoutes from '@/modules/busSearch/router'
 import busMapRoutes from '@/modules/busMap/router'
 import myPageRoutes from '@/modules/mypage/router'
-import { adminRoutes } from "@/modules/adminpage/router"
+import { adminRoutes } from '@/modules/adminpage/router'
 import lostFoundRoutes from '@/modules/lostFound/router'
 import adRoutes from '@/modules/ad/router'
 import boardRoutes from '@/modules/board/router'
@@ -13,7 +13,7 @@ import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
 import { publicQnaRoutes } from '@/modules/qna/public/router'
 
 import { useAuthStore } from '@/stores/auth'
-import { useUserInfo } from "@/modules/mypage/composables/useUserInfo.js"
+import { useUserInfo } from '@/modules/mypage/composables/useUserInfo.js'
 
 const routes = [
     ...mainPageRoutes,
@@ -31,88 +31,111 @@ const routes = [
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
-    routes
+    routes,
 })
 
-// ✅ 전역 가드 설정
-// ✅ 전역 가드 설정
 router.beforeEach(async (to, from, next) => {
     const auth = useAuthStore()
-    const {
-        isLoggedIn,
-        fetchUserInfo,
-        isUserInfoFetched
-    } = useUserInfo()
+    const { fetchUserInfo, isUserInfoFetched } = useUserInfo()
 
-    const publicPaths = ['/login', '/register', '/oauth-success', '/find-password']
-    const requiresAuth = !publicPaths.includes(to.path)
-
-    // ✅ 사용자 정보 복원 (토큰이 있고 아직 정보가 없다면)
-    if (requiresAuth && !auth.userId && localStorage.getItem('accessToken') && !isUserInfoFetched.value) {
-        const ok = await fetchUserInfo(true)
-        if (!ok) {
-            console.warn('⛔ 사용자 정보 복원 실패 → 로그인 페이지로')
-            return next('/login')
+    // 🔑 로그인 진입 시 redirect 없으면 직전 페이지 부여
+    if (to.path === '/login' && !to.query.redirect) {
+        const prev = from.fullPath && from.fullPath !== '/login' ? from.fullPath : null
+        if (prev) {
+            console.log('📌 공개 페이지 → /login, redirect 자동 부여:', prev)
+            return next({ path: '/login', query: { redirect: encodeURIComponent(prev) } })
         }
     }
 
-    // ✅ /admin 접근 제어
-    if (to.path.startsWith('/admin')) {
-        // accessToken 쿼리 추출 → localStorage 저장
-        const urlParams = new URLSearchParams(window.location.search)
-        const accessToken = urlParams.get('accessToken')
-        const refreshToken = urlParams.get('refreshToken')
+    // 1. 보호 경로 판단
+    const isProtected =
+        to.meta.requiresAuth === true ||
+        to.path.startsWith('/admin') ||
+        to.path.startsWith('/mypage')
 
-        if (accessToken && accessToken !== 'null') localStorage.setItem('accessToken', accessToken)
-        if (refreshToken && refreshToken !== 'null') localStorage.setItem('refreshToken', refreshToken)
+    // 2. 토큰만 있을 때 사용자 정보 복원
+    const accessToken = localStorage.getItem('accessToken')
+    if (!auth.isLoggedIn && accessToken && !isUserInfoFetched.value) {
+        const ok = await fetchUserInfo(true)
+        if (!ok && isProtected) {
+            return next({ path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } })
+        }
+    }
 
-        if (accessToken || refreshToken) {
-            const newUrl = new URL(window.location.href)
-            newUrl.searchParams.delete('accessToken')
-            newUrl.searchParams.delete('refreshToken')
-            window.history.replaceState({}, document.title, newUrl.toString())
+    // 3. 보호 경로인데 로그인 안 되어있으면
+    if (isProtected && !auth.isLoggedIn) {
+        console.log('🔁 보호 경로 → /login, to.fullPath =', to.fullPath)
+        return next({ path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } })
+    }
+
+    // 4. 로그인된 상태에서 /login 접근 → redirectQuery 있으면 무조건 우선
+    if (to.path === '/login' && auth.isLoggedIn) {
+        const role = auth.role
+        const redirectQuery = to.query.redirect
+            ? decodeURIComponent(to.query.redirect)
+            : null
+
+        /* 👉 USER만 redirectQuery 우선 */
+        if (role === 'USER' && redirectQuery) {
+            return next(redirectQuery)
         }
 
-        // ❌ accessToken 없으면 로그인 페이지로
-        if (!localStorage.getItem('accessToken')) return next('/login')
+        /* 👉 ADMIN·BUS (또는 USER에 redirectQuery가 없을 때) */
+        const mapByRole = {
+            ADMIN: '/admin/dashboard',
+            BUS:   '/admin/lost',
+            USER:  '/mypage',
+        }
+        return next(mapByRole[role] || '/')
+    }
 
-        // 사용자 정보 복원 안 됐으면 시도
+    // 5. /admin 권한 제어
+    if (to.path.startsWith('/admin')) {
+        const params = new URLSearchParams(window.location.search)
+        const qAccess = params.get('accessToken')
+        const qRefresh = params.get('refreshToken')
+
+        if (qAccess && qAccess !== 'null') localStorage.setItem('accessToken', qAccess)
+        if (qRefresh && qRefresh !== 'null') localStorage.setItem('refreshToken', qRefresh)
+        if (qAccess || qRefresh) {
+            const cleanUrl = new URL(window.location.href)
+            cleanUrl.searchParams.delete('accessToken')
+            cleanUrl.searchParams.delete('refreshToken')
+            window.history.replaceState({}, document.title, cleanUrl.toString())
+        }
+
         if (!auth.role) {
             const ok = await fetchUserInfo(true)
             if (!ok) return next('/login')
         }
 
-        // ✅ BUS 권한 제한
-        if (auth.role === 'BUS') {
-            const allowedPaths = ['/admin/found', '/admin/lost']
-            const isAllowed = allowedPaths.some(path => to.path.startsWith(path))
-            if (!isAllowed) {
-                alert('🚫 BUS 권한으로는 해당 페이지에 접근할 수 없습니다.')
-                return next('/admin/dashboard')
-            }
-        }
-
-        // ✅ 일반 사용자 제한
         if (auth.role === 'USER') {
             alert('🚫 일반 사용자에게는 관리자 페이지 접근 권한이 없습니다.')
             return next('/')
         }
+
+        if (auth.role === 'BUS') {
+            const allowed = ['/admin/found', '/admin/lost']
+            const ok = allowed.some(p => to.path.startsWith(p))
+            if (!ok) {
+                alert('🚫 BUS 권한으로는 해당 페이지에 접근할 수 없습니다.')
+                return next('/admin/dashboard')
+            }
+        }
     }
 
-    // ✅ /mypage 접근 제어: USER 권한만 가능
+    // 6. /mypage 권한 제어
     if (to.path.startsWith('/mypage')) {
         if (!auth.userId) {
             const ok = await fetchUserInfo(true)
             if (!ok) return next('/login')
         }
-
         if (auth.role !== 'USER') {
             alert('🚫 마이페이지는 일반 사용자만 접근 가능합니다.')
             return next('/')
         }
     }
 
-    // ✅ 기본 이동 허용
     next()
 })
 

@@ -39,22 +39,34 @@
 
     <!-- 등록된 즐겨찾기 영역 -->
     <div class="favorites-section">
+      <!-- 📌 정류장 즐겨찾기 -->
       <div v-if="favoriteStops.length" class="favorites-block">
         <h3>📌 등록된 정류장 즐겨찾기</h3>
         <ul>
-          <li v-for="stop in favoriteStops" :key="stop.bsId">
+          <li
+              v-for="stop in favoriteStops"
+              :key="stop.bsId"
+              @click="goToMap(stop.bsNm)"
+              class="clickable-item"
+          >
             {{ stop.bsNm }} (ID: {{ stop.bsId }})
-            <button @click="deleteFavoriteStop(stop.bsId)">❌ 삭제</button>
+            <button @click.stop="deleteFavoriteStop(stop.bsId)">❌ 삭제</button>
           </li>
         </ul>
       </div>
 
+      <!-- 📌 노선 즐겨찾기 -->
       <div v-if="favoriteRoutes.length" class="favorites-block">
         <h3>📌 등록된 노선 즐겨찾기</h3>
         <ul>
-          <li v-for="route in favoriteRoutes" :key="route.routeId">
+          <li
+              v-for="route in favoriteRoutes"
+              :key="route.routeId"
+              @click="goToMap(route.routeNo)"
+              class="clickable-item"
+          >
             {{ route.routeNo }}번 ({{ route.stNm }} → {{ route.edNm }})
-            <button @click="deleteFavoriteRoute(route.routeId)">❌ 삭제</button>
+            <button @click.stop="deleteFavoriteRoute(route.routeId)">❌ 삭제</button>
           </li>
         </ul>
       </div>
@@ -120,6 +132,13 @@ const addFavoriteStop = async (stop) => {
     console.error('❌ 정류장 즐겨찾기 실패:', e)
     alert('추가에 실패했습니다.')
   }
+}
+
+function goToMap(stopName) {
+  if (!stopName) return
+  const keyword = encodeURIComponent(stopName)
+  const url = `/bus/map?keyword=${keyword}`
+  window.open(url, '_blank')
 }
 
 const addFavoriteRoute = async (route) => {
@@ -242,4 +261,13 @@ li {
 .back-button:hover {
   color: #2877cd;
 }
+
+.clickable-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.clickable-item:hover {
+  background-color: #f2f2f2;
+}
+
 </style>
