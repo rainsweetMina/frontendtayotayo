@@ -21,7 +21,7 @@
     </div>
     
     <!-- 최근 검색어 표시 영역 -->
-    <div v-if="!isRouteMode && store.recentSearches.length > 0" class="recent-searches mt-2 px-3">
+    <div v-if="!isRouteMode && store.recentSearches.length > 0" class="recent-searches my-1 px-2">
       <div class="flex justify-between items-center mb-1">
         <h3 class="text-sm font-medium text-gray-600">최근 검색</h3>
         <button @click="store.clearRecentSearches()" class="text-xs text-gray-500 hover:text-gray-700">전체 삭제</button>
@@ -166,4 +166,15 @@ watch(() => store.forceRouteMode, async (val) => {
 .delete-btn:hover {
   color: #495057;
 }
+
+.recent-searches {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
 </style>
