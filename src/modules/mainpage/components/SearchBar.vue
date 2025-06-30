@@ -1,15 +1,15 @@
 <template>
   <div class="search-bar">
     <div class="search-input-wrapper">
-      <input 
-        type="text" 
-        class="search-input" 
-        :placeholder="placeholder" 
+      <input
+        type="text"
+        class="search-input"
+        :placeholder="placeholder"
         v-model="searchText"
         @keyup.enter="handleSearch"
       />
       <button class="search-button" @click="handleSearch">
-        <span class="search-icon">🔍</span>
+        <img src="/src/assets/icons/search-icon.png" alt="검색" class="search-icon" />
       </button>
     </div>
   </div>
@@ -39,12 +39,12 @@ const handleSearch = () => {
   if (searchText.value.trim()) {
     // 검색어를 searchStore에 설정
     searchStore.setKeyword(searchText.value);
-    
+
     // 검색 이벤트 발생
-    emit('search', { 
+    emit('search', {
       keyword: searchText.value
     });
-    
+
     // 검색어를 searchStore에 추가
     searchStore.addToRecentSearches(searchText.value);
   }
@@ -87,7 +87,7 @@ const handleSearch = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #1e73c9;
+  background-color: #e8e8e8;
   color: white;
   border: none;
   padding: 0 20px;
@@ -96,11 +96,12 @@ const handleSearch = () => {
 }
 
 .search-button:hover {
-  background-color: #1a5ea0;
+  background-color: #d4d7de;
 }
 
 .search-icon {
-  font-size: 1.2rem;
+  width: 24px;
+  height: 24px;
 }
 
 /* 반응형 스타일 */
@@ -108,7 +109,7 @@ const handleSearch = () => {
   .search-input {
     padding: 12px 15px;
   }
-  
+
   .search-button {
     padding: 0 15px;
   }
@@ -119,13 +120,14 @@ const handleSearch = () => {
     font-size: 0.9rem;
     padding: 10px 12px;
   }
-  
+
   .search-button {
     padding: 0 12px;
   }
-  
+
   .search-icon {
-    font-size: 1rem;
+    width: 22px;
+    height: 22px;
   }
 }
-</style> 
+</style>

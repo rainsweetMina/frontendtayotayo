@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">저상버스 대체 안내</h1>
       <router-link
@@ -25,7 +25,7 @@
     </div>
 
     <!-- 저상버스 대체 안내 상세 페이지 -->
-    <div v-else-if="selectedLowFloorBus" class="content-card p-6 mb-6">
+    <div v-else-if="selectedLowFloorBus" class="p-6 mb-6 bg-white rounded-md shadow">
       <h2 class="text-2xl font-bold mb-4">{{ selectedLowFloorBus.title }}</h2>
       <div class="flex justify-between text-gray-600 mb-6 border-b pb-4">
         <div>작성일: {{ formatDate(selectedLowFloorBus.createdAt) }}</div>
@@ -92,7 +92,7 @@
     </div>
 
     <!-- 저상버스 대체 안내 목록 -->
-    <div v-else-if="pagedLowFloorBuses.length > 0" class="content-card">
+    <div v-else-if="pagedLowFloorBuses.length > 0" class="bg-white rounded-md shadow">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -140,7 +140,7 @@
     </div>
 
     <!-- 저상버스 대체 안내 없음 -->
-    <div v-else class="content-card p-8 text-center">
+    <div v-else class="p-8 text-center bg-white rounded-md shadow">
       <p class="text-gray-500 text-lg">등록된 저상버스 대체 안내가 없습니다.</p>
     </div>
 
@@ -371,22 +371,8 @@ onMounted(async () => {
 });
 </script>
 
-<style>
-.html-content {
-  max-width: 100%;
-  overflow-x: auto;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.html-content img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1rem 0;
-  border-radius: 4px;
-}
-
+<style scoped>
+@import "@/modules/board/assets/boardCommon.css";
 .title {
   font-size: 26px;
   font-weight: 700;
@@ -397,29 +383,5 @@ onMounted(async () => {
   gap: 10px;
   color: #2c3e50;
   border-left: 6px solid #4d9eff;
-}
-
-.page-container {
-  max-width: 960px;
-  margin: 40px auto;
-  padding: 0 20px;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.fare-page-container {
-  max-width: 1240px;
-  margin: 20px auto;
-  padding: 20px 20px;
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
-}
-
-.content-card {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 </style>

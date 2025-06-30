@@ -1,7 +1,6 @@
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import AdminDashboard from '@/modules/adminpage/dashboard/views/AdminDashboard.vue'
 import AdminNotice from '@/modules/adminpage/dashboard/views/notice/Notice.vue'
-import AdminOperationTime from '@/modules/adminpage/dashboard/views/OperationTime.vue'
 import AdminSystemLogs from '@/modules/adminpage/dashboard/views/SystemLogs.vue'
 import AdminRouteFinderSettings from '@/modules/adminpage/dashboard/views/RouteFinderSettings.vue'
 import AdminBusRoutes from '@/modules/adminpage/dashboard/views/BusRoutes.vue'
@@ -154,11 +153,6 @@ export const adminRoutes = {
       props: true
     },
     {
-      path: "operation-time",
-      name: "AdminOperationTime",
-      component: AdminOperationTime
-    },
-    {
       path: "system-logs",
       name: "AdminSystemLogs",
       component: AdminSystemLogs
@@ -290,4 +284,4 @@ export const adminRoutes = {
     },
   ],
   meta: { requiresAuth: true }
-} 
+}

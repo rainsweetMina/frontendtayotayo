@@ -5,6 +5,48 @@
     </div>
 
     <div class="space-y-6">
+      <!-- 백엔드 설정 (정류장 탐색 설정) -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">정류장 탐색 설정</h2>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div>
+            <label for="startDistance" class="block text-sm font-medium text-gray-700">출발지 반경 (미터)</label>
+            <input
+              type="number"
+              id="startDistance"
+              v-model="settings.startDistance"
+              min="100"
+              max="2000"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="endDistance" class="block text-sm font-medium text-gray-700">도착지 반경 (미터)</label>
+            <input
+              type="number"
+              id="endDistance"
+              v-model="settings.endDistance"
+              min="100"
+              max="2000"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="timeFactor" class="block text-sm font-medium text-gray-700">정류장당 예상 시간 (분)</label>
+            <input
+              type="number"
+              id="timeFactor"
+              v-model="settings.timeFactor"
+              min="1"
+              max="10"
+              step="0.1"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <p class="mt-2 text-sm text-gray-500">* 기본값: 출발지 300미터, 도착지 300미터, 정류장당 예상 시간 2.5분</p>
+      </div>
+
       <!-- 알고리즘 설정 -->
       <div class="bg-white shadow rounded-lg p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">알고리즘 설정</h2>
@@ -186,48 +228,6 @@
         </div>
       </div>
 
-      <!-- 백엔드 설정 (정류장 탐색 설정) -->
-      <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">정류장 탐색 설정 (백엔드 동기화)</h2>
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <div>
-            <label for="startDistance" class="block text-sm font-medium text-gray-700">출발지 반경 (미터)</label>
-            <input
-              type="number"
-              id="startDistance"
-              v-model="settings.startDistance"
-              min="100"
-              max="2000"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label for="endDistance" class="block text-sm font-medium text-gray-700">도착지 반경 (미터)</label>
-            <input
-              type="number"
-              id="endDistance"
-              v-model="settings.endDistance"
-              min="100"
-              max="2000"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label for="timeFactor" class="block text-sm font-medium text-gray-700">정류장당 예상 시간 (분)</label>
-            <input
-              type="number"
-              id="timeFactor"
-              v-model="settings.timeFactor"
-              min="1"
-              max="10"
-              step="0.1"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        <p class="mt-2 text-sm text-gray-500">* 기본값: 출발지 300미터, 도착지 300미터, 정류장당 예상 시간 2.5분</p>
-      </div>
-
       <!-- 저장 버튼 -->
       <div class="flex justify-end space-x-4">
         <button
@@ -283,11 +283,11 @@ const loadSettings = async () => {
   try {
     const response = await fetch('/api/bus/path-settings')
     const data = await response.json()
-    
+
     settings.value.startDistance = data.startDistance
     settings.value.endDistance = data.endDistance
     settings.value.timeFactor = data.timeFactor
-    
+
     console.log('설정 로딩 성공:', data)
   } catch (error) {
     console.error('설정 로딩 실패:', error)
@@ -303,7 +303,7 @@ const saveSettings = async () => {
       endDistance: settings.value.endDistance,
       timeFactor: settings.value.timeFactor
     }
-    
+
     const response = await fetch('/api/bus/path-settings', {
       method: 'POST',
       headers: {
@@ -359,4 +359,4 @@ const resetSettings = () => {
 onMounted(() => {
   loadSettings()
 })
-</script> 
+</script>

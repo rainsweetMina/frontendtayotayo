@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <h2 class="page-title">정류소 정보 조회</h2>
 
     <!-- ✅ TabSelector + SearchBox 함께 묶기 -->
@@ -61,5 +61,6 @@ const filteredStops = computed(() => {
 </script>
 
 <style scoped>
+@import "@/modules/board/assets/boardCommon.css";
 @import "@/modules/board/assets/busStopInfo.css";
 </style>

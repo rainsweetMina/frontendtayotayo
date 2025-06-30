@@ -5,21 +5,24 @@
       <div class="bus-info-banner">
         <div class="bus-info-content">
           <div class="bus-icon">
-            <img src="/src/assets/icons/bus-icon.svg" alt="버스 아이콘" class="bus-svg" />
+            <img :src="mainBusImg" alt="버스 아이콘" class="bus-svg" />
           </div>
           <div class="banner-text">
-            <h1 class="banner-title">BUS 정보</h1>
-            <h2 class="banner-subtitle">통합검색</h2>
-            <p class="banner-description">정류소·노선·도착 시간 변환에!</p>
+            <h1 class="banner-title" style="white-space: pre-line;">   대구 버스</h1>
+            <h2 class="banner-subtitle" style="white-space: pre-line;">통합 검색</h2>
+            <p class="banner-description" style="white-space: pre-line;">　정류장·노선·도착 시간 한번에!</p>
+          </div>
+          <div class="bus-stop-icon">
+            <img :src="busStopImg" alt="정류장 아이콘" class="bus-stop-img" />
           </div>
         </div>
       </div>
     </header>
-    
+
     <!-- 검색 영역 - 별도 섹션으로 분리 -->
     <section class="search-section">
       <div class="search-container">
-        <search-bar 
+        <search-bar
           placeholder="정류소, 노선을 입력하세요."
           @search="handleSearch"
         />
@@ -29,7 +32,7 @@
             <span>최근 검색 내역</span>
           </div>
           <div class="history-tags">
-            <span v-for="(item, index) in searchStore.recentSearches" :key="index" 
+            <span v-for="(item, index) in searchStore.recentSearches" :key="index"
                   class="history-tag" @click="useHistoryItem(item)">
               {{ item }}
             </span>
@@ -37,7 +40,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 메인 기능 영역 -->
     <section class="main-features">
       <div class="feature-buttons">
@@ -59,7 +62,7 @@
         </div>
         <div class="feature-button" @click="navigateTo('special-service')">
           <div class="feature-icon">
-            <img src="/src/assets/icons/special-service.svg" alt="저상버스 운행정보">
+            <img src="/src/assets/icons/special-service.svg" alt="저상버스 운행정보" class="special-service-icon">
           </div>
           <span class="feature-text">저상버스 운행정보</span>
         </div>
@@ -128,19 +131,7 @@
               </div>
             </div>
           </div>
-          
-          <!-- 정류소 신규정보 -->
-          <div class="slider-item" @click="navigateTo('bus-stops-update')">
-            <div class="slider-title">
-              <h3>정류소 신·이설<br>정보안내기 설치</h3>
-              <span class="more-link">더보기</span>
-            </div>
-            <div class="update-info">
-              <h4>시내버스 정류소<br>조정 안내('25.06.20. 시행)</h4>
-              <p class="update-date">2025.05.27.</p>
-            </div>
-          </div>
-          
+
           <!-- 저상버스 대체안내 -->
           <div class="slider-item" @click="navigateTo('lowfloorbus')">
             <div class="slider-title">
@@ -159,7 +150,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 앨범존 영역 -->
     <section class="album-zone">
       <h2 class="section-title">알림존</h2>
@@ -172,51 +163,6 @@
         </div>
       </div>
     </section>
-    
-    <!-- 푸터 영역 -->
-    <footer class="main-footer">
-      <div class="footer-container">
-        <div class="footer-top">
-          <div class="footer-logo">
-            <img src="/src/assets/icons/bus-icon.svg" alt="버스 아이콘" class="footer-logo-img" />
-            <div class="footer-logo-text">
-              <h3>대구 버스정보 타바요</h3>
-              <p>Daegu Bus Information Tabayo</p>
-            </div>
-          </div>
-          <div class="footer-links">
-            <div class="footer-link-group">
-              <h4>이용안내</h4>
-              <ul>
-                <li><a href="#">이용약관</a></li>
-                <li><a href="#">개인정보처리방침</a></li>
-              </ul>
-            </div>
-            <div class="footer-link-group">
-              <h4>고객지원</h4>
-              <ul>
-                <li><a href="#">문의하기</a></li>
-                <li><a href="#">오류신고</a></li>
-              </ul>
-            </div>
-            <div class="footer-link-group">
-              <h4>관련사이트</h4>
-              <ul>
-                <li><a href="https://www.daegu.go.kr/index.do" target="_blank">대구광역시청</a></li>
-                <li><a href="https://car.daegu.go.kr/" target="_blank">대구교통종합정보</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p class="copyright">© {{ currentYear }} 대구 버스정보시스템 타바요. All rights reserved.</p>
-          <div class="footer-contact">
-            <p>주소: 대구광역시 동구 동부로 108</p>
-            <p>전화: 053-123-4567</p>
-          </div>
-        </div>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -227,6 +173,8 @@ import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay.vue';
+import mainBusImg from '@/assets/images/mainbus.png';
+import busStopImg from '@/assets/images/bus-stop.png';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
@@ -319,15 +267,15 @@ const fetchNotices = async () => {
   try {
     isLoading.value = true;
     error.value = '';
-    
+
     console.log('메인 페이지: 공지사항 로드 시도...');
-    
+
     // 실제 API 연동 시도
     try {
       // 일반 사용자용 공지사항 API로 변경
       const response = await axios.get('https://localhost:8081/api/public/notices');
       console.log('공지사항 API 응답:', response.data);
-      
+
       // 서버에서 받은 공지사항 데이터 처리
       if (response.data && Array.isArray(response.data)) {
         // 일반 배열 형태로 응답이 오는 경우
@@ -354,13 +302,13 @@ const fetchNotices = async () => {
       console.log('API 호출 실패, 목업 데이터 사용:', apiError);
       throw apiError; // 상위 catch 블록으로 오류 전달
     }
-    
+
   } catch (err) {
     console.error('공지사항 로드 실패:', err);
     console.error('응답 데이터:', err.response?.data);
     console.error('응답 상태:', err.response?.status);
     error.value = '공지사항을 불러오는데 실패했습니다.';
-    
+
     // 에러 발생 시 목업 데이터 표시
     console.log('목업 공지사항 데이터 사용');
     notices.value = [
@@ -392,13 +340,13 @@ const fetchNotices = async () => {
 const fetchLowFloorBuses = async () => {
   try {
     console.log('메인 페이지: 저상버스 대체안내 로드 시도...');
-    
+
     // 실제 API 연동 시도
     try {
       // 일반 사용자용 저상버스 대체안내 API 호출
       const response = await axios.get('https://localhost:8081/api/public/lowfloorbuses');
       console.log('저상버스 대체안내 API 응답:', response.data);
-      
+
       // 서버에서 받은 저상버스 대체안내 데이터 처리
       if (response.data && Array.isArray(response.data)) {
         // 일반 배열 형태로 응답이 오는 경우
@@ -429,7 +377,7 @@ const fetchLowFloorBuses = async () => {
     console.error('저상버스 대체안내 로드 실패:', err);
     console.error('응답 데이터:', err.response?.data);
     console.error('응답 상태:', err.response?.status);
-    
+
     // 에러 발생 시 목업 데이터 표시
     console.log('목업 저상버스 대체안내 데이터 사용');
     lowFloorBuses.value = [
@@ -446,7 +394,7 @@ const fetchLowFloorBuses = async () => {
 // 날짜 포맷팅 함수
 const formatDate = (dateString) => {
   if (!dateString) return '';
-  
+
   try {
     // Intl.DateTimeFormat을 사용한 지역화된 날짜 포맷팅
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -460,7 +408,7 @@ const formatDate = (dateString) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}.${month}.${day}`;
   }
 };
@@ -468,25 +416,25 @@ const formatDate = (dateString) => {
 const handleSearch = (searchData) => {
   const { keyword } = searchData;
   if (!keyword) return;
-  
+
   // searchStore를 통해 검색어 저장
   searchStore.addToRecentSearches(keyword);
-  
+
   // 버스 맵 페이지로 이동하면서 검색어 전달
-  router.push({ 
-    path: '/bus/map', 
-    query: { keyword } 
+  router.push({
+    path: '/bus/map',
+    query: { keyword }
   });
 };
 
 const useHistoryItem = (keyword) => {
   // searchStore에 검색어 추가
   searchStore.addToRecentSearches(keyword);
-  
+
   // 히스토리 아이템으로 검색
-  router.push({ 
-    path: '/bus/map', 
-    query: { keyword } 
+  router.push({
+    path: '/bus/map',
+    query: { keyword }
   });
 };
 
@@ -495,15 +443,14 @@ const navigateTo = (route) => {
     'bus-routes': '/bus/map',
     'bus-stops': '/bus/stops',
     'bus-map': '/bus/map',
-    'bus-schedule': '/bus/timetable',
-    'special-service': '/bus/special-service',
+    'bus-schedule': '/schedule',
+    'special-service': '/low-schedule',
     'bus-usage': '/found',
     'announcement': '/lost',
     'notices': '/notice',
-    'bus-stops-update': '/bus/stops/update',
     'lowfloorbus': '/lowfloorbus'
   };
-  
+
   router.push(routeMap[route] || '/');
 };
 
@@ -549,6 +496,8 @@ onMounted(async () => {
 .main-page {
   background-color: #f5f7fa;
   min-height: 100vh;
+  overflow: hidden;
+  padding-bottom: 120px;
 }
 
 /* 상단 헤더 영역 */
@@ -557,11 +506,11 @@ onMounted(async () => {
 }
 
 .bus-info-banner {
-  background-color: #1e73c9;
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSIzNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgb3BhY2l0eT0iLjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSI4MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjIyMCIgY3k9IjE4MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjM1MCIgY3k9IjEyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjQ4MCIgY3k9IjIyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjY0MCIgY3k9IjE1MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjgwMCIgY3k9IjIyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjkzMCIgY3k9IjEyMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjExMDAiIGN5PSI4MCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxjaXJjbGUgY3g9IjEyNTAiIGN5PSIxODAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMzUwIiBjeT0iMTAwIiByPSI4IiBmaWxsPSIjZmZmZmZmIi8+PHBhdGggZD0iTTEwMCA4MEwyMjAgMTgwTTIyMCAxODBMMzUwIDEyME0zNTAgMTIwTDQ4MCAyMjBNNDgwIDIyMEw2NDAgMTUwTTY0MCAxNTBMODAwIDIyME04MDAgMjIwTDkzMCAxMjBNOTMwIDEyMEwxMTAwIDgwTTExMDAgODBMMTI1MCAxODBNMTI1MCAxODBMMTM1MCAxMDAiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iODAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIyMjAiIGN5PSIxODAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIzNTAiIGN5PSIxMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI0ODAiIGN5PSIyMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI2NDAiIGN5PSIxNTAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI4MDAiIGN5PSIyMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSI5MzAiIGN5PSIxMjAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIxMTAwIiBjeT0iODAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48Y2lyY2xlIGN4PSIxMjUwIiBjeT0iMTgwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iMTM1MCIgY3k9IjEwMCIgcj0iMTIiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNSIvPjwvZz48L3N2Zz4=');
+  background-color: #3095ff;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSIzNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgb3BhY2l0eT0iLjE1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMSI+PGNpcmNsZSBjeD0iMTAwIiBjeT0iODAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIyMjAiIGN5PSIxODAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIzNTAiIGN5PSIxMjAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI0ODAiIGN5PSIyMjAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI2NDAiIGN5PSIxNTAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI4MDAiIGN5PSIyMjAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSI5MzAiIGN5PSIxMjAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMTAwIiBjeT0iODAiIHI9IjgiIGZpbGw9IiNmZmZmZmYiLz48Y2lyY2xlIGN4PSIxMjUwIiBjeT0iMTgwIiByPSI4IiBmaWxsPSIjZmZmZmZmIi8+PGNpcmNsZSBjeD0iMTM1MCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iI2ZmZmZmZiIvPjxwYXRoIGQ9Ik0xMDAgODBMMjIwIDE4ME0yMjAgMTgwTDM1MCAxMjBNMzUwIDEyMEw0ODAgMjIwTTQ4MCAyMjBMNjQwIDE1ME02NDAgMTUwTDgwMCAyMjBNODAwIDIyMEw5MzAgMTIwTTkzMCAxMjBMMTEwMCA4ME0xMTAwIDgwTDEyNTAgMTgwTTEyNTAgMTgwTDEzNTAgMTAwIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iMjIwIiBjeT0iMTgwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iMzUwIiBjeT0iMTIwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iNDgwIiBjeT0iMjIwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iNjQwIiBjeT0iMTUwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iODAwIiBjeT0iMjIwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iOTMwIiBjeT0iMTIwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iMTEwMCIgY3k9IjgwIiByPSIxMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC41Ii8+PGNpcmNsZSBjeD0iMTI1MCIgY3k9IjE4MCIgcj0iMTIiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNSIvPjxjaXJjbGUgY3g9IjEzNTAiIGN5PSIxMDAiIHI9IjEyIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjUiLz48L2c+PC9zdmc+');
   background-size: cover;
   background-position: center;
-  height: 300px;
+  height: 350px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -573,22 +522,33 @@ onMounted(async () => {
 .bus-info-content {
   display: flex;
   align-items: center;
+  justify-content: center;
   max-width: 1200px;
   width: 100%;
   z-index: 1;
+  min-height: 300px;
+  position: relative;
 }
 
 .bus-icon {
-  margin-right: 30px;
+  flex: 1 1 0;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .bus-svg {
-  width: 120px;
-  height: 120px;
-  filter: brightness(0) invert(1);
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
 }
 
 .banner-text {
+  flex: 2 1 0;
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  text-align: center;
   color: white;
 }
 
@@ -598,14 +558,16 @@ onMounted(async () => {
   margin: 0;
   line-height: 1;
   letter-spacing: -1px;
+  margin-left: 40px;
 }
 
 .banner-subtitle {
   font-size: 3.5rem;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 0 20px;
   line-height: 1.2;
   letter-spacing: -1px;
+  margin-left: 40px;
 }
 
 .banner-description {
@@ -613,6 +575,7 @@ onMounted(async () => {
   margin-top: 15px;
   font-weight: 300;
   opacity: 0.9;
+  margin-left: 30px;
 }
 
 /* 검색 영역 */
@@ -625,7 +588,7 @@ onMounted(async () => {
 }
 
 .search-container {
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .search-history {
@@ -675,7 +638,7 @@ onMounted(async () => {
 /* 메인 기능 영역 */
 .main-features {
   max-width: 1200px;
-  margin: 0 auto 30px;
+  margin: 0 auto 40px;
   padding: 0 20px;
 }
 
@@ -715,6 +678,11 @@ onMounted(async () => {
   height: 60px;
 }
 
+.special-service-icon {
+  width: 100px !important;
+  height: 100px !important;
+}
+
 .new-badge {
   position: absolute;
   top: -5px;
@@ -736,7 +704,7 @@ onMounted(async () => {
 /* 슬라이더 영역 */
 .info-slider {
   max-width: 1200px;
-  margin: 0 auto 30px;
+  margin: 0 auto 40px;
   padding: 0 20px;
 }
 
@@ -768,7 +736,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
 }
@@ -917,36 +885,42 @@ onMounted(async () => {
   .feature-buttons {
     flex-wrap: wrap;
   }
-  
+
   .feature-button {
     flex: 0 0 calc(33.333% - 10px);
     min-width: calc(33.333% - 10px);
   }
-  
+
   .slider-track {
     flex-wrap: wrap;
   }
-  
+
   .slider-item {
     flex: 0 0 calc(50% - 10px);
     min-width: calc(50% - 10px);
   }
-  
+
   .album-container, .info-container {
     flex-direction: column;
   }
 }
 
 @media (max-width: 768px) {
-  .title {
+  .banner-title {
     font-size: 2.2rem;
   }
-  
+  .banner-subtitle {
+    font-size: 1.5rem;
+  }
+  .banner-description {
+    font-size: 1rem;
+  }
+
   .feature-button {
     flex: 0 0 calc(50% - 8px);
     min-width: calc(50% - 8px);
   }
-  
+
   .slider-item {
     flex: 0 0 100%;
     min-width: 100%;
@@ -954,20 +928,26 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  .title {
-    font-size: 1.8rem;
+  .banner-title {
+    font-size: 1.5rem;
   }
-  
+  .banner-subtitle {
+    font-size: 1.1rem;
+  }
+  .banner-description {
+    font-size: 0.9rem;
+  }
+
   .feature-button {
     flex: 0 0 100%;
     min-width: 100%;
   }
-  
+
   .search-history {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .history-label {
     margin-bottom: 10px;
   }
@@ -995,168 +975,18 @@ onMounted(async () => {
   justify-content: center;
 }
 
-/* 푸터 영역 */
-.main-footer {
-  background-color: #1e2a3b;
-  color: #fff;
-  padding: 20px 0 10px;
-  margin-top: 20px;
-}
-
-.footer-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.footer-top {
+.bus-stop-icon {
+  flex: 1 1 0;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 15px;
+  align-items: flex-end;
+  margin-top: 30px;
+  margin-right: 15px;
+  justify-content: flex-end;
 }
 
-.footer-logo {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+.bus-stop-img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
 }
-
-.footer-logo-img {
-  width: 40px;
-  height: 40px;
-  filter: brightness(0) invert(1);
-  margin-right: 10px;
-}
-
-.footer-logo-text h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.footer-logo-text p {
-  font-size: 0.8rem;
-  margin: 0;
-  opacity: 0.7;
-}
-
-.footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-}
-
-.footer-link-group h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 8px 0;
-  color: #fff;
-}
-
-.footer-link-group ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-link-group li {
-  margin-bottom: 5px;
-}
-
-.footer-link-group a {
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  font-size: 0.85rem;
-  transition: color 0.2s;
-}
-
-.footer-link-group a:hover {
-  color: #fff;
-}
-
-.footer-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.copyright {
-  margin: 0 0 5px 0;
-}
-
-.footer-contact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.footer-contact p {
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .footer-top {
-    flex-direction: column;
-  }
-  
-  .footer-links {
-    margin-top: 10px;
-    gap: 15px;
-  }
-  
-  .footer-link-group {
-    flex: 0 0 calc(50% - 10px);
-  }
-  
-  .footer-bottom {
-    flex-direction: column;
-  }
-  
-  .footer-contact {
-    margin-top: 5px;
-    flex-direction: column;
-    gap: 3px;
-  }
-}
-
-@media (max-width: 480px) {
-  .main-footer {
-    padding: 15px 0 8px;
-  }
-  
-  .footer-top {
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .footer-links {
-    flex-direction: row;
-  }
-  
-  .footer-link-group {
-    flex: 0 0 calc(50% - 8px);
-  }
-  
-  .footer-link-group h4 {
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-  }
-  
-  .footer-link-group a {
-    font-size: 0.8rem;
-  }
-  
-  .footer-logo-text h3 {
-    font-size: 1rem;
-  }
-  
-  .footer-logo-text p {
-    font-size: 0.7rem;
-  }
-}
-</style> 
+</style>

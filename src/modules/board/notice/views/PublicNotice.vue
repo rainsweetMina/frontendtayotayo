@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">공지사항</h1>
       <router-link
@@ -291,41 +291,6 @@ onMounted(() => {
 });
 </script>
 
-<style>
-/* 공통 스타일만 유지 */
-.title {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 24px;
-  padding-left: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #2c3e50;
-  border-left: 6px solid #4d9eff;
-}
-
-.page-container {
-  max-width: 960px;
-  margin: 40px auto;
-  padding: 0 20px;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-.content-card {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.fare-page-container {
-  max-width: 1240px;
-  margin: 20px auto;
-  padding: 20px 20px;
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
-}
+<style scoped>
+@import "@/modules/board/assets/boardCommon.css";
 </style>

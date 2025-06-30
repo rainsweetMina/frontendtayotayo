@@ -11,9 +11,33 @@ import mainPageRoutes from '@/modules/mainpage/router'
 import noticeRoutes from '@/modules/board/notice/router'
 import lowFloorBusRoutes from '@/modules/board/lowfloorbus/router'
 import { publicQnaRoutes } from '@/modules/qna/public/router'
+import TermsOfService from '@/modules/board/terms/views/TermsOfService.vue'
+import PrivacyPolicy from '@/modules/board/privacy/views/PrivacyPolicy.vue'
 
 import { useAuthStore } from '@/stores/auth'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo.js'
+
+// 이용약관 라우트를 직접 추가
+const termsRoute = {
+    path: '/terms',
+    name: 'terms',
+    component: TermsOfService,
+    meta: {
+        title: '이용약관',
+        layout: 'default'
+    }
+}
+
+// 개인정보처리방침 라우트를 직접 추가
+const privacyRoute = {
+    path: '/privacy',
+    name: 'privacy',
+    component: PrivacyPolicy,
+    meta: {
+        title: '개인정보처리방침',
+        layout: 'default'
+    }
+}
 
 const routes = [
     ...mainPageRoutes,
@@ -27,6 +51,8 @@ const routes = [
     ...lowFloorBusRoutes,
     ...boardRoutes,
     ...publicQnaRoutes,
+    termsRoute, // 이용약관 라우트 직접 추가
+    privacyRoute, // 개인정보처리방침 라우트 직접 추가
 ]
 
 const router = createRouter({
