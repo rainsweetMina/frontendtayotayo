@@ -1,14 +1,10 @@
 <template>
   <header
-    class="
-      flex
-      items-center
-      justify-between
-      px-6
-      py-2
-      bg-white
-      border-b-4 border-indigo-600
-    "
+    :class="[
+      'transition-transform duration-300 ease-in-out',
+      'flex items-center justify-between px-6 py-2 bg-white border-b-4 border-indigo-600',
+      isHeaderVisible ? 'fixed top-0 left-0 right-0 z-50' : 'fixed top-0 left-0 right-0 z-50 -translate-y-full'
+    ]"
   >
     <div class="flex items-center">
       <button
@@ -351,9 +347,47 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const dropdownOpen = ref(false)
 const notificationOpen = ref(false)
 const isOpen = ref(false)
+const isHeaderVisible = ref(true)
+
+// 스크롤 관련 변수들
+let lastScrollY = 0
+let ticking = false
+
+// 스크롤 이벤트 핸들러
+const handleScroll = () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const currentScrollY = window.scrollY
+      
+      // 스크롤 방향에 따라 헤더 표시/숨김
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // 아래로 스크롤하고 100px 이상 스크롤했을 때 헤더 숨김
+        isHeaderVisible.value = false
+      } else if (currentScrollY < lastScrollY) {
+        // 위로 스크롤할 때 헤더 표시
+        isHeaderVisible.value = true
+      }
+      
+      lastScrollY = currentScrollY
+      ticking = false
+    })
+    
+    ticking = true
+  }
+}
+
+// 컴포넌트 마운트 시 스크롤 이벤트 리스너 추가
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+// 컴포넌트 언마운트 시 스크롤 이벤트 리스너 제거
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>

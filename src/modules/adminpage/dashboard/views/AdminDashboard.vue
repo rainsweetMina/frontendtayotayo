@@ -1,8 +1,8 @@
 <template>
   <div>
-<!--    <div class="mb-6">-->
-<!--      <h1 class="text-2xl font-semibold text-gray-900">관리자 대시보드</h1>-->
-<!--    </div>-->
+
+    <!-- 상단 여백 -->
+    <div class="mt-3"></div>
 
     <!-- 인증 에러 메시지 -->
     <div v-if="!isAuthenticated && authError" class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
@@ -24,7 +24,7 @@
     </div>
 
     <!-- 게시물 통계 카드 -->
-    <div class="mb-6">
+    <div class="mb-10">
       <PostsStatsCard :stats="postsStats" />
     </div>
 
@@ -150,7 +150,7 @@
     </div>
 
     <!-- 차트 섹션 -->
-    <div class="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+    <div class="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-2">
       <!-- API 응답 시간 차트 -->
       <div class="bg-white overflow-hidden shadow rounded-lg">
         <div class="p-5">
@@ -183,7 +183,7 @@
             </span>
           </div>
           <p class="text-sm text-gray-500 mb-4">
-            시간대별 처리된 API 요청 건수를 표시합니다. 트래픽 패턴을 분석하는 데 유용합니다.
+            시간대별 처리된 API 요청 건수를 표시합니다. 트래픽 패턴을 분석할 수 있습니다.
           </p>
           <div class="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100" style="height: 350px;">
             <BarChart :data="requestVolumeData" />
@@ -195,7 +195,7 @@
 
 
     <!-- 최근 활동 목록 -->
-    <div class="mt-6">
+    <div class="mt-10">
       <div class="bg-white shadow rounded-lg">
         <div class="px-3 py-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900">최근 시스템 활동</h3>
@@ -225,6 +225,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 하단 여백 -->
+    <div class="mb-3"></div>
 
   </div>
 </template>

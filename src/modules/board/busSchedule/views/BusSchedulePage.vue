@@ -1,46 +1,33 @@
 <template>
-  <div class="bus-schedule-layout">
-    <!-- 왼쪽: 본문 -->
-    <div :class="['bus-schedule-page', { 'map-open': routeId && showRouteMap }]">
-
-    <h2>버스 운행 시간표</h2>
-
-      <ScheduleSelector
-          v-model:routeNo="routeNo"
-          v-model:routeNote="routeNote"
-          v-model:moveDir="moveDir"
-          @route-id-updated="handleRouteIdUpdated"
-      />
-
-      <hr/>
-
-      <ScheduleTable
-          v-if="shouldLoadSchedule"
-          :route-id="routeId"
-          :move-dir="moveDir"
-          :selected-stops="selectedStops"
-          :route-no="routeNo"
-          :route-note="routeNote"
-      />
-
-      <div class="route-toggle" v-if="shouldLoadSchedule">
-        <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
-          {{ showRouteMap ? '노선도 접기 ▲' : '노선도 보기 ▼' }}
-        </button>
-      </div>
-
+  <div class="board-main-container">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="title">버스 운행 시간표</h1>
     </div>
-
-    <!-- 오른쪽: 노선도 -->
-    <div
-        class="side-route-map"
-        v-show="routeId && showRouteMap"
-    >
+    <ScheduleSelector
+      v-model:routeNo="routeNo"
+      v-model:routeNote="routeNote"
+      v-model:moveDir="moveDir"
+      @route-id-updated="handleRouteIdUpdated"
+    />
+    <hr/>
+    <ScheduleTable
+      v-if="shouldLoadSchedule"
+      :route-id="routeId"
+      :move-dir="moveDir"
+      :selected-stops="selectedStops"
+      :route-no="routeNo"
+      :route-note="routeNote"
+    />
+    <div class="route-toggle" v-if="shouldLoadSchedule">
+      <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
+        {{ showRouteMap ? '노선도 접기 ▲' : '노선도 보기 ▼' }}
+      </button>
+    </div>
+    <div class="side-route-map" v-show="routeId && showRouteMap">
       <RouteMap :route-id="routeId" :move-dir="moveDir"/>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import api from '@/api/axiosInstance'
@@ -96,6 +83,7 @@ watch([routeNo, routeNote, moveDir], () => {
 </script>
 
 <style scoped>
+@import "@/modules/board/assets/boardCommon.css";
 @import "@/modules/board/assets/schedule.css";
 
 .bus-schedule-layout {
@@ -141,4 +129,15 @@ watch([routeNo, routeNote, moveDir], () => {
   }
 }
 
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2c3e50;
+  border-left: 6px solid #4d9eff;
+}
 </style>

@@ -1,5 +1,8 @@
 <template>
-  <nav class="bg-white py-3 shadow-md relative border-b border-gray-100">
+  <nav :class="[
+    'transition-transform duration-300 ease-in-out bg-white py-3 shadow-md border-b border-gray-100',
+    isHeaderVisible ? 'fixed top-0 left-0 right-0 z-50' : 'fixed top-0 left-0 right-0 z-50 -translate-y-full'
+  ]">
     <div class="container mx-auto px-4 md:px-8 lg:px-12 max-w-screen-2xl flex items-center justify-between">
       <!-- 로고 - flex-shrink-0 추가하여 크기 유지 -->
       <Logo class="mr-1 sm:mr-2 flex-shrink-0" />
@@ -78,7 +81,7 @@ import WeatherDisplay from './WeatherDisplay.vue'
 import UserMenu from './UserMenu.vue'
 
 import { useAuthStore } from '@/stores/auth.js'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const auth = useAuthStore()
 const role = computed(() => auth.role)
@@ -133,6 +136,46 @@ const mobileMenus = [
   { title: '분실물 센터', items: lostMenu },
   { title: '알림 마당', items: noticeMenu }
 ]
+
+// 헤더 표시/숨김 상태
+const isHeaderVisible = ref(true)
+
+// 스크롤 관련 변수들
+let lastScrollY = 0
+let ticking = false
+
+// 스크롤 이벤트 핸들러
+const handleScroll = () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const currentScrollY = window.scrollY
+      
+      // 스크롤 방향에 따라 헤더 표시/숨김
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // 아래로 스크롤하고 100px 이상 스크롤했을 때 헤더 숨김
+        isHeaderVisible.value = false
+      } else if (currentScrollY < lastScrollY) {
+        // 위로 스크롤할 때 헤더 표시
+        isHeaderVisible.value = true
+      }
+      
+      lastScrollY = currentScrollY
+      ticking = false
+    })
+    
+    ticking = true
+  }
+}
+
+// 컴포넌트 마운트 시 스크롤 이벤트 리스너 추가
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+// 컴포넌트 언마운트 시 스크롤 이벤트 리스너 제거
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <style scoped>

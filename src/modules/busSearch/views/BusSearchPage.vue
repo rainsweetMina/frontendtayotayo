@@ -297,8 +297,8 @@ function selectRoute(route) {
           if (!isNaN(lat) && !isNaN(lng)) {
             const isReverse = bus.moveDir === 0
             const iconUrl = isReverse
-                ? '/images/bus-reverse.png'
-                : '/images/bus-forward.png'
+                ? '/images/bus-reverse-solid.svg'
+                : '/images/bus-forward-solid.svg'
 
             const marker = L.marker([lat, lng], {
               icon: L.icon({
