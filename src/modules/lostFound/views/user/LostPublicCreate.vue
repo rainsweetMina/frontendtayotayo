@@ -1,32 +1,32 @@
 <template>
-  <div class="max-w-4xl mx-auto py-8 px-4">
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-      <!-- 헤더 -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-xl font-bold text-white flex items-center">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            분실물 등록
-          </h1>
-          <button 
-            @click="goBack"
-            class="inline-flex items-center px-4 py-2 border border-white/20 rounded-md shadow-sm text-sm font-medium text-white bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            목록으로
-          </button>
-        </div>
-      </div>
-      
-      <!-- 폼 내용 -->
-      <div class="p-6">
-        <LostItemForm @submit="handleCreate" />
-      </div>
+  <div class="page-container">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="title">분실물 등록</h1>
+      <button 
+        @click="goBack"
+        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        목록으로
+      </button>
     </div>
+    
+    <!-- 폼 내용 -->
+    <div class="content-card p-6">
+      <LostItemForm @submit="handleCreate" />
+    </div>
+
+    <CommonModal
+      :isOpen="modalOpen"
+      title="알림"
+      :message="modalMessage"
+      :showCancel="false"
+      confirmText="닫기"
+      @close="handleModalClose"
+      @confirm="handleModalClose"
+    />
   </div>
 </template>
 
@@ -34,8 +34,13 @@
 import { useRouter } from 'vue-router';
 import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue';
 import { createLostItem } from '@/modules/lostFound/api/lostPublic.js';
+import { ref } from 'vue';
+import CommonModal from '@/components/CommonModal.vue';
 
 const router = useRouter();
+
+const modalOpen = ref(false);
+const modalMessage = ref('');
 
 const goBack = () => {
   router.push('/lost');
@@ -44,16 +49,51 @@ const goBack = () => {
 const handleCreate = async (formData) => {
   try {
     await createLostItem(formData);
-    alert('분실물이 등록되었습니다.');
-    router.push('/lost');
+    modalMessage.value = '분실물이 등록되었습니다.';
+    modalOpen.value = true;
   } catch (error) {
     console.error('분실물 등록 실패:', error);
-    alert('등록 중 오류가 발생했습니다.');
+    modalMessage.value = '등록 중 오류가 발생했습니다.';
+    modalOpen.value = true;
+  }
+};
+
+const handleModalClose = () => {
+  modalOpen.value = false;
+  if (modalMessage.value === '분실물이 등록되었습니다.') {
+    router.push('/lost');
   }
 };
 </script>
 
-<style scoped>
+<style>
+/* 공통 스타일 */
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2c3e50;
+  border-left: 6px solid #4d9eff;
+}
+
+.page-container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
 .container {
   max-width: 800px;
 }

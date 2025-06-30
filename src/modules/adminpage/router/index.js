@@ -39,6 +39,10 @@ import UserApiKeyManagementView from "@/modules/adminpage/dashboard/views/UserAp
 import AdCompanyList from '@/modules/ad/views/adcompany/adCompanyList.vue'
 import AdCompanyCreate from '@/modules/ad/views/adcompany/adCompanyCreate.vue'
 import AdCompanyEdit from '@/modules/ad/views/adcompany/adCompanyEdit.vue'
+import AdCompanyDetail from '@/modules/ad/views/adcompany/adCompanyDetail.vue'
+
+// 광고 관리 컴포넌트들
+import AdDetail from '@/modules/ad/views/ad/adDetail.vue'
 
 export const adminRoutes = {
   path: "/admin",
@@ -109,6 +113,12 @@ export const adminRoutes = {
       component: AdminAdCreate
     },
     {
+      path: "ad/:id",
+      name: "AdminAdDetail",
+      component: AdDetail,
+      props: true
+    },
+    {
       path: "ad/edit/:id",          // ✅ /admin/ad/edit/:id
       name: "AdminAdEdit",
       component: AdminAdCreate,
@@ -130,6 +140,12 @@ export const adminRoutes = {
       path: "adcompany/create",
       name: "AdCompanyCreate",
       component: AdCompanyCreate
+    },
+    {
+      path: "adcompany/:id",
+      name: "AdCompanyDetail",
+      component: AdCompanyDetail,
+      props: true
     },
     {
       path: "adcompany/edit/:id",

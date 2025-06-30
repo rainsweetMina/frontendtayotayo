@@ -1,54 +1,71 @@
 <template>
-  <div class="max-w-2xl mx-auto p-6 mt-10 bg-white rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold text-gray-800 mb-8">광고 연장</h2>
+  <div>
+    <!-- Breadcrumb -->
+    <AppBreadcrumb breadcrumb="광고 연장" />
+    <div class="mt-4">
+      <div class="p-6 bg-white rounded-md shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 capitalize mb-4">광고 연장</h2>
+        
+        <form @submit.prevent="handleExtension" class="space-y-6">
+          <!-- 광고 ID -->
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-700">광고 ID</label>
+            <input
+                type="text"
+                :value="adId"
+                disabled
+                class="block w-full border border-gray-300 rounded-md px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+            />
+          </div>
 
-    <!-- 광고 ID -->
-    <div class="mb-5">
-      <label class="block text-sm font-medium text-gray-700 mb-1">광고 ID</label>
-      <input
-          type="text"
-          :value="adId"
-          disabled
-          class="w-full px-4 py-2 text-gray-600 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-      />
-    </div>
+          <!-- 기존 종료일 -->
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-700">기존 종료일</label>
+            <input
+                type="text"
+                :value="ad?.endDateTime ? formatDate(ad.endDateTime) : '-'"
+                disabled
+                class="block w-full border border-gray-300 rounded-md px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+            />
+          </div>
 
-    <!-- 기존 종료일 -->
-    <div class="mb-5">
-      <label class="block text-sm font-medium text-gray-700 mb-1">기존 종료일</label>
-      <input
-          type="text"
-          :value="ad?.endDateTime ? formatDate(ad.endDateTime) : '-'"
-          disabled
-          class="w-full px-4 py-2 text-gray-600 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-      />
-    </div>
+          <!-- 새 종료일 -->
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-700">새 종료일 *</label>
+            <input
+                type="datetime-local"
+                v-model="newEndDateTime"
+                :min="minEndDateTime"
+                class="block w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base transition"
+                required
+            />
+          </div>
 
-    <!-- 새 종료일 -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium text-gray-700 mb-1">새 종료일</label>
-      <input
-          type="datetime-local"
-          v-model="newEndDateTime"
-          :min="minEndDateTime"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-      />
-    </div>
-
-    <!-- 버튼 -->
-    <div class="flex justify-end gap-3">
-      <button
-          class="px-4 py-2 text-sm font-semibold bg-gray-200 hover:bg-gray-300 text-gray-700 rounded"
-          @click="goBack"
-      >
-        취소
-      </button>
-      <button
-          class="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded"
-          @click="handleExtension"
-      >
-        연장 요청
-      </button>
+          <!-- 버튼 -->
+          <div class="flex justify-end space-x-3 mt-8">
+            <button
+                type="button"
+                class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                @click="goBack"
+            >취소</button>
+            <button
+                type="submit"
+                class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            >연장 요청</button>
+          </div>
+        </form>
+        
+        <CommonModal
+          :isOpen="modalOpen"
+          :title="modalTitle"
+          :message="modalMessage"
+          :confirmText="modalConfirmText"
+          :confirmType="modalConfirmType"
+          :showCancel="false"
+          @close="handleModalClose"
+          @confirm="handleModalClose"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -57,6 +74,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { extendAd, fetchAd } from '@/modules/ad/api/adApi.js'
+import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.vue'
+import CommonModal from '@/components/CommonModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -65,12 +84,18 @@ const adId = route.params.id
 const ad = ref(null)
 const newEndDateTime = ref('')
 
+// Modal state
+const modalOpen = ref(false)
+const modalTitle = ref('')
+const modalMessage = ref('')
+const modalConfirmText = ref('확인')
+const modalConfirmType = ref('primary')
+
 const fetchAdData = async () => {
   try {
     ad.value = await fetchAd(adId)
   } catch (e) {
-    alert('광고 정보를 불러오지 못했습니다.')
-    router.push('/admin/ad')
+    showErrorModal('광고 정보를 불러오지 못했습니다.', true)
   }
 }
 
@@ -82,16 +107,39 @@ const minEndDateTime = computed(() => {
 
 const handleExtension = async () => {
   if (!newEndDateTime.value) {
-    alert('새 종료일을 입력해주세요.')
+    showErrorModal('새 종료일을 입력해주세요.')
     return
   }
 
   try {
     await extendAd(adId, newEndDateTime.value)
-    alert(`광고가 성공적으로 연장되었습니다.\n새 종료일: ${newEndDateTime.value.replace('T', ' ')}`)
-    router.push('/admin/ad')
+    showSuccessModal(`광고가 성공적으로 연장되었습니다.\n새 종료일: ${newEndDateTime.value.replace('T', ' ')}`)
   } catch (e) {
-    alert('광고 연장에 실패했습니다.')
+    showErrorModal('광고 연장에 실패했습니다.')
+  }
+}
+
+function showSuccessModal(msg) {
+  modalTitle.value = '완료'
+  modalMessage.value = msg
+  modalConfirmText.value = '확인'
+  modalConfirmType.value = 'success'
+  modalOpen.value = true
+}
+
+function showErrorModal(msg, redirect = false) {
+  modalTitle.value = '오류'
+  modalMessage.value = msg
+  modalConfirmText.value = '확인'
+  modalConfirmType.value = 'danger'
+  modalOpen.value = true
+  if (redirect) setTimeout(() => router.push('/admin/ad'), 1000)
+}
+
+function handleModalClose() {
+  modalOpen.value = false
+  if (modalConfirmType.value === 'success') {
+    router.push('/admin/ad')
   }
 }
 
@@ -103,13 +151,6 @@ const formatDate = (dateStr) => {
 const goBack = () => {
   router.push('/admin/ad')
 }
-
-// const minEndDateTime = computed(() => {
-//   return ad.value?.endDateTime
-//       ? new Date(ad.value.endDateTime).toISOString().slice(0, 16)
-//       : new Date().toISOString().slice(0, 16)
-// })
-
 </script>
 
 <style scoped>

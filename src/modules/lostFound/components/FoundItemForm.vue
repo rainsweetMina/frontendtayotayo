@@ -4,11 +4,7 @@
       <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
       <span class="font-medium">관리자 로그인이 필요한 기능입니다.</span>
     </div>
-    <form v-else @submit="handleSubmit" class="max-w-xl mx-auto mt-12 p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
-      <h2 class="text-2xl font-extrabold text-gray-800 mb-8 flex items-center gap-2">
-        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        {{ props.item ? '물품 수정' : '물품 등록' }}
-      </h2>
+    <form v-else @submit="handleSubmit" class="max-w-4xl mx-auto">
       <div class="space-y-6">
         <!-- 이미지 영역 -->
         <div class="flex flex-col items-center">
@@ -19,7 +15,7 @@
               class="w-36 h-36 object-cover rounded-xl shadow border mb-2 ring-2 ring-blue-200"
             />
           </div>
-          <div class="w-full">
+          <div class="w-full max-w-md">
             <label class="block font-bold mb-2 text-gray-700">사진 <span v-if="!props.item" class="text-red-500">*</span></label>
             <input
               class="block w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition"
@@ -33,68 +29,60 @@
           </div>
         </div>
         <!-- 폼 영역 -->
-        <div class="grid grid-cols-1 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <label for="itemName" class="block font-bold mb-1 text-gray-700">물품명 <span class="text-red-500">*</span></label>
             <input id="itemName" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.itemName" required />
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="busCompanyId" class="block font-bold mb-1 text-gray-700">버스회사 <span class="text-red-500">*</span></label>
-              <select id="busCompanyId" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.busCompanyId" required>
-                <option value="" disabled>선택</option>
-                <option v-for="company in busCompanies" :key="company.id" :value="company.id">
-                  {{ company.companyName }}
-                </option>
-              </select>
-            </div>
-            <div>
-              <label for="busNumber" class="block font-bold mb-1 text-gray-700">노선번호 <span class="text-red-500">*</span></label>
-              <select id="busNumber" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.busNumber" required>
-                <option value="" disabled>선택</option>
-                <option v-for="route in busRoutes" :key="route" :value="route">
-                  {{ route }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="foundTime" class="block font-bold mb-1 text-gray-700">습득일 <span class="text-red-500">*</span></label>
-              <input id="foundTime" type="date" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.foundTime" required />
-            </div>
-            <div>
-              <label for="foundPlace" class="block font-bold mb-1 text-gray-700">습득장소</label>
-              <input id="foundPlace" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.foundPlace" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="storageLocation" class="block font-bold mb-1 text-gray-700">보관장소</label>
-              <input id="storageLocation" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.storageLocation" />
-            </div>
-            <div>
-              <label for="handlerContact" class="block font-bold mb-1 text-gray-700">연락처</label>
-              <input id="handlerContact" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.handlerContact" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="handlerEmail" class="block font-bold mb-1 text-gray-700">이메일</label>
-              <input id="handlerEmail" type="email" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.handlerEmail" />
-            </div>
-            <div>
-              <label for="status" class="block font-bold mb-1 text-gray-700">상태</label>
-              <select id="status" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.status">
-                <option value="IN_STORAGE">보관중</option>
-                <option value="RETURNED">수령완료</option>
-              </select>
-            </div>
+          <div>
+            <label for="foundTime" class="block font-bold mb-1 text-gray-700">습득일 <span class="text-red-500">*</span></label>
+            <input id="foundTime" type="date" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.foundTime" required />
           </div>
           <div>
-            <label for="content" class="block font-bold mb-1 text-gray-700">내용</label>
-            <textarea id="content" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.content" rows="3"></textarea>
+            <label for="busCompanyId" class="block font-bold mb-1 text-gray-700">버스회사 <span class="text-red-500">*</span></label>
+            <select id="busCompanyId" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.busCompanyId" required>
+              <option value="" disabled>선택</option>
+              <option v-for="company in busCompanies" :key="company.id" :value="company.id">
+                {{ company.companyName }}
+              </option>
+            </select>
           </div>
+          <div>
+            <label for="busNumber" class="block font-bold mb-1 text-gray-700">노선번호 <span class="text-red-500">*</span></label>
+            <select id="busNumber" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.busNumber" required>
+              <option value="" disabled>선택</option>
+              <option v-for="route in busRoutes" :key="route" :value="route">
+                {{ route }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <label for="foundPlace" class="block font-bold mb-1 text-gray-700">습득장소</label>
+            <input id="foundPlace" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.foundPlace" />
+          </div>
+          <div>
+            <label for="storageLocation" class="block font-bold mb-1 text-gray-700">보관장소</label>
+            <input id="storageLocation" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.storageLocation" />
+          </div>
+          <div>
+            <label for="handlerContact" class="block font-bold mb-1 text-gray-700">연락처</label>
+            <input id="handlerContact" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.handlerContact" />
+          </div>
+          <div>
+            <label for="handlerEmail" class="block font-bold mb-1 text-gray-700">이메일</label>
+            <input id="handlerEmail" type="email" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.handlerEmail" />
+          </div>
+          <div>
+            <label for="status" class="block font-bold mb-1 text-gray-700">상태</label>
+            <select id="status" class="form-select w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500 bg-white" v-model="form.status">
+              <option value="IN_STORAGE">보관중</option>
+              <option value="RETURNED">수령완료</option>
+            </select>
+          </div>
+        </div>
+        <div class="lg:col-span-2">
+          <label for="content" class="block font-bold mb-1 text-gray-700">내용</label>
+          <textarea id="content" class="form-input w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-200 focus:border-blue-500" v-model="form.content" rows="4"></textarea>
         </div>
         <div class="flex justify-between items-center pt-6">
           <router-link to="/admin/found" class="text-gray-600 hover:underline flex items-center">
@@ -122,7 +110,7 @@ import {
 import { useAuthStore } from '@/stores/auth';
 
 const props = defineProps({ item: Object });
-const emit = defineEmits(['submitted']);
+const emit = defineEmits(['submitted', 'error']);
 
 const authStore = useAuthStore();
 const busCompanies = ref([]);
@@ -150,7 +138,7 @@ onMounted(async () => {
     const { data } = await getBusCompanies();
     busCompanies.value = data;
   } catch (e) {
-    alert('버스회사 목록 불러오기 실패');
+    emit('error', '버스회사 목록 불러오기 실패');
   }
 });
 
@@ -163,7 +151,7 @@ watch(() => form.busCompanyId, async (id) => {
     const { data } = await getBusRoutesByCompany(id);
     busRoutes.value = data;
   } catch (e) {
-    alert('노선 목록 불러오기 실패');
+    emit('error', '노선 목록 불러오기 실패');
   }
 });
 
@@ -179,15 +167,24 @@ watch(() => props.item, async (val) => {
     form.handlerEmail = val.handlerEmail || '';
     form.status = val.status || 'IN_STORAGE';
     if (busCompanies.value.length === 0) {
-      const { data } = await getBusCompanies();
-      busCompanies.value = data;
+      try {
+        const { data } = await getBusCompanies();
+        busCompanies.value = data;
+      } catch (e) {
+        emit('error', '버스회사 목록 불러오기 실패');
+        return;
+      }
     }
     const matched = busCompanies.value.find(c => c.companyName === val.busCompany);
     if (matched) {
       form.busCompanyId = matched.id;
-      const { data } = await getBusRoutesByCompany(matched.id);
-      busRoutes.value = data;
-      form.busNumber = val.busNumber;
+      try {
+        const { data } = await getBusRoutesByCompany(matched.id);
+        busRoutes.value = data;
+        form.busNumber = val.busNumber;
+      } catch (e) {
+        emit('error', '노선 목록 불러오기 실패');
+      }
     } else {
       form.busCompanyId = '';
       form.busNumber = val.busNumber || '';
@@ -237,17 +234,17 @@ const resetForm = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   if (!form.itemName || !form.busCompanyId || !form.busNumber || !form.foundTime) {
-    alert('필수 항목을 모두 입력해주세요.');
+    emit('error', '필수 항목을 모두 입력해주세요.');
     return;
   }
   const selected = busCompanies.value.find(c => c.id === form.busCompanyId);
   if (!selected) {
-    alert('유효한 버스회사를 선택해주세요.');
+    emit('error', '유효한 버스회사를 선택해주세요.');
     return;
   }
   const handlerId = authStore.id;
   if (!handlerId) {
-    alert('로그인이 필요합니다.');
+    emit('error', '로그인이 필요합니다.');
     return;
   }
 
@@ -285,19 +282,16 @@ const handleSubmit = async (e) => {
   try {
     if (props.item && props.item.id) {
       // 수정
-      
       console.log('formData----------수정>', dto, formData)
       await updateFoundItem(props.item.id, formData);
-      alert('수정 완료!');
     } else {
       // 등록
       await registerFoundItem(formData);
-      alert('등록 완료!');
       resetForm();
     }
     emit('submitted');
   } catch (e) {
-    alert('저장 실패: ' + (e.response?.data?.message || e.message));
+    emit('error', '저장 실패: ' + (e.response?.data?.message || e.message));
   }
 };
 

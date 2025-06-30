@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full flex justify-start">
-    <div class="flex flex-col sm:flex-row items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-2 mb-4 shadow-sm w-full sm:w-auto">
+  <div class="flex-shrink-0">
+    <div class="flex flex-col sm:flex-row items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm">
       <input
         v-model="keyword"
         :placeholder="placeholder"

@@ -1,169 +1,148 @@
 <template>
-  <div class="w-full">
-    <div class="flex justify-between items-center mb-8">
-      <h2 class="text-3xl font-extrabold">광고 회사 관리</h2>
-      <div class="flex items-center gap-4">
-        <button
-          @click="downloadCompanies"
-          class="px-6 py-2 bg-green-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-green-700 transition flex items-center gap-2"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          엑셀 다운로드
-        </button>
-        <router-link
-            to="/admin/adcompany/create"
-            class="px-6 py-2 bg-blue-600 text-white text-lg rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-        >회사 등록</router-link>
-      </div>
-    </div>
+  <div>
+    <!-- Breadcrumb -->
+    <AppBreadcrumb breadcrumb="광고 회사 관리" />
 
-    <!-- 검색바 -->
-    <div class="mb-6">
-      <SearchBar
-        placeholder="회사명, 담당자명, 연락처, 이메일 검색"
-        @search="handleSearch"
-        @reset="resetSearch"
-      />
-    </div>
-
-    <!-- 회사 목록 테이블 -->
-    <div class="bg-white shadow-lg rounded-xl overflow-x-auto w-full">
-      <table class="w-full text-base">
-        <thead>
-        <tr class="bg-gray-100">
-          <th class="py-3 px-4 font-bold text-gray-700 text-center">ID</th>
-          <th class="py-3 px-4 font-bold text-gray-700 text-left">회사명</th>
-          <th class="py-3 px-4 font-bold text-gray-700 text-left">담당자명</th>
-          <th class="py-3 px-4 font-bold text-gray-700 text-center">연락처</th>
-          <th class="py-3 px-4 font-bold text-gray-700 text-center">이메일</th>
-          <th class="py-3 px-4 font-bold text-gray-700 text-center">액션</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr
-            v-for="company in pagedCompanyList"
-            :key="company.id"
-            class="border-b hover:bg-blue-50 transition cursor-pointer"
-            @click="openDetail(company)"
-        >
-          <td class="py-3 px-4 text-center font-mono">{{ company.id }}</td>
-          <td class="py-3 px-4 font-semibold">{{ company.name }}</td>
-          <td class="py-3 px-4">{{ company.managerName }}</td>
-          <td class="py-3 px-4 text-center">{{ company.contactNumber }}</td>
-          <td class="py-3 px-4 text-center">{{ company.email }}</td>
-          <td class="py-3 px-4">
-            <div class="flex justify-center items-center gap-2">
-              <router-link
-                  :to="`/admin/adcompany/edit/${company.id}`"
-                  class="px-4 py-1 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200 hover:bg-blue-100 transition"
-                  @click.stop
-              >수정</router-link>
-              <button
-                  class="px-4 py-1 rounded bg-red-50 text-red-700 font-semibold border border-red-200 hover:bg-red-100 transition"
-                  @click.stop="handleDelete(company.id)"
-              >삭제</button>
-            </div>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-      
-      <!-- 검색 결과가 없을 때 -->
-      <div v-if="filteredCompanyList.length === 0" class="py-8 text-center text-gray-500">
-        <p v-if="searchKeyword">"{{ searchKeyword }}"에 대한 검색 결과가 없습니다.</p>
-        <p v-else>등록된 광고 회사가 없습니다.</p>
-      </div>
-
-      <!-- 페이지네이션 UI -->
-      <div v-if="totalPages > 1" class="mt-6 flex justify-center">
-        <nav class="flex items-center space-x-1" aria-label="Pagination">
-          <button
-            class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 mr-1"
-            :disabled="page === 1"
-            :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
-            @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
-          >이전</button>
-          <button
-            v-for="p in totalPages"
-            :key="p"
-            class="px-3 py-1 rounded border text-sm font-medium mx-0.5"
-            :class="[
-              page === p ? 'bg-blue-50 border-blue-500 text-blue-600 font-bold underline' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50',
-              'transition-colors duration-150'
-            ]"
-            @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
-          >{{ p }}</button>
-          <button
-            class="px-3 py-1 rounded border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 ml-1"
-            :disabled="page === totalPages"
-            :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
-            @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
-          >다음</button>
-        </nav>
-      </div>
-    </div>
-
-    <!-- 광고 회사 상세 팝업 -->
-    <div v-if="detailCompany" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div class="relative bg-white rounded-lg shadow-lg p-6 max-w-lg w-full mx-4">
-        <button
-          class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
-          @click="closeDetail"
-          aria-label="닫기"
-        >&times;</button>
+    <div class="mt-4">
+      <div class="p-6 bg-white rounded-md shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 capitalize mb-4">
+          광고 회사 관리
+        </h2>
         
-        <h3 class="text-2xl font-bold mb-6 text-center">{{ detailCompany.name }}</h3>
+        <!-- 성공 메시지(AlertMessage) -->
+        <AlertMessage
+          v-if="showAlert"
+          type="success"
+          title="성공"
+          :message="alertMessage"
+          :dismissible="true"
+          :show="showAlert"
+          @close="showAlert = false"
+        />
         
-        <div class="space-y-4">
-          <div class="flex justify-between items-center py-2 border-b">
-            <span class="font-semibold text-gray-700">회사 ID:</span>
-            <span class="text-gray-900">{{ detailCompany.id }}</span>
+        <!-- 검색/엑셀/등록 버튼 flex row -->
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex space-x-2 items-center">
+            <SearchBar
+              placeholder="회사명, 담당자명, 연락처, 이메일 검색"
+              @search="handleSearch"
+              @reset="resetSearch"
+            />
           </div>
-          
-          <div class="flex justify-between items-center py-2 border-b">
-            <span class="font-semibold text-gray-700">담당자명:</span>
-            <span class="text-gray-900">{{ detailCompany.managerName }}</span>
-          </div>
-          
-          <div class="flex justify-between items-center py-2 border-b">
-            <span class="font-semibold text-gray-700">연락처:</span>
-            <span class="text-gray-900">{{ detailCompany.contactNumber }}</span>
-          </div>
-          
-          <div class="flex justify-between items-center py-2 border-b">
-            <span class="font-semibold text-gray-700">이메일:</span>
-            <span class="text-gray-900">{{ detailCompany.email }}</span>
+          <div class="flex space-x-2 items-center">
+            <router-link
+              to="/admin/adcompany/create"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >회사 등록</router-link>
+            <button
+              @click="downloadCompanies"
+              class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors flex items-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              엑셀 다운로드
+            </button>
           </div>
         </div>
-        
-        <div class="flex gap-3 mt-6 pt-4 border-t">
-          <router-link
-              :to="`/admin/adcompany/edit/${detailCompany.id}`"
-              class="flex-1 px-4 py-2 bg-blue-600 text-white text-center rounded-lg font-semibold hover:bg-blue-700 transition"
-          >수정</router-link>
-          <button
-              class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-              @click="handleDeleteFromDetail(detailCompany.id)"
-          >삭제</button>
-          <button
-              class="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition"
-              @click="closeDetail"
-          >닫기</button>
+        <!-- 테이블 -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">회사명</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">담당자명</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">연락처</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">이메일</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-if="filteredCompanyList.length === 0">
+                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                  <span v-if="searchKeyword">"{{ searchKeyword }}"에 대한 검색 결과가 없습니다.</span>
+                  <span v-else>등록된 광고 회사가 없습니다.</span>
+                </td>
+              </tr>
+              <tr
+                v-for="company in pagedCompanyList"
+                :key="company.id"
+                class="hover:bg-gray-50 cursor-pointer"
+                @click="goToDetail(company.id)"
+              >
+                <td class="px-6 py-4 text-center font-mono text-sm">{{ company.id }}</td>
+                <td class="px-6 py-4 font-semibold text-sm">{{ company.name }}</td>
+                <td class="px-6 py-4 text-sm">{{ company.managerName }}</td>
+                <td class="px-6 py-4 text-center text-sm">{{ company.contactNumber }}</td>
+                <td class="px-6 py-4 text-center text-sm">{{ company.email }}</td>
+                <td class="px-6 py-4 text-center text-sm">
+                  <div class="flex justify-center items-center gap-2">
+                    <router-link
+                      :to="`/admin/adcompany/edit/${company.id}`"
+                      class="text-blue-600 hover:text-blue-900 mr-2"
+                      @click.stop
+                    >수정</router-link>
+                    <button
+                      class="text-red-600 hover:text-red-900"
+                      @click.stop="handleDelete(company.id)"
+                    >삭제</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- 페이지네이션 -->
+        <div v-if="totalPages > 1" class="flex justify-center mt-4">
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <button
+              @click.prevent="() => { if (page > 1) page-- }"
+              :disabled="page === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              :class="{ 'text-gray-300 cursor-not-allowed': page === 1 }"
+            >이전</button>
+            <button
+              v-for="p in totalPages"
+              :key="p"
+              @click.prevent="() => { page = p }"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              :class="{ 'z-10 bg-blue-50 border-blue-500 text-blue-600': page === p }"
+            >{{ p }}</button>
+            <button
+              @click.prevent="() => { if (page < totalPages) page++ }"
+              :disabled="page === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              :class="{ 'text-gray-300 cursor-not-allowed': page === totalPages }"
+            >다음</button>
+          </nav>
         </div>
       </div>
     </div>
+    <CommonModal
+      :isOpen="modalOpen"
+      :title="modalTitle"
+      :message="modalMessage"
+      :confirmText="modalConfirmText"
+      :confirmType="modalConfirmType"
+      :showCancel="modalShowCancel"
+      @close="closeModal"
+      @confirm="modalConfirmAction"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { fetchAdCompanies, deleteAdCompany } from '@/modules/ad/api/adCompanyApi.js'
 import SearchBar from '@/modules/ad/components/SearchBar.vue'
+import AppBreadcrumb from '@/partials/AppBreadcrumb.vue'
+import CommonModal from '@/components/CommonModal.vue'
+import AlertMessage from '@/modules/adminpage/dashboard/components/AlertMessage.vue'
 
+const router = useRouter()
 const companyList = ref([])
-const detailCompany = ref(null)
 const searchKeyword = ref('')
 const page = ref(1)
 const pageSize = 10
@@ -172,12 +151,33 @@ const pagedCompanyList = computed(() =>
   companyList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
 )
 
-const openDetail = (company) => {
-  detailCompany.value = company
+// Alert state
+const showAlert = ref(false)
+const alertMessage = ref('')
+
+// Modal state
+const modalOpen = ref(false)
+const modalTitle = ref('')
+const modalMessage = ref('')
+const modalConfirmText = ref('확인')
+const modalConfirmType = ref('primary')
+const modalShowCancel = ref(false)
+let modalConfirmAction = () => { modalOpen.value = false }
+
+const openModal = (title, message, confirmText = '확인', confirmType = 'primary', showCancel = false, onConfirm = null) => {
+  modalTitle.value = title
+  modalMessage.value = message
+  modalConfirmText.value = confirmText
+  modalConfirmType.value = confirmType
+  modalShowCancel.value = showCancel
+  modalOpen.value = true
+  modalConfirmAction = onConfirm || (() => { modalOpen.value = false })
 }
 
-const closeDetail = () => {
-  detailCompany.value = null
+const closeModal = () => { modalOpen.value = false }
+
+const goToDetail = (id) => {
+  router.push(`/admin/adcompany/${id}`)
 }
 
 const fetchData = async () => {
@@ -185,7 +185,7 @@ const fetchData = async () => {
     companyList.value = (await fetchAdCompanies()).sort((a, b) => b.id - a.id)
     console.log('Fetched companies:', companyList.value)
   } catch (e) {
-    alert('광고 회사 목록을 불러올 수 없습니다.')
+    openModal('오류', '광고 회사 목록을 불러올 수 없습니다.', '확인', 'danger')
   }
 }
 
@@ -225,26 +225,17 @@ const filteredCompanyList = computed(() => {
 })
 
 const handleDelete = async (id) => {
-  if (!confirm('정말 삭제하시겠습니까?')) return
-  try {
-    await deleteAdCompany(id)
-    await fetchData()
-    alert('삭제되었습니다.')
-  } catch (e) {
-    alert('삭제에 실패했습니다.')
-  }
-}
-
-const handleDeleteFromDetail = async (id) => {
-  if (!confirm('정말 삭제하시겠습니까?')) return
-  try {
-    await deleteAdCompany(id)
-    await fetchData()
-    closeDetail()
-    alert('삭제되었습니다.')
-  } catch (e) {
-    alert('삭제에 실패했습니다.')
-  }
+  openModal('삭제 확인', '정말 삭제하시겠습니까?', '삭제', 'danger', true, async () => {
+    modalOpen.value = false // 모달 닫기
+    try {
+      await deleteAdCompany(id)
+      await fetchData()
+      alertMessage.value = '삭제되었습니다.'
+      showAlert.value = true
+    } catch (e) {
+      openModal('오류', '삭제에 실패했습니다.', '확인', 'danger')
+    }
+  })
 }
 
 const downloadCompanies = async () => {
@@ -253,7 +244,7 @@ const downloadCompanies = async () => {
     const downloadData = filteredCompanyList.value;
     
     if (downloadData.length === 0) {
-      alert('다운로드할 광고 회사 데이터가 없습니다.');
+      openModal('알림', '다운로드할 광고 회사 데이터가 없습니다.', '확인', 'warning')
       return;
     }
 
@@ -314,12 +305,18 @@ const downloadCompanies = async () => {
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
     
-    alert(`${downloadData.length}개의 광고 회사 데이터가 엑셀 파일로 다운로드되었습니다.`);
+    openModal('완료', `${downloadData.length}개의 광고 회사 데이터가 엑셀 파일로 다운로드되었습니다.`, '확인', 'success')
   } catch (error) {
     console.error('광고 회사 다운로드 실패:', error)
-    alert('광고 회사 데이터 다운로드 중 오류가 발생했습니다: ' + error.message)
+    openModal('오류', '광고 회사 데이터 다운로드 중 오류가 발생했습니다: ' + error.message, '확인', 'danger')
   }
 }
+
+watch(showAlert, (val) => {
+  if (val) {
+    setTimeout(() => { showAlert.value = false }, 2000)
+  }
+})
 
 onMounted(fetchData)
 </script> 

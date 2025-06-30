@@ -1,32 +1,23 @@
 <template>
-  <div class="max-w-6xl mx-auto py-8 px-4">
-    <!-- 헤더 -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-      <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-xl font-bold text-white flex items-center">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-            </svg>
-            습득물 목록
-          </h1>
-        </div>
-      </div>
-      <!-- 한달 후 폐기 안내 -->
-      <div class="px-6 py-3 bg-yellow-50 border-l-4 border-yellow-400">
-        <div class="flex items-center">
-          <svg class="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-          </svg>
-          <p class="text-sm text-yellow-800 font-medium">
-            습득물은 한달 후 폐기됩니다. 분실물을 찾으시는 경우 빠른 시일 내에 확인해주세요.
-          </p>
-        </div>
+  <div class="page-container">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="title">습득물 목록</h1>
+    </div>
+
+    <!-- 한달 후 폐기 안내 -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <p class="text-sm text-yellow-800 font-medium">
+          습득물은 한달 후 폐기됩니다. 분실물을 찾으시는 경우 빠른 시일 내에 확인해주세요.
+        </p>
       </div>
     </div>
 
-    <!-- 🔍 검색 카드 -->
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+    <!-- 검색 카드 -->
+    <div class="content-card p-6 mb-6">
       <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
         <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -40,15 +31,15 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">습득일</label>
           <div class="space-y-2">
             <label class="flex items-center">
-              <input type="radio" value="1" v-model="dateRange" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" />
+              <input type="radio" value="1" v-model="dateRange" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
               <span class="ml-2 text-sm text-gray-700">당일</span>
             </label>
             <label class="flex items-center">
-              <input type="radio" value="3" v-model="dateRange" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" />
+              <input type="radio" value="3" v-model="dateRange" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
               <span class="ml-2 text-sm text-gray-700">3일</span>
             </label>
             <label class="flex items-center">
-              <input type="radio" value="7" v-model="dateRange" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" />
+              <input type="radio" value="7" v-model="dateRange" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
               <span class="ml-2 text-sm text-gray-700">일주일</span>
             </label>
           </div>
@@ -60,7 +51,7 @@
           <input 
             type="text" 
             v-model="searchKeyword" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
             placeholder="예: 지갑, 카드" 
           />
         </div>
@@ -71,7 +62,7 @@
           <select 
             v-model="selectedCompanyId" 
             @change="handleCompanyChange"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option disabled value="">선택</option>
             <option v-for="company in busCompanies" :key="company.id" :value="company.id">
@@ -85,7 +76,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">노선</label>
           <select 
             v-model="selectedRoute"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option disabled value="">선택</option>
             <option v-for="route in busRoutes" :key="route" :value="route">
@@ -99,7 +90,7 @@
       <div class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
         <button 
           @click="resetFilters"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -108,7 +99,7 @@
         </button>
         <button 
           @click="handleSearch"
-          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -118,18 +109,18 @@
       </div>
     </div>
 
-    <!-- 📋 목록 테이블 -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- 목록 테이블 -->
+    <div class="content-card">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">사진</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">물품명</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">습득일</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">버스정보</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">번호</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">사진</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">물품명</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">습득일</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">버스정보</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -139,9 +130,9 @@
               @click="goToItemDetail(item.id)" 
               class="hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex-shrink-0 h-16 w-16">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ item.id }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <div class="flex-shrink-0 h-16 w-16 mx-auto">
                   <img 
                     v-if="item.photoUrl" 
                     :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
@@ -155,10 +146,10 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.itemName }}</td>
-              <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ item.content }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.foundTime) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{{ item.itemName }}</td>
+              <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate text-center">{{ item.content }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ formatDate(item.foundTime) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                 <div>
                   <div class="font-medium">{{ item.busCompany }}</div>
                   <div class="text-gray-500">{{ item.busNumber }}</div>
@@ -302,3 +293,32 @@ onMounted(() => {
   fetchFoundItems();
 });
 </script>
+
+<style>
+/* 공통 스타일 */
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2c3e50;
+  border-left: 6px solid #4d9eff;
+}
+
+.page-container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+</style>

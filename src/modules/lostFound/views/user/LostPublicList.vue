@@ -1,22 +1,11 @@
 <template>
-  <div class="max-w-6xl mx-auto py-8 px-4">
-    <!-- 헤더 -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-xl font-bold text-white flex items-center">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-            </svg>
-            분실물 목록
-          </h1>
-        </div>
-      </div>
+  <div class="page-container">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="title">분실물 목록</h1>
     </div>
 
-    <!-- 🔍 검색 카드 -->
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+    <!-- 검색 카드 -->
+    <div class="content-card p-6 mb-6">
       <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
         <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -106,17 +95,17 @@
       </div>
     </div>
 
-    <!-- 📋 목록 테이블 -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+    <!-- 목록 테이블 -->
+    <div class="content-card mb-6">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">번호</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">분실물</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">분실일</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">버스정보</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">번호</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">분실물</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">분실일</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">버스정보</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -124,13 +113,13 @@
               v-for="item in pagedItems" 
               :key="item.id" 
               @click="goToItemDetail(item.id)" 
-              class="hover:bg-blue-50 cursor-pointer transition-colors"
+              class="hover:bg-gray-50 cursor-pointer transition-colors"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ displayText(item.title) }}</td>
-              <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ trimText(item.content) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(item.lostTime) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ item.id }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{{ displayText(item.title) }}</td>
+              <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate text-center">{{ trimText(item.content) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ formatDate(item.lostTime) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                 <div>
                   <div class="font-medium">{{ displayText(item.busCompany) }}</div>
                   <div class="text-gray-500">{{ displayText(item.busNumber) }}</div>
@@ -331,3 +320,32 @@ onMounted(() => {
   fetchBusCompanies();
 });
 </script>
+
+<style>
+/* 공통 스타일 */
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2c3e50;
+  border-left: 6px solid #4d9eff;
+}
+
+.page-container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+</style>

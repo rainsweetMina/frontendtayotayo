@@ -23,6 +23,9 @@
       <div class="summary-card" @click="$router.push('/mypage/lost')">
         <h3>📦 분실물</h3>
         <p>나의 신고 {{ lostItems }}건</p>
+        <p class="text-xs text-gray-500 mt-1">
+          ※ 숨김/삭제된 글은 신고 건수에 포함되지 않습니다.
+        </p>
       </div>
       <div class="summary-card" @click="$router.push('/mypage/qna')">
         <h3>💬 Q&A</h3>
@@ -93,7 +96,7 @@ const fetchAllSummaries = async () => {
       api.get('/api/user/apikey/summary'),
       api.get('/api/mypage/notifications/count'),
       api.get('/api/qna/count'),
-      api.get('/api/mypage/lost/count')
+      api.get('/api/lost')
     ])
 
     favorites.value        = favRes.data
@@ -104,7 +107,17 @@ const fetchAllSummaries = async () => {
             : '없음'
     notificationCount.value = notiRes.data.count
     qnaCount.value          = qnaRes.data.count
-    lostItems.value         = lostRes.data.count
+
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 7);
+    lostItems.value = Array.isArray(lostRes.data)
+      ? lostRes.data.filter(item => {
+          const itemDate = item.createdAt ? new Date(item.createdAt) : (item.lostTime ? new Date(item.lostTime) : null);
+          if (!itemDate || isNaN(itemDate.getTime())) return false;
+          return itemDate >= sevenDaysAgo && item.visible == true;
+      }).length
+      : 0
   } catch (err) {
     console.error('❌ 데이터 요약 로딩 실패:', err)
   }

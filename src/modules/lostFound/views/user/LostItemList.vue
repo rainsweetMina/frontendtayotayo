@@ -1,13 +1,38 @@
 <template>
-  <div class="container py-4">
-    <h2 class="mb-3">나의 분실물 신고 목록</h2>
+  <div class="page-container">
+    <AlertMessage
+      v-if="alert.show"
+      :type="alert.type"
+      :title="alert.title"
+      :message="alert.message"
+      :dismissible="true"
+      @close="alert.show = false"
+    />
+    <CommonModal
+      :isOpen="modal.open"
+      title="삭제 확인"
+      message="정말 삭제하시겠습니까?"
+      confirmText="삭제"
+      confirmType="danger"
+      :showCancel="true"
+      cancelText="취소"
+      @close="modal.open = false"
+      @confirm="confirmDelete"
+    />
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="title">나의 분실물 신고 목록</h1>
+      <p class="text-xs text-gray-500 mt-1">
+        ※ 관리자가 숨김 또는 삭제한 글은 목록에 보이지 않습니다.
+      </p>
+    </div>
 
     <!-- 등록 폼: 오직 홈페이지(/lost)에서만 표시 -->
-    <LostItemForm v-if="isLostPage" @submit="handleCreate" />
+    <div v-if="isLostPage" class="content-card p-6 mb-6">
+      <LostItemForm @submit="handleCreate" />
+    </div>
 
-    <hr class="my-4" />
-
-    <div v-if="lostItems.length">
+    <!-- 목록 -->
+    <div v-if="lostItems.length" class="content-card">
       <LostItemCard
           v-for="item in lostItems"
           :key="item.id"
@@ -17,8 +42,16 @@
           @view="goToDetailPage"
       />
     </div>
-    <div v-else class="text-muted">등록된 분실물이 없습니다.</div>
+    <div v-else class="content-card p-8 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">등록된 분실물이 없습니다</h3>
+      <p class="mt-1 text-sm text-gray-500">새로운 분실물을 등록해보세요.</p>
+    </div>
   </div>
+  <router-link to="/mypage" class="back-button">← 마이페이지로 돌아가기</router-link>
 </template>
 
 <script setup>
@@ -27,6 +60,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { getMyLostItems, createLostItem, deleteLostItem } from '@/modules/lostFound/api/lostPublic.js';
 import LostItemCard from '@/modules/lostFound/components/LostItemCard.vue';
 import LostItemForm from '@/modules/lostFound/components/LostItemForm.vue';
+import CommonModal from '@/components/CommonModal.vue';
+import AlertMessage from '@/modules/adminpage/dashboard/components/AlertMessage.vue';
 
 const lostItems = ref([]);
 const route = useRoute();
@@ -34,22 +69,21 @@ const router = useRouter();
 
 const isLostPage = computed(() => route.path.startsWith('/lost') && !route.path.startsWith('/mypage/lost'));
 
+const modal = ref({ open: false, id: null });
+const alert = ref({ show: false, type: 'success', title: '', message: '' });
+
 const fetchItems = async () => {
   const { data } = await getMyLostItems();
-  
-  // 7일이 지난 게시글 필터링
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  
+
   lostItems.value = data.filter(item => {
-    // 삭제된 게시글 제외
-    if (item.deleted) return false;
-    
-    // 등록일 또는 분실일 기준으로 7일 이내인 것만 표시
+    // 등록일 또는 분실일 기준 7일 이내만 표시
     const itemDate = item.createdAt ? new Date(item.createdAt) : new Date(item.lostTime);
-    return itemDate >= sevenDaysAgo;
+    if (itemDate < sevenDaysAgo) return false;
+    // 7일 이내면 숨김/삭제여도 목록에 보임
+    return true;
   }).sort((a, b) => {
-    // 최신 등록순 정렬 (createdAt 기준, 없으면 lostTime)
     const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a.lostTime);
     const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b.lostTime);
     return dateB - dateA;
@@ -63,10 +97,30 @@ const handleCreate = async (formData) => {
   await fetchItems();
 };
 
-const handleDelete = async (id) => {
-  if (confirm('정말 삭제하시겠습니까?')) {
+const handleDelete = (id) => {
+  modal.value.open = true;
+  modal.value.id = id;
+};
+
+const confirmDelete = async () => {
+  const id = modal.value.id;
+  modal.value.open = false;
+  try {
     await deleteLostItem(id);
+    alert.value = {
+      show: true,
+      type: 'success',
+      title: '삭제 완료',
+      message: '분실물 신고가 삭제되었습니다.'
+    };
     await fetchItems();
+  } catch (e) {
+    alert.value = {
+      show: true,
+      type: 'error',
+      title: '오류',
+      message: e?.response?.data?.message || '삭제 중 오류가 발생했습니다.'
+    };
   }
 };
 
@@ -79,8 +133,59 @@ const goToDetailPage = (item) => {
 };
 </script>
 
-<style scoped>
+<style>
+/* 공통 스타일 */
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2c3e50;
+  border-left: 6px solid #4d9eff;
+}
+
+.page-container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
 .container {
   max-width: 800px;
+}
+
+.back-button {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 50;
+  padding: 14px 28px;
+  background-color: #2563eb;
+  color: #fff;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 1.05rem;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.13);
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.back-button:hover {
+  background-color: #1d4ed8;
+  color: #fff;
+  transform: scale(1.06);
 }
 </style>
