@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">분실물 등록</h1>
       <button 
@@ -67,6 +67,7 @@ const handleModalClose = () => {
 </script>
 
 <style>
+@import "@/modules/board/assets/boardCommon.css";
 /* 공통 스타일 */
 .title {
   font-size: 26px;
@@ -78,13 +79,6 @@ const handleModalClose = () => {
   gap: 10px;
   color: #2c3e50;
   border-left: 6px solid #4d9eff;
-}
-
-.page-container {
-  max-width: 960px;
-  margin: 40px auto;
-  padding: 0 20px;
-  font-family: 'Noto Sans KR', sans-serif;
 }
 
 .content-card {

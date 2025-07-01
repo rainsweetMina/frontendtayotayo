@@ -1,9 +1,9 @@
 <template>
   <nav :class="[
-    'transition-transform duration-300 ease-in-out bg-white py-3 shadow-md border-b border-gray-100',
+    'transition-transform duration-300 ease-in-out bg-white py-3 shadow-md border-b border-gray-100 w-full',
     isHeaderVisible ? 'fixed top-0 left-0 right-0 z-50' : 'fixed top-0 left-0 right-0 z-50 -translate-y-full'
   ]">
-    <div class="container mx-auto px-4 md:px-8 lg:px-12 max-w-screen-2xl flex items-center justify-between">
+    <div class="w-full px-4 md:px-8 lg:px-12 flex items-center justify-between">
       <!-- 로고 - flex-shrink-0 추가하여 크기 유지 -->
       <Logo class="mr-1 sm:mr-2 flex-shrink-0" />
 
@@ -56,7 +56,7 @@
       v-if="mobileMenuOpen" 
       class="md:hidden bg-white absolute top-full left-0 w-full shadow-md z-50 border-t border-gray-100"
     >
-      <div class="container mx-auto px-4 md:px-8 lg:px-12 max-w-screen-2xl py-2">
+      <div class="w-full px-4 md:px-8 lg:px-12 py-2">
         <!-- 모바일 메뉴 아코디언 -->
         <div v-for="(menu, index) in mobileMenus" :key="`mobile-menu-${index}`" class="border-b border-gray-100">
           <button 

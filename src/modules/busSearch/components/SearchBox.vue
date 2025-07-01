@@ -39,7 +39,7 @@ onMounted(() => {
 watch(() => store.keyword, (newKeyword, oldKeyword) => {
   // URL 쿼리 파라미터로부터 설정된 경우에만 자동 검색 실행
   // (oldKeyword가 없고 newKeyword가 있는 경우)
-  if (!oldKeyword && newKeyword && newKeywordtrim().length >= 2){
+  if (!oldKeyword && newKeyword && newKeyword.trim().length >= 2){
     // 검색 실행
     console.log('자동 검색 실행:', newKeyword);
     onSearch();

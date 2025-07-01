@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container" v-if="qna">
+  <div class="board-main-container" v-if="qna">
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">Q&A 상세보기</h1>
       <button @click="goList" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
@@ -206,7 +206,7 @@ function goList() {
 </script>
 
 <style scoped>
-.page-container { max-width: 960px; margin: 40px auto; padding: 0 20px; font-family: 'Noto Sans KR', sans-serif; }
+@import "@/modules/board/assets/boardCommon.css";
 .content-card { background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
 .title { font-size: 26px; font-weight: 700; margin-bottom: 24px; padding-left: 8px; display: flex; align-items: center; gap: 10px; color: #2c3e50; border-left: 6px solid #4d9eff; }
 </style> 

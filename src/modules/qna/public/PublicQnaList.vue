@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">Q&A 리스트</h1>
     </div>
@@ -220,7 +220,7 @@ onMounted(() => loadQna(0));
 </script>
 
 <style scoped>
-.page-container { max-width: 960px; margin: 40px auto; padding: 0 20px; font-family: 'Noto Sans KR', sans-serif; }
+@import "@/modules/board/assets/boardCommon.css";
 .content-card { background-color: #fff; border-radius: 0.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
 .title { font-size: 26px; font-weight: 700; margin-bottom: 24px; padding-left: 8px; display: flex; align-items: center; gap: 10px; color: #2c3e50; border-left: 6px solid #4d9eff; }
 .qna-table { width: 100%; border-collapse: collapse; }

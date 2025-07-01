@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <AlertMessage
       v-if="alert.show"
       :type="alert.type"
@@ -134,6 +134,7 @@ const goToDetailPage = (item) => {
 </script>
 
 <style>
+@import "@/modules/board/assets/boardCommon.css";
 /* 공통 스타일 */
 .title {
   font-size: 26px;
@@ -145,13 +146,6 @@ const goToDetailPage = (item) => {
   gap: 10px;
   color: #2c3e50;
   border-left: 6px solid #4d9eff;
-}
-
-.page-container {
-  max-width: 960px;
-  margin: 40px auto;
-  padding: 0 20px;
-  font-family: 'Noto Sans KR', sans-serif;
 }
 
 .content-card {
