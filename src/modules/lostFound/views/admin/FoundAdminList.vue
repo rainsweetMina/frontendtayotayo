@@ -42,8 +42,11 @@
           <button @click="setStatusFilter('ALL')" :class="['px-4 py-2 rounded-lg text-sm font-medium transition-colors', currentStatusFilter === 'ALL' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200']">
             전체 ({{ allCount }})
           </button>
-          <button @click="setStatusFilter('NORMAL')" :class="['px-4 py-2 rounded-lg text-sm font-medium transition-colors', currentStatusFilter === 'NORMAL' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200']">
-            정상 ({{ normalCount }})
+          <button @click="setStatusFilter('IN_STORAGE')" :class="['px-4 py-2 rounded-lg text-sm font-medium transition-colors', currentStatusFilter === 'IN_STORAGE' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200']">
+            보관중 ({{ inStorageCount }})
+          </button>
+          <button @click="setStatusFilter('RETURNED')" :class="['px-4 py-2 rounded-lg text-sm font-medium transition-colors', currentStatusFilter === 'RETURNED' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200']">
+            수령완료 ({{ returnedCount }})
           </button>
           <button @click="setStatusFilter('HIDDEN')" :class="['px-4 py-2 rounded-lg text-sm font-medium transition-colors', currentStatusFilter === 'HIDDEN' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200']">
             숨김 ({{ hiddenCount }})
@@ -103,7 +106,7 @@
                     v-if="item.photoUrl" 
                     :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
                     alt="사진" 
-                    class="w-16 h-12 object-cover rounded" 
+                    class="w-28 h-20 object-cover rounded" 
                   />
                   <span v-else class="text-gray-400">-</span>
                 </td>
@@ -449,13 +452,20 @@ const allCount = computed(() => foundItems.value.filter(item => {
   const diff = (now - created) / (1000 * 60 * 60 * 24);
   return diff <= 30;
 }).length)
-const normalCount = computed(() => foundItems.value.filter(item => (item.visible !== false && !item.deleted && (() => {
+const inStorageCount = computed(() => foundItems.value.filter(item => item.status === 'IN_STORAGE' && !item.deleted && !item.isDeleted && (() => {
   if (!item.createdAt) return true;
   const created = new Date(item.createdAt);
   const now = new Date();
   const diff = (now - created) / (1000 * 60 * 60 * 24);
   return diff <= 30;
-})())).length)
+})()).length)
+const returnedCount = computed(() => foundItems.value.filter(item => item.status === 'RETURNED' && !item.deleted && !item.isDeleted && (() => {
+  if (!item.createdAt) return true;
+  const created = new Date(item.createdAt);
+  const now = new Date();
+  const diff = (now - created) / (1000 * 60 * 60 * 24);
+  return diff <= 30;
+})()).length)
 const hiddenCount = computed(() => foundItems.value.filter(item => (item.visible === false && !item.deleted && (() => {
   if (!item.createdAt) return true;
   const created = new Date(item.createdAt);
