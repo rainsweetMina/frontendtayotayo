@@ -49,7 +49,8 @@
 
     <router-link to="/mypage" class="back-button">← 마이페이지로 돌아가기</router-link>
 
-    <div v-if="copied" class="toast">✅ 복사 완료!</div>
+    <!-- 공통 베이스 모달 (toast 스타일) -->
+    <BaseModal :show="showModal" :message="modalMessage" @close="showModal = false" />
   </div>
 </template>
 
@@ -58,20 +59,29 @@ import api from '@/api/axiosInstance'
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const router = useRouter()
 const { user, isLoggedIn, isLoading, fetchUserInfo } = useUserInfo()
 
 const apiKey = ref(null)
 const isVisible = ref(false)
-const copied = ref(false)
-const userReady = ref(false) // ✅ 사용자 정보 로딩 여부
+const showModal = ref(false)
+const modalMessage = ref('')
 
+/** 모달 헬퍼 */
+const openModal = (msg, autoClose = 1500) => {
+  modalMessage.value = msg
+  showModal.value = true
+  if (autoClose) {
+    setTimeout(() => (showModal.value = false), autoClose)
+  }
+}
+
+/** API 키 조회 */
 const fetchApiKey = async () => {
   try {
-    const res = await api.get('/api/user/apikey/getApiKey', {
-      withCredentials: true
-    })
+    const res = await api.get('/api/user/apikey/getApiKey', { withCredentials: true })
     apiKey.value = res.data
   } catch (e) {
     apiKey.value = null
@@ -79,183 +89,111 @@ const fetchApiKey = async () => {
   }
 }
 
+/** API 키 신청 */
 const requestApiKey = async () => {
   if (!user.value?.userId || !user.value?.username) {
-    alert('사용자 정보가 없습니다.')
+    openModal('사용자 정보가 없습니다.', 2000)
     return
   }
-
   try {
-    const requestBody = {
+    const body = {
       userId: user.value.userId,
       user_name: user.value.username,
       allowedIp: '',
       callbackUrls: []
     }
-
-    await api.post('/api/user/apikey/request', requestBody)
+    await api.post('/api/user/apikey/request', body)
     await fetchApiKey()
-  } catch (e) {
-    alert('API 키 신청 중 오류 발생')
+    openModal('API 키 신청이 완료되었습니다.')
+  } catch {
+    openModal('API 키 신청 중 오류 발생', 2000)
   }
 }
 
+/** API 키 재발급 */
 const reissueApiKey = async () => {
   try {
     await api.post('/api/user/apikey/reissue')
-    alert('API 키가 재발급되었습니다.')
     await fetchApiKey()
+    openModal('API 키가 재발급되었습니다.')
   } catch (e) {
     const msg = e.response?.data
         ? (typeof e.response.data === 'string' ? e.response.data : JSON.stringify(e.response.data))
         : '재발급 중 오류가 발생했습니다.'
-    alert(msg)
+    openModal(msg, 2500)
   }
 }
 
-const toggleVisible = () => {
-  isVisible.value = !isVisible.value
-}
+/** API 키 표시 토글 */
+const toggleVisible = () => (isVisible.value = !isVisible.value)
 
+/** API 키 복사 */
 const copyApiKey = async () => {
   if (!apiKey.value?.apiKey) return
   try {
     await navigator.clipboard.writeText(apiKey.value.apiKey)
-    copied.value = true
-    setTimeout(() => (copied.value = false), 1500)
+    openModal('✅ 복사 완료!')
   } catch {
-    alert('복사 실패')
+    openModal('복사 실패', 2000)
   }
 }
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return '-'
-  const d = new Date(dateStr)
+/** 날짜 포맷 */
+const formatDate = (str) => {
+  if (!str) return '-'
+  const d = new Date(str)
   return isNaN(d) ? '잘못된 날짜' : d.toLocaleString()
 }
 
-const isExpired = (expiresAt) => {
-  if (!expiresAt) return false
-  const now = new Date()
-  const exp = new Date(expiresAt)
-  return exp.getTime() < now.getTime()
+/** 만료 여부 */
+const isExpired = (exp) => {
+  if (!exp) return false
+  return new Date(exp).getTime() < Date.now()
 }
 
+/** 애스터리스크 처리된 API 키 */
 const displayApiKey = computed(() => {
   if (!apiKey.value?.apiKey) return '-'
-  if (isVisible.value) return apiKey.value.apiKey
-  const len = apiKey.value.apiKey.length
-  return '*'.repeat(len - 4) + apiKey.value.apiKey.slice(-4)
+  return isVisible.value ? apiKey.value.apiKey : '*'.repeat(apiKey.value.apiKey.length - 4) + apiKey.value.apiKey.slice(-4)
 })
 
-watch(isLoggedIn, (loggedIn) => {
-  if (loggedIn) fetchApiKey()
-})
+/** 로그인 상태 변경 감지 */
+watch(isLoggedIn, (v) => v && fetchApiKey())
 
+/** 초기 로딩 */
 onMounted(async () => {
-  const success = await fetchUserInfo(true)
-  if (!success) {
+  const ok = await fetchUserInfo(true)
+  if (!ok) {
     router.push('/login')
     return
   }
-
-  userReady.value = true
   await fetchApiKey()
 })
 </script>
 
 <style scoped>
-.apikey-wrapper {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 30px;
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.back-button {
+  display: block;
+  margin: 2rem auto 0 auto;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
   text-align: center;
 }
 
-.apikey-wrapper h2 {
-  margin-bottom: 20px;
-}
+.apikey-wrapper { max-width: 600px; margin: 0 auto; padding: 30px; background: #f9f9f9; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); text-align: center; }
+.apikey-wrapper h2 { margin-bottom: 20px; }
+.apikey-wrapper code { background: #eee; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
 
-.apikey-wrapper code {
-  background-color: #eee;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
-button {
-  padding: 6px 12px;
-  font-size: 14px;
-  margin: 4px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.copy-btn {
-  background: #5cb85c;
-  color: white;
-}
-.copy-btn:hover {
-  background: #4cae4c;
-}
-
-.toggle-btn {
-  background: #6c757d;
-  color: white;
-}
-.toggle-btn:hover {
-  background: #5a6268;
-}
-
-.reissue-button {
-  margin-top: 15px;
-  background: #ffc107;
-  color: black;
-}
-.reissue-button:hover {
-  background: #e0a800;
-}
-
-.back-button {
-  display: inline-block;
-  margin-top: 20px;
-  text-decoration: none;
-  color: #007bff;
-}
-
-.toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #28a745;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  animation: fadeout 1.5s forwards;
-  font-size: 14px;
-}
-
-@keyframes fadeout {
-  0% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; display: none; }
-}
-
-.callback-list {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 20px;
-}
-.callback-list li {
-  background: #eaeaea;
-  margin: 4px auto;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-}
+button { padding: 6px 12px; font-size: 14px; margin: 4px; border: none; border-radius: 6px; cursor: pointer; }
+.copy-btn { background: #5cb85c; color: #fff; }
+.copy-btn:hover { background: #4cae4c; }
+.toggle-btn { background: #6c757d; color: #fff; }
+.toggle-btn:hover { background: #5a6268; }
+.reissue-button { margin-top: 15px; background: #ffc107; color: #000; }
+.reissue-button:hover { background: #e0a800; }
+.back-button { display: inline-block; margin-top: 20px; color: #007bff; text-decoration: none; }
+.callback-list { list-style: none; padding: 0; margin: 10px 0 20px; }
+.callback-list li { background: #eaeaea; margin: 4px auto; padding: 6px 12px; border-radius: 6px; font-size: 14px; }
 </style>

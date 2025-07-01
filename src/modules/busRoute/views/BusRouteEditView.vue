@@ -4,26 +4,26 @@
 
     <!-- 🔧 기본 정보 수정 -->
     <div v-if="routeData">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white shadow rounded-lg p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="font-semibold">노선 번호</label>
-          <input v-model="routeData.routeNo" class="border px-2 py-1 w-full" />
+          <label class="block font-medium mb-1">노선 번호</label>
+          <input v-model="routeData.routeNo" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label class="font-semibold">노선 설명</label>
-          <input v-model="routeData.routeNote" class="border px-2 py-1 w-full" />
+          <label class="block font-medium mb-1">노선 설명</label>
+          <input v-model="routeData.routeNote" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label class="font-semibold">정방향 설명</label>
-          <input v-model="routeData.dirRouteNote" class="border px-2 py-1 w-full" />
+          <label class="block font-medium mb-1">정방향 설명</label>
+          <input v-model="routeData.dirRouteNote" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label class="font-semibold">역방향 설명</label>
-          <input v-model="routeData.ndirRouteNote" class="border px-2 py-1 w-full" />
+          <label class="block font-medium mb-1">역방향 설명</label>
+          <input v-model="routeData.ndirRouteNote" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
 
-      <button @click="updateRoute" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">💾 노선 저장</button>
+      <button @click="updateRoute" class="mt-4 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700">💾 노선 저장</button>
     </div>
 
     <!-- 🗺️ 기존 정류소 목록 -->
@@ -32,15 +32,15 @@
       <table class="w-full border text-sm mt-2">
         <thead class="bg-gray-100">
         <tr>
-          <th>방향</th>
-          <th>Seq</th>
-          <th>정류소 ID</th>
-          <th>정류소 이름</th>
+          <th class="px-4 py-2">방향</th>
+          <th class="px-4 py-2">Seq</th>
+          <th class="px-4 py-2">정류소 ID</th>
+          <th class="px-4 py-2">정류소 이름</th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="stop in busStops" :key="`${stop.moveDir}-${stop.seq}`">
-          <td>{{ stop.moveDir === '1' ? '정방향' : '역방향' }}</td>
+        <tr v-for="stop in busStops" :key="`${stop.moveDir}-${stop.seq}`" class="text-center bg-white">
+        <td class="py-2">{{ stop.moveDir === '1' ? '정방향' : '역방향' }}</td>
           <td>{{ stop.seq }}</td>
           <td>{{ stop.bsId }}</td>
           <td>{{ stop.bsNm || '-' }}</td>
@@ -50,26 +50,26 @@
     </div>
 
     <!-- ➕ 정류소 추가 -->
-    <div class="mt-8">
-      <h3 class="text-lg font-semibold">정류장 추가</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+    <div class="mt-8 bg-white shadow rounded-lg p-4">
+      <h3 class="text-lg font-semibold mb-4">정류소 추가</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label class="font-semibold">방향</label>
-          <select v-model="newStop.moveDir" class="border px-2 py-1 w-full">
+          <label class="block font-medium mb-1">방향</label>
+          <select v-model="newStop.moveDir" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="1">정방향</option>
             <option value="2">역방향</option>
           </select>
         </div>
         <div>
-          <label class="font-semibold">정류소 ID</label>
-          <input v-model="newStop.bsId" placeholder="예: 234000123" class="border px-2 py-1 w-full" />
+          <label class="block font-medium mb-1">정류소 ID</label>
+          <input v-model="newStop.bsId" placeholder="예: 234000123" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label class="font-semibold">순서(seq)</label>
-          <input v-model="newStop.seq" type="number" class="border px-2 py-1 w-full" />
+          <label class="block font-medium mb-1">순서 (seq)</label>
+          <input v-model="newStop.seq" type="number" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
-      <button @click="addStop" class="mt-3 bg-green-600 text-white px-4 py-2 rounded">➕ 정류소 추가</button>
+      <button @click="addStop" class="mt-4 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700">➕ 정류소 추가</button>
     </div>
   </div>
 </template>

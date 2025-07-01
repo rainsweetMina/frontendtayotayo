@@ -83,12 +83,14 @@
         <p class="error" v-if="error">{{ error }}</p>
       </form>
     </div>
+    <BaseModal v-if="showModal" :message="modalMessage" @close="showModal = false" />
   </div>
 </template>
 
 <script setup>
 import api from '@/api/axiosInstance'
 import { ref, computed } from 'vue'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const form = ref({
   userId: '',
@@ -113,6 +115,15 @@ const emailDomainSelected = ref('')
 const codeSent = ref(false)
 const remainingTime = ref(180)
 const error = ref('')
+
+// ✅ 모달 관련
+const showModal = ref(false)
+const modalMessage = ref('')
+const openModal = (msg) => {
+  modalMessage.value = msg
+  showModal.value = true
+}
+
 let timer = null
 
 const validatePassword = () => {
@@ -157,7 +168,7 @@ const sendVerificationCode = async () => {
 
 const verifyCode = async () => {
   if (form.value.emailVerified) {
-    alert('✅ 이미 이메일 인증이 완료되었습니다.')
+    openModal('✅ 이미 이메일 인증이 완료되었습니다.')
     return
   }
 
@@ -169,14 +180,14 @@ const verifyCode = async () => {
 
     if (res.data.success) {
       form.value.emailVerified = true
-      alert('✅ 이메일 인증이 완료되었습니다.')
+      openModal('✅ 이메일 인증이 완료되었습니다.')
     } else {
       form.value.emailVerified = false
-      alert('❌ 인증 코드가 올바르지 않습니다.')
+      openModal('❌ 인증 코드가 올바르지 않습니다.')
     }
   } catch (err) {
     form.value.emailVerified = false
-    alert('❌ 인증 실패: ' + (err.response?.data?.message || '오류가 발생했습니다.'))
+    openModal('❌ 인증 실패: ' + (err.response?.data?.message || '오류가 발생했습니다.'))
   }
 }
 
@@ -215,16 +226,17 @@ const handleRegister = async () => {
     form.value.passwordCheck = passwordCheck.value
     form.value.emailVerified = !!form.value.emailVerified
 
-    console.log('📦 회원가입 요청:', JSON.stringify(form.value, null, 2))
-
     const res = await api.post('/api/user/join', form.value)
     const message = res.data?.message || '회원가입 완료! 로그인해주세요.'
-    alert('✅ ' + message)
-    window.location.href = '/login'
+    openModal('✅ ' + message)
+
+    setTimeout(() => {
+      window.location.href = '/login'
+    }, 1500)
   } catch (err) {
     console.error('❌ 회원가입 실패:', err)
     const errorMessage = err.response?.data?.message || '알 수 없는 오류가 발생했습니다.'
-    alert('❌ 회원가입 실패: ' + errorMessage)
+    openModal('❌ 회원가입 실패: ' + errorMessage)
   }
 }
 </script>

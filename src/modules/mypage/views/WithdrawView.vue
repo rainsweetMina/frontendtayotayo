@@ -15,23 +15,28 @@
       <button @click="withdraw">탈퇴하기</button>
       <router-link to="/mypage">취소</router-link>
     </div>
+
+    <BaseModal v-if="showModal" :message="modalMessage" @close="showModal = false" />
   </div>
 </template>
 
 <script setup>
 import api from '@/api/axiosInstance'
-
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ref } from 'vue'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const password = ref('')
+const showModal = ref(false)
+const modalMessage = ref('')
 
 const withdraw = async () => {
   if (!password.value) {
-    alert('비밀번호를 입력해주세요.')
+    modalMessage.value = '비밀번호를 입력해주세요.'
+    showModal.value = true
     return
   }
 
@@ -43,11 +48,13 @@ const withdraw = async () => {
   try {
     await api.post('/api/mypage/withdraw', { password: password.value }, { withCredentials: true })
     auth.logout()
-    alert('회원 탈퇴가 완료되었습니다.')
-    router.push('/login')
+    modalMessage.value = '회원 탈퇴가 완료되었습니다.'
+    showModal.value = true
+    setTimeout(() => router.push('/login'), 2000)
   } catch (err) {
     console.error('❌ 탈퇴 실패:', err)
-    alert(err.response?.data?.message || '탈퇴 중 오류가 발생했습니다.')
+    modalMessage.value = err.response?.data?.message || '탈퇴 중 오류가 발생했습니다.'
+    showModal.value = true
   }
 }
 </script>
@@ -133,4 +140,3 @@ const withdraw = async () => {
   background-color: #e0e0e0;
 }
 </style>
-

@@ -3,11 +3,6 @@ import AdminDashboard from '@/modules/adminpage/dashboard/views/AdminDashboard.v
 import AdminNotice from '@/modules/adminpage/dashboard/views/notice/Notice.vue'
 import AdminSystemLogs from '@/modules/adminpage/dashboard/views/SystemLogs.vue'
 import AdminRouteFinderSettings from '@/modules/adminpage/dashboard/views/RouteFinderSettings.vue'
-import AdminBusRoutes from '@/modules/adminpage/dashboard/views/BusRoutes.vue'
-import AdminBusRouteAdd from '@/modules/adminpage/dashboard/views/BusRouteAdd.vue'
-import AdminBusRouteSearch from '@/modules/adminpage/dashboard/views/BusRouteSearch.vue'
-import AdminBusRouteOrder from '@/modules/adminpage/dashboard/views/BusRouteOrder.vue'
-import AdminBusRouteStops from '@/modules/adminpage/dashboard/views/BusRouteStops.vue'
 import AdminBusStops from '@/modules/adminpage/dashboard/views/BusStops.vue'
 import AdminBusStopAdd from '@/modules/adminpage/dashboard/views/BusStopAdd.vue'
 import AdminBusStopSearch from '@/modules/adminpage/dashboard/views/BusStopSearch.vue'
@@ -31,8 +26,8 @@ import BusRouteAllView from "@/modules/busRoute/views/BusRouteAllView.vue";
 import BusRouteAddView from "@/modules/busRoute/views/BusRouteAddView.vue";
 import BusRouteInfoView from "@/modules/busRoute/views/BusRouteInfoView.vue";
 import BusRouteEditView from "@/modules/busRoute/views/BusRouteEditView.vue";
-import UserListView from "@/modules/adminpage/dashboard/views/UserListView.vue";
-import UserApiKeyManagementView from "@/modules/adminpage/dashboard/views/UserApiKeyManagementView.vue";
+import UserListView from "@/modules/usermanagement/views/UserListView.vue";
+import UserApiKeyManagementView from "@/modules/usermanagement/views/UserApiKeyManagementView.vue";
 
 // 광고 회사 관리 컴포넌트들
 import AdCompanyList from '@/modules/ad/views/adcompany/adCompanyList.vue'
