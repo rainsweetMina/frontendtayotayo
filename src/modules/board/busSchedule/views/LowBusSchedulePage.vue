@@ -93,11 +93,11 @@ const loadSchedule = async (routeNo, routeNote = '', moveDir = null) => {
   })
   const map = mapRes.data
 
-  const scheduleParams = { routeNo }
-  if (routeNote) scheduleParams.routeNote = routeNote
-  if (moveDir !== null) scheduleParams.moveDir = moveDir
-  const scheduleRes = await api.get('/api/schedules', { params: scheduleParams })
-  const schedules = scheduleRes.data.filter(s => s.busTCd === 'D')
+  const lowBusParams = { routeId }
+  if (moveDir !== null && moveDir !== undefined) lowBusParams.moveDir = moveDir
+
+  const scheduleRes = await api.get('/api/lowbus-scheduls', { params: lowBusParams })
+  const schedules = scheduleRes.data
   if (!schedules.length) return
 
   const headerNames = header.map((seq, idx) => {
