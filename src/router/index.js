@@ -68,7 +68,6 @@ router.beforeEach(async (to, from, next) => {
     if (to.path === '/login' && !to.query.redirect) {
         const prev = from.fullPath && from.fullPath !== '/login' ? from.fullPath : null
         if (prev) {
-            console.log('📌 공개 페이지 → /login, redirect 자동 부여:', prev)
             return next({ path: '/login', query: { redirect: encodeURIComponent(prev) } })
         }
     }

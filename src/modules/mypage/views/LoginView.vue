@@ -74,6 +74,9 @@ watch(rememberId, checked => {
 /* --------------------------------------------------
  * 로그인 처리
  * -------------------------------------------------- */
+/* --------------------------------------------------
+ * 로그인 처리 (수정본)
+ * -------------------------------------------------- */
 const handleLogin = async () => {
   error.value = ''
 
@@ -81,35 +84,45 @@ const handleLogin = async () => {
     /* 1) 기존 세션·스토어 초기화 */
     auth.logout(true)
 
-    /* 2) 로그인 요청 */
-    const formData = new URLSearchParams()
-    formData.append('username', userId.value)
-    formData.append('password', password.value)
+    /* 2) 로그인 요청 -------------------------------- */
+    const loginBody = {                    // ✅ JSON 바디
+      userId: userId.value,                // ✅ userId 필드명
+      password: password.value
+    }
 
-    const { data: tokenRes } = await api.post('/auth/login', formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      withCredentials: true,
-    })
+    const { data: tokenRes } = await api.post(
+        '/api/auth/login',                   // ✅ 실제 백엔드 경로
+        loginBody,
+        { withCredentials: true }            // JSON이면 헤더 지정 불필요
+    )
 
-    const { accessToken, refreshToken, expiresIn = 3600 } = tokenRes
+    /* 2-1) 토큰 저장 ------------------------------ */
+    const {
+      accessToken,
+      refreshToken,
+      expiresIn = 3600
+    } = tokenRes
+
     auth.setTokens(accessToken, refreshToken, expiresIn)
+    localStorage.setItem('accessToken', accessToken)
+    localStorage.setItem('refreshToken', refreshToken)
 
-    /* 3) 아이디 저장 */
-    if (rememberId.value) localStorage.setItem('savedUserId', userId.value)
+    /* 3) 아이디 저장 ------------------------------ */
+    if (rememberId.value) {
+      localStorage.setItem('savedUserId', userId.value)
+    }
 
-    /* 4) 사용자 정보 조회 */
-    const { data: userInfo } = await api.get('/api/user/info', { withCredentials: true })
-    console.log('🧩 userInfo.role =', userInfo.role)
+    /* 4) 사용자 정보 조회 -------------------------- */
+    const { data: userInfo } = await api.get('/api/user/info', {
+      withCredentials: true
+    })
     auth.login({ ...userInfo, accessToken, refreshToken, expiresIn })
 
-    await nextTick()                                 // 업데이트 보장
-    console.log('🧩 auth.role =', auth.role)
+    await nextTick()
 
-    /* 5) 리다이렉트 경로 결정 */
+    /* 5) 리다이렉트 경로 결정 ---------------------- */
     const rawRedirect = route.query.redirect
-
     const decodedRedirect = rawRedirect ? decodeURIComponent(rawRedirect) : null
-
     const role = auth.role
 
     let redirectPath = '/'
@@ -126,7 +139,8 @@ const handleLogin = async () => {
     router.push(redirectPath)
   } catch (err) {
     console.error('❌ 로그인 실패:', err)
-    error.value = err.response?.data?.message ?? '아이디 또는 비밀번호가 잘못되었습니다.'
+    error.value =
+        err.response?.data?.message ?? '아이디 또는 비밀번호가 잘못되었습니다.'
   }
 }
 
