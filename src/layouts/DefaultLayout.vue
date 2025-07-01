@@ -159,7 +159,7 @@ const toggleSidebar = () => {
 
 /* 본문 영역 */
 .main-content {
-  padding: 0;
+  padding: 100px;
   transition: margin-left 0.3s ease;
   padding-top: 80px; /* 헤더 높이만큼 상단 여백 추가 */
   flex: 1; /* 남은 공간을 모두 차지하도록 설정 */

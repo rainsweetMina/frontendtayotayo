@@ -176,12 +176,6 @@
             </div>
             <div class="space-y-1">
               <router-link
-                  to="/admin/operation-time"
-                  class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-              >
-                운행시간 관리
-              </router-link>
-              <router-link
                   to="/admin/system-logs"
                   class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
               >

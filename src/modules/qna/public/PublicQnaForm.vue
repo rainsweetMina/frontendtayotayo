@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="board-main-container">
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">{{ isEdit ? 'Q&A 수정' : 'Q&A 등록' }}</h1>
       <button @click="goList" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
@@ -98,6 +98,7 @@ function handleModalClose() {
 </script>
 
 <style scoped>
+@import "@/modules/board/assets/boardCommon.css";
 .qna-form-container { max-width: 600px; margin: 0 auto; }
 .qna-form-container form > div { margin-bottom: 1em; }
 </style> 

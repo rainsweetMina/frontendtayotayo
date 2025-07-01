@@ -54,6 +54,7 @@
             <div v-if="form.files.length > 0" class="mt-2 space-y-2">
               <div v-for="(file, index) in form.files" :key="index" class="flex items-center space-x-2">
                 <span class="text-gray-700">{{ file.name }}</span>
+                <span v-if="file.uploaded" class="text-xs text-blue-600">(기존 파일)</span>
                 <button type="button" class="text-xs text-red-600 hover:underline" @click="removeFile(index)">
                   삭제
                 </button>
@@ -542,11 +543,27 @@ export default {
         });
         formData.append('notice', noticeBlob);
 
-        // 파일 추가
+        // 파일 추가 (이미 업로드된 파일과 새 파일 구분하여 처리)
         if (form.value.files.length > 0) {
           console.log('Adding files to FormData:', form.value.files);
-          form.value.files.forEach((file, index) => {
-            console.log(`File ${index}:`, file.name, file.size, file.type);
+          
+          // 이미 업로드된 파일의 UUID 목록 (삭제되지 않은 파일만)
+          const existingFileUUIDs = form.value.files
+            .filter(file => file.uploaded && file.uuid)
+            .map(file => file.uuid);
+          
+          // 이미 업로드된 파일 UUID 목록을 JSON으로 FormData에 추가
+          if (existingFileUUIDs.length > 0) {
+            formData.append('existingFiles', new Blob([JSON.stringify(existingFileUUIDs)], {
+              type: 'application/json'
+            }));
+            console.log('기존 파일 UUIDs:', existingFileUUIDs);
+          }
+          
+          // 새로 업로드할 파일만 files로 추가
+          const newFiles = form.value.files.filter(file => !file.uploaded);
+          newFiles.forEach((file, index) => {
+            console.log(`신규 파일 ${index}:`, file.name, file.size, file.type);
             formData.append('files', file);
           });
         }
@@ -625,10 +642,33 @@ export default {
       try {
         const response = await getNoticeDetail(route.params.id);
         const notice = response.data;
+        
+        // 콘솔에 파일 정보 로깅
+        console.log('수정할 공지사항 정보:', notice);
+        console.log('파일 정보:', notice.files);
+        
+        // 첨부파일 정보 처리
+        let fileArray = [];
+        if (notice.files && Array.isArray(notice.files) && notice.files.length > 0) {
+          // 서버에서 받은 파일 정보 처리
+          fileArray = notice.files.map(file => {
+            // 이미 업로드된 파일임을 표시하는 플래그 추가
+            return {
+              id: file.id || null,
+              name: file.originalName || file.fileName || '첨부파일',
+              size: file.fileSize || 0,
+              type: file.fileType || 'application/octet-stream',
+              uploaded: true, // 이미 업로드된 파일임을 표시
+              uuid: file.uuid || file.id || null // 서버에서 생성한 UUID
+            };
+          });
+          console.log('변환된 파일 배열:', fileArray);
+        }
+        
         form.value = {
           title: notice.title,
           content: notice.content,
-          files: [],
+          files: fileArray, // 변환된 파일 배열 사용
           showPopup: notice.showPopup || false,
           popupStart: notice.popupStart || '',
           popupEnd: notice.popupEnd || ''
