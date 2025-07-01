@@ -89,7 +89,6 @@ router.beforeEach(async (to, from, next) => {
 
     // 3. 보호 경로인데 로그인 안 되어있으면
     if (isProtected && !auth.isLoggedIn) {
-        console.log('🔁 보호 경로 → /login, to.fullPath =', to.fullPath)
         return next({ path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } })
     }
 

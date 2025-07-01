@@ -7,7 +7,7 @@
       <input v-model="searchKeyword" type="text" placeholder="아이디, 이름, 이메일, 전화번호 검색" class="border rounded px-2 py-1 w-72" />
     </div>
 
-    <table class="w-full border border-gray-300 text-sm">
+    <table class="w-full border border-gray-300 text-sm bg-white">
       <thead class="bg-gray-100 text-center">
       <tr>
         <th v-for="col in columns" :key="col.key" class="px-2 py-2" :class="{ 'cursor-pointer': col.sortable }" @click="col.sortable && toggleSort(col.key)">
@@ -41,11 +41,21 @@
       </tbody>
     </table>
 
-    <!-- 페이지네이션 -->
-    <div class="mt-4 flex justify-center items-center gap-2">
-      <button @click="currentPage--" :disabled="currentPage === 1" class="px-2">⬅</button>
-      <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
-      <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-2">➡</button>
+    <!-- ⏩ 페이지네이션 -->
+    <div class="mt-4 flex justify-center items-center gap-2 text-sm">
+      <button @click="currentPage = 0" :disabled="currentPage === 0" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">처음</button>
+      <button @click="currentPage--" :disabled="currentPage === 0" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">이전</button>
+      <button
+          v-for="p in pagesToShow"
+          :key="p"
+          @click="currentPage = p"
+          :class="[
+          'px-3 py-1 rounded',
+          p === currentPage ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200'
+        ]"
+      >{{ p + 1 }}</button>
+      <button @click="currentPage++" :disabled="currentPage + 1 >= totalPages" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">다음</button>
+      <button @click="currentPage = totalPages - 1" :disabled="currentPage + 1 >= totalPages" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">마지막</button>
     </div>
   </div>
 </template>
@@ -61,8 +71,10 @@ const roles = ['USER', 'ADMIN', 'BUS']
 const searchKeyword = ref('')
 const sortKey = ref('id')
 const sortOrder = ref('asc')
-const currentPage = ref(1)
+
 const pageSize = 10
+const currentPage = ref(0)
+const maxButtons = 5
 
 const columns = [
   { label: '회원번호', key: 'id', sortable: true },
@@ -115,13 +127,20 @@ const sortedUsers = computed(() => {
   })
 })
 
+const totalPages = computed(() => Math.max(1, Math.ceil(sortedUsers.value.length / pageSize)))
+
 const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
+  const start = currentPage.value * pageSize
   return sortedUsers.value.slice(start, start + pageSize)
 })
 
-const totalPages = computed(() => {
-  return Math.ceil(sortedUsers.value.length / pageSize)
+const pagesToShow = computed(() => {
+  const total = totalPages.value
+  const cur = currentPage.value
+  let start = Math.max(0, cur - Math.floor(maxButtons / 2))
+  let end = Math.min(total - 1, start + maxButtons - 1)
+  if (end - start < maxButtons - 1) start = Math.max(0, end - maxButtons + 1)
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 })
 
 const toggleSort = (key) => {

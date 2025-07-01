@@ -1,49 +1,48 @@
 <template>
   <div class="p-6">
-    <h2 class="text-2xl font-bold mb-4">➕ 버스 노선 추가하기</h2>
+    <h2 class="text-2xl font-bold mb-4 text-blue-700">➕ 버스 노선 추가하기</h2>
 
-    <div class="mb-4">
-      <label>정류장 또는 노선 검색: </label>
-      <input v-model="searchKeyword" placeholder="예: 623, 동성로" class="border px-2 py-1" />
-      <button @click="searchBus" class="ml-2 bg-blue-500 text-white px-3 py-1 rounded">검색</button>
-    </div>
-
-    <form @submit.prevent="submitRoute">
-      <div class="space-y-2">
-        <input v-model="route.routeId" placeholder="Route ID" required />
-        <input v-model="route.routeNo" placeholder="Route No" required />
-        <input v-model="route.stBsId" @input="fetchStopName('st')" placeholder="출발 정류소 ID" required />
-        <input :value="route.stNm" disabled placeholder="출발 정류소명" />
-        <input v-model="route.edBsId" @input="fetchStopName('ed')" placeholder="도착 정류소 ID" required />
-        <input :value="route.edNm" disabled placeholder="도착 정류소명" />
-        <input v-model="route.routeNote" placeholder="노선 설명" />
-        <input v-model="route.dataconnareacd" placeholder="데이터 연결 여부" />
-        <input v-model="route.dirRouteNote" placeholder="정방향 설명" />
-        <input v-model="route.ndirRouteNote" placeholder="역방향 설명" />
-        <input v-model="route.routeTCd" placeholder="노선 타입 코드" />
+    <!-- 노선 입력 폼 -->
+    <form @submit.prevent="submitRoute" class="space-y-6">
+      <div class="grid grid-cols-2 gap-4">
+        <input v-model="route.routeId" placeholder="추가할 노선 ID" required class="input" />
+        <input v-model="route.routeNo" placeholder="추가할 노선 번호" required class="input" />
+        <input v-model="route.stBsId" @input="fetchStopName('st')" placeholder="출발 정류소 ID" required class="input" />
+        <input :value="route.stNm" disabled placeholder="출발 정류소명" class="input bg-gray-100" />
+        <input v-model="route.edBsId" @input="fetchStopName('ed')" placeholder="도착 정류소 ID" required class="input" />
+        <input :value="route.edNm" disabled placeholder="도착 정류소명" class="input bg-gray-100" />
+        <input v-model="route.routeNote" placeholder="노선 설명" class="input col-span-2" />
+        <input v-model="route.dataconnareacd" placeholder="데이터 연결 여부" class="input" />
+        <input v-model="route.routeTCd" placeholder="노선 타입 코드" class="input" />
+        <input v-model="route.dirRouteNote" placeholder="정방향 설명" class="input col-span-2" />
+        <input v-model="route.ndirRouteNote" placeholder="역방향 설명" class="input col-span-2" />
       </div>
 
-      <div class="mt-4">
-        <h3>정방향 경유 정류장</h3>
-        <div v-for="(stop, i) in stopsForward" :key="i" class="mb-2">
-          <input v-model="stop.bsId" @input="fetchStopNameInList('forward', i)" placeholder="정류장 ID" />
-          <input :value="stop.name" disabled placeholder="정류소명" />
-          <button type="button" @click="removeStop('forward', i)">삭제</button>
+      <!-- 정방향 경유 정류장 -->
+      <div>
+        <h3 class="text-lg font-semibold mb-2">▶ 정방향 경유 정류장</h3>
+        <div v-for="(stop, i) in stopsForward" :key="i" class="flex gap-2 items-center mb-2">
+          <input v-model="stop.bsId" @input="fetchStopNameInList('forward', i)" placeholder="정류장 ID" class="input" />
+          <input :value="stop.name" disabled placeholder="정류소명" class="input bg-gray-100" />
+          <button type="button" @click="removeStop('forward', i)" class="text-red-600">삭제</button>
         </div>
-        <button type="button" @click="addStop('forward')">+ 정방향 추가</button>
+        <button type="button" @click="addStop('forward')" class="text-blue-600 mt-1">+ 정방향 추가</button>
       </div>
 
-      <div class="mt-4">
-        <h3>역방향 경유 정류장</h3>
-        <div v-for="(stop, i) in stopsBackward" :key="i" class="mb-2">
-          <input v-model="stop.bsId" @input="fetchStopNameInList('backward', i)" placeholder="정류장 ID" />
-          <input :value="stop.name" disabled placeholder="정류소명" />
-          <button type="button" @click="removeStop('backward', i)">삭제</button>
+      <!-- 역방향 경유 정류장 -->
+      <div>
+        <h3 class="text-lg font-semibold mb-2">◀ 역방향 경유 정류장</h3>
+        <div v-for="(stop, i) in stopsBackward" :key="i" class="flex gap-2 items-center mb-2">
+          <input v-model="stop.bsId" @input="fetchStopNameInList('backward', i)" placeholder="정류장 ID" class="input" />
+          <input :value="stop.name" disabled placeholder="정류소명" class="input bg-gray-100" />
+          <button type="button" @click="removeStop('backward', i)" class="text-red-600">삭제</button>
         </div>
-        <button type="button" @click="addStop('backward')">+ 역방향 추가</button>
+        <button type="button" @click="addStop('backward')" class="text-blue-600 mt-1">+ 역방향 추가</button>
       </div>
 
-      <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded">노선 등록</button>
+      <div>
+        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">🚀 노선 등록</button>
+      </div>
     </form>
   </div>
 </template>
@@ -115,3 +114,14 @@ const submitRoute = async () => {
   }
 }
 </script>
+
+<style scoped>
+.input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+</style>

@@ -61,37 +61,25 @@ import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
-const auth = useAuthStore()
 const { user, isLoading, fetchUserInfo } = useUserInfo()
 
-const favorites = ref({ busCount: 0, stopCount: 0 })
-const lostItems = ref(0)
-const qnaCount = ref(0)
-const apiKeyStatusText = ref('정보 없음')
+/* 상태 */
+const favorites         = ref({ busCount: 0, stopCount: 0 })
+const lostItems         = ref(0)
+const qnaCount          = ref(0)
+const apiKeyStatusText  = ref('정보 없음')
 const notificationCount = ref(0)
 
-function formatDate(dateString) {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+/* 날짜 포맷터 */
+const formatDate = (str) => str ? new Date(str).toLocaleString('ko-KR', {
+  year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+}) : ''
 const formattedLastLogin = computed(() => formatDate(user.value?.lastLoginAt))
 
+/* 요약 데이터 일괄 로딩 */
 const fetchAllSummaries = async () => {
   try {
-    const [
-      favRes,
-      apiRes,
-      notiRes,
-      qnaRes,
-      lostRes
-    ] = await Promise.all([
+    const [favRes, apiRes, notiRes, qnaRes, lostRes] = await Promise.all([
       api.get('/api/mypage/favorites/summary'),
       api.get('/api/user/apikey/summary'),
       api.get('/api/mypage/notifications/count'),
@@ -101,34 +89,22 @@ const fetchAllSummaries = async () => {
 
     favorites.value        = favRes.data
     apiKeyStatusText.value = apiRes.data?.status === 'APPROVED'
-        ? '승인됨'
-        : apiRes.data?.status === 'PENDING'
-            ? '승인 대기 중'
-            : '없음'
+        ? '승인됨' : apiRes.data?.status === 'PENDING' ? '승인 대기 중' : '없음'
     notificationCount.value = notiRes.data.count
     qnaCount.value          = qnaRes.data.count
 
-    const now = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(now.getDate() - 7);
-    lostItems.value = Array.isArray(lostRes.data)
-      ? lostRes.data.filter(item => {
-          const itemDate = item.createdAt ? new Date(item.createdAt) : (item.lostTime ? new Date(item.lostTime) : null);
-          if (!itemDate || isNaN(itemDate.getTime())) return false;
-          return itemDate >= sevenDaysAgo && item.visible == true;
-      }).length
-      : 0
-  } catch (err) {
-    console.error('❌ 데이터 요약 로딩 실패:', err)
-  }
+    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    lostItems.value = (lostRes.data || []).filter(i => {
+      const d = new Date(i.createdAt || i.lostTime)
+      return !isNaN(d) && d >= sevenDaysAgo && i.visible
+    }).length
+  } catch (e) { console.error('❌ 데이터 요약 실패:', e) }
 }
 
+/* 초기 로딩 (강제 새로고침) */
 onMounted(async () => {
-  const success = await fetchUserInfo()
-  if (!success) {
-    router.push('/login')
-    return
-  }
+  const ok = await fetchUserInfo(true)   // ← 수정 후에도 즉시 최신 반영
+  if (!ok) return router.push('/login')
   await fetchAllSummaries()
 })
 </script>

@@ -42,10 +42,12 @@
 
       <div class="form-actions">
         <button type="submit">수정하기</button>
-        <router-link to="/mypage">뒤로가기</router-link>
+        <router-link to="/mypage">마이페이지로 돌아가기</router-link>
       </div>
     </form>
   </div>
+
+  <BaseModal :show="showModal" :message="modalMessage" @close="showModal = false" />
 </template>
 
 <script setup>
@@ -54,13 +56,17 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 import { useAuthStore } from '@/stores/auth'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { user, fetchUserInfo, resetUserInfo } = useUserInfo() // ✅ 수정
+const { user, fetchUserInfo, resetUserInfo } = useUserInfo()
 
 const passwordValid = ref(false)
 const isSocial = computed(() => user.value?.signupType !== 'GENERAL')
+
+const showModal = ref(false)
+const modalMessage = ref('')
 
 const form = ref({
   name: '',
@@ -107,7 +113,6 @@ const submit = async () => {
   try {
     console.log('📦 제출 직전 form.value:', form.value)
 
-    // ✅ 1. 일반 정보 수정
     await api.post(
         '/api/mypage/modify',
         {
@@ -118,7 +123,6 @@ const submit = async () => {
         { withCredentials: true }
     )
 
-    // ✅ 2. 비밀번호 변경
     if (form.value.newPassword) {
       await api.post(
           '/api/mypage/password',
@@ -132,20 +136,22 @@ const submit = async () => {
 
       auth.logout(true)
       resetUserInfo()
-      alert('🔐 비밀번호가 변경되었습니다.\n다시 로그인해주세요.')
-      router.push('/login')
+      modalMessage.value = '🔐 비밀번호가 변경되었습니다. 다시 로그인해주세요.'
+      showModal.value = true
+      setTimeout(() => router.push('/login'), 2000)
       return
     }
 
-    // ✅ 3. 사용자 정보 재조회
     resetUserInfo()
     await fetchUserInfo()
 
-    alert('✅ 회원정보가 수정되었습니다.')
-    router.push('/mypage')
+    modalMessage.value = '✅ 회원정보가 수정되었습니다.'
+    showModal.value = true
+    setTimeout(() => router.push('/mypage'), 2000)
   } catch (err) {
     console.error('❌ 수정 오류:', err)
-    alert(err.response?.data?.message || '수정 중 오류가 발생했습니다.')
+    modalMessage.value = err.response?.data?.message || '수정 중 오류가 발생했습니다.'
+    showModal.value = true
   }
 }
 </script>

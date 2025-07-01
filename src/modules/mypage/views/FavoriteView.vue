@@ -72,18 +72,20 @@
       </div>
     </div>
   </div>
+
+  <BaseModal :show="showModal" :message="modalMessage" @close="showModal = false" />
+
   <button class="back-button" @click="router.back()">← 마이페이지로 돌아가기</button>
 </template>
 
 <script setup>
 import api from '@/api/axiosInstance'
 import { ref, onMounted } from 'vue'
-
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
 import { useRouter } from 'vue-router'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const router = useRouter()
-
 const { user } = useUserInfo()
 
 const keyword = ref('')
@@ -93,6 +95,13 @@ const searched = ref(false)
 
 const favoriteStops = ref([])
 const favoriteRoutes = ref([])
+
+const showModal = ref(false)
+const modalMessage = ref('')
+const openModal = (msg) => {
+  modalMessage.value = msg
+  showModal.value = true
+}
 
 const search = async () => {
   if (!keyword.value.trim()) return
@@ -123,14 +132,12 @@ const fetchFavorites = async () => {
 
 const addFavoriteStop = async (stop) => {
   try {
-    await api.post('/api/mypage/favorite/bus-stop', {
-      bsId: stop.bsId
-    })
-    alert(`'${stop.bsNm}' 정류장이 즐겨찾기에 추가되었습니다.`)
+    await api.post('/api/mypage/favorite/bus-stop', { bsId: stop.bsId })
+    openModal(`'${stop.bsNm}' 정류장이 즐겨찾기에 추가되었습니다.`)
     fetchFavorites()
   } catch (e) {
     console.error('❌ 정류장 즐겨찾기 실패:', e)
-    alert('추가에 실패했습니다.')
+    openModal('추가에 실패했습니다.')
   }
 }
 
@@ -143,14 +150,12 @@ function goToMap(stopName) {
 
 const addFavoriteRoute = async (route) => {
   try {
-    await api.post('/api/mypage/favorite/route', {
-      routeId: route.routeId
-    })
-    alert(`'${route.routeNo}'번 노선이 즐겨찾기에 추가되었습니다.`)
+    await api.post('/api/mypage/favorite/route', { routeId: route.routeId })
+    openModal(`'${route.routeNo}'번 노선이 즐겨찾기에 추가되었습니다.`)
     fetchFavorites()
   } catch (e) {
     console.error('❌ 노선 즐겨찾기 실패:', e)
-    alert('추가에 실패했습니다.')
+    openModal('추가에 실패했습니다.')
   }
 }
 
@@ -161,10 +166,10 @@ const deleteFavoriteStop = async (bsId) => {
   try {
     await api.delete(`/api/mypage/favorite/bus-stop/${bsId}`)
     favoriteStops.value = favoriteStops.value.filter(s => s.bsId !== bsId)
-    alert('정류장 즐겨찾기가 삭제되었습니다.')
+    openModal('정류장 즐겨찾기가 삭제되었습니다.')
   } catch (e) {
     console.error('❌ 정류장 즐겨찾기 삭제 실패:', e)
-    alert('삭제 실패')
+    openModal('삭제 실패')
   }
 }
 
@@ -175,10 +180,10 @@ const deleteFavoriteRoute = async (routeId) => {
   try {
     await api.delete(`/api/mypage/favorite/route/${routeId}`)
     favoriteRoutes.value = favoriteRoutes.value.filter(r => r.routeId !== routeId)
-    alert('노선 즐겨찾기가 삭제되었습니다.')
+    openModal('노선 즐겨찾기가 삭제되었습니다.')
   } catch (e) {
     console.error('❌ 노선 즐겨찾기 삭제 실패:', e)
-    alert('삭제 실패')
+    openModal('삭제 실패')
   }
 }
 
@@ -261,6 +266,8 @@ li {
 .back-button:hover {
   color: #2877cd;
 }
+
+
 
 .clickable-item {
   cursor: pointer;
