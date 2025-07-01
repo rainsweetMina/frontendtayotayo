@@ -118,11 +118,11 @@ const qna = ref(null);
 const isMineOrAdmin = computed(() => {
   if (isAdmin.value) return true;
   if (!qna.value) return false;
-  const myId = String(userId.value);
+  const myId = userId.value ? String(userId.value) : undefined;
   return (
-    (qna.value.writerId && String(qna.value.writerId) === myId) ||
-    (qna.value.userId && String(qna.value.userId) === myId) ||
-    (qna.value.username && qna.value.username === auth.username)
+    (qna.value.writerId && myId && String(qna.value.writerId) === myId) ||
+    (qna.value.userId && myId && String(qna.value.userId) === myId) ||
+    (qna.value.username && auth.username && qna.value.username === auth.username)
   );
 });
 
@@ -154,12 +154,14 @@ onMounted(async () => {
   try {
     const { data } = await fetchQnaDetail(route.params.id);
     qna.value = data;
-    if (data.secret && !isMineOrAdmin.value) {
-      modalMessage.value = '비공개 글입니다. 열람 권한이 없습니다.';
-      modalOpen.value = true;
-      modalType.value = 'alert';
-      modalAction.value = 'forbidden';
-      return;
+    if (data.secret) {
+      if (!isMineOrAdmin.value) {
+        modalMessage.value = '비공개 글입니다. 열람 권한이 없습니다.';
+        modalOpen.value = true;
+        modalType.value = 'alert';
+        modalAction.value = 'forbidden';
+        return;
+      }
     }
   } catch (e) {
     modalMessage.value = '존재하지 않는 글이거나 권한이 없습니다.';

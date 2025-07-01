@@ -163,11 +163,42 @@
         </div>
       </div>
     </section>
+
+    <!-- 공지사항 팝업 -->
+    <div v-if="showNoticePopup && popupNotice && (hasPopupImage || hasPopupText)"
+         class="fixed z-50 bg-white border border-blue-400 rounded-lg shadow-lg p-6 w-[400px]"
+         :style="{ top: noticePopupPosition.top + 'px', left: noticePopupPosition.left + 'px' }"
+         @mousedown.self="onNoticePopupMouseDown">
+      <div class="flex justify-between items-center mb-2 cursor-move" @mousedown.stop="onNoticePopupMouseDown">
+        <div class="font-bold text-blue-600 text-lg flex items-center">
+          <svg class="w-5 h-5 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"/></svg>
+          공지사항
+        </div>
+      </div>
+      <!-- 제목/날짜 상단 -->
+      <div v-if="hasPopupText">
+        <div class="font-semibold text-base mb-1">{{ popupNotice.title }}</div>
+        <div class="text-xs text-gray-500 mb-2">{{ popupNotice.popupStart ? popupNotice.popupStart.split('T')[0] : '' }} ~ {{ popupNotice.popupEnd ? popupNotice.popupEnd.split('T')[0] : '' }}</div>
+      </div>
+      <!-- 본문(이미지+내용) 클릭 시 상세 이동 -->
+      <div @click="goToNoticeDetail" style="cursor:pointer;">
+        <div v-if="hasPopupImage" class="mb-2">
+          <img :src="popupImageUrl" alt="공지 팝업 이미지" class="w-full max-h-60 object-contain rounded mb-2" />
+        </div>
+        <div v-if="hasPopupText">
+          <div class="text-gray-700 whitespace-pre-line" v-html="popupNoticeText"></div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button @click.stop="closeNoticePopup(true)" class="text-xs text-gray-500 hover:text-blue-600">하루 동안 보지 않기</button>
+        <button @click.stop="closeNoticePopup()" class="text-xs text-gray-500 hover:text-blue-600">닫기</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SearchBar from '../components/SearchBar.vue';
@@ -199,6 +230,82 @@ const isDragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
 
 const currentYear = ref(new Date().getFullYear());
+
+// 공지 팝업 상태/데이터
+const popupNotice = ref(null)
+const showNoticePopup = ref(false)
+
+// 공지 팝업 위치 관리 (광고와 동일하게 사용)
+const noticePopupPosition = ref({ top: 80, left: 80 })
+const noticeDragOffset = ref({ x: 0, y: 0 })
+
+// 광고 팝업과 겹치지 않게 팝업 위치 동적 조정 (반대로: 공지 팝업은 기본, 광고 팝업이 오른쪽으로 이동)
+watch([showPopup, showNoticePopup], ([adVisible, noticeVisible]) => {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // 광고 팝업이 떠 있고 공지 팝업도 떠 있으면 광고 팝업을 오른쪽으로 420px 이동
+  if (adVisible && noticeVisible) {
+    noticePopupPosition.value = {
+      top: vh * 0.20,
+      left: vw * 0.15 - 200 // 공지 팝업은 기본 위치
+    }
+    popupPosition.value = {
+      top: vh * 0.20,
+      left: vw * 0.15 - 200 + 420 // 광고 팝업을 오른쪽으로 이동
+    }
+  } else {
+    // 각각 기본 위치
+    noticePopupPosition.value = {
+      top: vh * 0.20,
+      left: vw * 0.15 - 200
+    }
+    popupPosition.value = {
+      top: vh * 0.20,
+      left: vw * 0.15 - 200
+    }
+  }
+})
+
+// 공지 팝업 이미지/텍스트 분기
+function extractFirstImageFromContent(content) {
+  if (!content) return null;
+  const match = content.match(/<img[^>]+src=["']([^"'>]+)["']/i);
+  return match ? match[1] : null;
+}
+function removeFirstImageFromContent(content) {
+  if (!content) return '';
+  // 첫 번째 <img ...> 태그만 제거
+  return content.replace(/<img[^>]+src=["'][^"'>]+["'][^>]*>/i, '');
+}
+const hasPopupImage = computed(() => {
+  if (!popupNotice.value) return false;
+  // files에 이미지가 있으면 true
+  if (popupNotice.value.files && popupNotice.value.files.findIndex(f => f.fileType && f.fileType.startsWith('image/')) !== -1) return true;
+  // content에 <img>가 있으면 true
+  return !!extractFirstImageFromContent(popupNotice.value.content);
+});
+const popupImageIndex = computed(() => {
+  if (!popupNotice.value || !popupNotice.value.files) return -1;
+  return popupNotice.value.files.findIndex(f => f.fileType && f.fileType.startsWith('image/'));
+});
+const popupImageUrl = computed(() => {
+  if (!popupNotice.value) return '';
+  // files에 이미지가 있으면 그걸 사용
+  if (hasPopupImage.value && popupNotice.value.files && popupImageIndex.value !== -1) {
+    return `/api/public/notices/${popupNotice.value.id}/images/${popupImageIndex.value}`;
+  }
+  // content에 <img>가 있으면 그걸 사용
+  const imgFromContent = extractFirstImageFromContent(popupNotice.value.content);
+  if (imgFromContent) return imgFromContent;
+  return '';
+});
+const hasPopupText = computed(() => {
+  return popupNotice.value && (popupNotice.value.title || popupNotice.value.content);
+});
+const popupNoticeText = computed(() => {
+  if (!popupNotice.value) return '';
+  return removeFirstImageFromContent(popupNotice.value.content);
+});
 
 const setInitialPopupPosition = () => {
   // 더 아래쪽, 더 좌측 위치로 초기화
@@ -244,7 +351,7 @@ const fetchPopupAd = async () => {
       setInitialPopupPosition()
     }
   } catch (e) {
-    console.log('팝업 광고 없음 또는 오류:', e)
+    // console.log('팝업 광고 없음 또는 오류:', e)
   }
 }
 
@@ -260,7 +367,6 @@ const dismissToday = () => {
 const closePopup = () => {
   showPopup.value = false
 }
-
 
 // 공지사항 데이터 불러오기
 const fetchNotices = async () => {
@@ -479,15 +585,94 @@ const goToAdLink = (url) => {
   if (url) window.open(url, '_blank')
 }
 
+// 공지 팝업 불러오기
+const fetchPopupNotice = async () => {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const dismissed = JSON.parse(localStorage.getItem('dismissedNoticePopups') || '{}')
+    // 이미 닫은 팝업은 오늘 다시 안 띄움
+    if (dismissed[today]) return
+    let res = await axios.get('/api/public/notices/popup', { headers: { Accept: 'application/json' } })
+    let data = res.data
+    // 만약 문자열(XML/HTML 등)로 오면 JSON 파싱 시도
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data)
+      } catch (e) {
+        console.warn('공지 팝업 응답이 JSON이 아님:', data)
+        return
+      }
+    }
+    // 진단 로그
+    // console.log('fetchPopupNotice 응답:', data)
+    // title/content/img 중 하나라도 있으면 표시
+    const hasImg = data && extractFirstImageFromContent(data.content)
+    if (data && (data.title || data.content || hasImg)) {
+      popupNotice.value = data
+      showNoticePopup.value = true
+    }
+  } catch (e) {
+    // console.log('공지 팝업 없음 또는 오류:', e)
+  }
+}
+
+// 공지 팝업 닫기
+const closeNoticePopup = (todayOnly = false) => {
+  if (todayOnly) {
+    const today = new Date().toISOString().split('T')[0]
+    const dismissed = JSON.parse(localStorage.getItem('dismissedNoticePopups') || '{}')
+    dismissed[today] = true
+    localStorage.setItem('dismissedNoticePopups', JSON.stringify(dismissed))
+  }
+  showNoticePopup.value = false
+}
+
+// 공지 팝업 드래그
+const onNoticePopupMouseDown = (e) => {
+  noticeDragOffset.value = {
+    x: e.clientX - noticePopupPosition.value.left,
+    y: e.clientY - noticePopupPosition.value.top
+  }
+  document.addEventListener('mousemove', onNoticePopupMouseMove)
+  document.addEventListener('mouseup', onNoticePopupMouseUp)
+}
+const onNoticePopupMouseMove = (e) => {
+  noticePopupPosition.value.left = e.clientX - noticeDragOffset.value.x
+  noticePopupPosition.value.top = e.clientY - noticeDragOffset.value.y
+}
+const onNoticePopupMouseUp = () => {
+  document.removeEventListener('mousemove', onNoticePopupMouseMove)
+  document.removeEventListener('mouseup', onNoticePopupMouseUp)
+}
+
+const goToNoticeDetail = () => {
+  if (popupNotice.value && popupNotice.value.id) {
+    router.push(`/notice/${popupNotice.value.id}`)
+    showNoticePopup.value = false
+  }
+}
+
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   fetchNotices();
   fetchLowFloorBuses();
   fetchBanners();
   fetchPopupAd();
+  fetchPopupNotice();
 
   // 로컬 스토리지에서 검색 히스토리 로드
   searchStore.loadRecentSearchesFromCache();
+
+  // 진단용 로그
+  // setTimeout(() => {
+  //   console.log('popupNotice.value:', popupNotice.value);
+  //   console.log('hasPopupImage:', hasPopupImage.value);
+  //   console.log('popupImageUrl:', popupImageUrl.value);
+  //   console.log('showNoticePopup:', showNoticePopup.value);
+  //   if (popupNotice.value) {
+  //     console.log('popupNotice.value.content:', popupNotice.value.content);
+  //   }
+  // }, 1500);
 });
 </script>
 
