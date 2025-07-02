@@ -13,7 +13,7 @@
       />
     </div>
 
-    <div class="flex-grow w-full transition-[margin-left] duration-300 ease-in-out" 
+    <div class="map-container w-full h-full transition-[margin-left] duration-300 ease-in-out" 
          :class="{ 'ml-[200px]': store.sidebarOpen }">
       <MapView
           ref="mapRef"
@@ -203,7 +203,17 @@ onMounted(() => {
 
 <style scoped>
 .bus-map-page {
-  @apply flex h-screen overflow-hidden relative;
+  @apply flex h-screen w-screen overflow-hidden absolute top-0 left-0 right-0 bottom-0 m-0 p-0;
+}
+
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .logo-search-bar {
@@ -211,10 +221,7 @@ onMounted(() => {
   top: 16px;
   left: 16px;
   z-index: 9999;
-
   display: flex;
   align-items: center;
 }
-
-
 </style>

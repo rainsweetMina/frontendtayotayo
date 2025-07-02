@@ -231,7 +231,7 @@ export const reverseGeocode = async (lat, lon) => {
 export const geocode = async (address) => {
     try {
         const response = await api.get('/api/geocode', {
-            params: { address },
+            params: { q: address }, // 'address' 대신 'q' 파라미터 사용
             timeout: 3000
         });
         return response.data;

@@ -19,7 +19,7 @@
             <h2 class="text-lg font-medium text-gray-900 mb-4">기본 정보</h2>
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label for="code" class="block text-sm font-medium text-gray-700">정류장 코드</label>
+                <label for="code" class="block text-sm font-medium text-gray-700">정류장 번호</label>
                 <input
                   type="text"
                   id="code"
@@ -93,7 +93,7 @@
                   </button>
                 </div>
               </div>
-              
+
               <!-- 주소 상세 정보 필드 추가 -->
               <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
                 <div>
@@ -124,7 +124,7 @@
                   />
                 </div>
               </div>
-              
+
               <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <label for="latitude" class="block text-sm font-medium text-gray-700">위도 (Y)</label>
@@ -261,7 +261,7 @@ const form = ref({
 const initMap = async () => {
   // DOM이 렌더링된 후 지도 초기화
   await nextTick()
-  
+
   // 지도 요소가 있는지 확인
   const mapElement = document.getElementById('map')
   if (!mapElement) {
@@ -280,10 +280,10 @@ const initMap = async () => {
   // 지도 더블클릭 이벤트 처리
   map.on('dblclick', (e) => {
     const { lat, lng } = e.latlng
-    
+
     // 마커 생성 및 좌표 설정
     createMarkerAndSetCoordinates(lat, lng)
-    
+
     // 기본 더블클릭 동작(줌인) 방지
     L.DomEvent.preventDefault(e)
   })
@@ -298,7 +298,7 @@ const createMarkerAndSetCoordinates = (lat, lng) => {
     })
     markers.length = 0 // 배열 비우기
   }
-  
+
   // 새 마커 생성
   const newMarker = L.marker([lat, lng], {
     icon: L.icon({
@@ -308,24 +308,24 @@ const createMarkerAndSetCoordinates = (lat, lng) => {
       popupAnchor: [0, -36]
     })
   }).addTo(map)
-  
+
   // 마커를 배열에 추가
   markers.push(newMarker)
-  
+
   // 현재 선택된 마커로 설정
   selectedMarker = newMarker
-  
+
   console.log(`새 마커 생성: 위도=${lat}, 경도=${lng}, 총 마커 수=${markers.length}`)
-  
+
   // 위도, 경도 값 즉시 업데이트
   form.value.ypos = lat.toFixed(6)
   form.value.xpos = lng.toFixed(6)
-  
+
   // 주소 검색 (OpenStreetMap API 사용)
   reverseGeocode(lat, lng).then(address => {
     if (address) {
       form.value.address = address
-      
+
       // 주소 정보가 업데이트되었음을 알림
       console.log('업데이트된 주소 정보:', {
         address: form.value.address,
@@ -335,18 +335,18 @@ const createMarkerAndSetCoordinates = (lat, lng) => {
       })
     }
   })
-  
+
   // 간단한 텍스트만 있는 팝업 표시 (버튼 기능 제거)
-  const popupOptions = { 
+  const popupOptions = {
     className: 'simple-popup',
     closeButton: false,  // 닫기 버튼 제거
     autoClose: true,
     closeOnEscapeKey: true,
     closeOnClick: false  // 지도 클릭 시 닫히지 않도록 설정
   }
-  
+
   newMarker.bindPopup('새 정류장 위치', popupOptions).openPopup()
-  
+
   // 1.5초 후 팝업 자동 닫기
   setTimeout(() => {
     if (newMarker) {
@@ -360,21 +360,21 @@ const searchCoordinatesByNominatim = async (address) => {
   try {
     // 한글 주소를 인코딩
     const encodedAddress = encodeURIComponent(address)
-    
+
     // 백엔드 프록시 API 사용
     const { geocode } = await import('@/api/axiosInstance')
     const data = await geocode(address)
-    
+
     if (data && data.length > 0) {
       const lat = parseFloat(data[0].lat)
       const lng = parseFloat(data[0].lon)
-      
+
       // 지도 이동 및 마커 생성
       if (map) {
         map.setView([lat, lng], 16)
         createMarkerAndSetCoordinates(lat, lng)
       }
-      
+
       // 주소 상세 정보가 이미 다음 주소 API에서 설정되었으므로 여기서는 추가 처리 안함
     } else {
       alert('좌표를 찾을 수 없습니다. 수동으로 입력해주세요.')
@@ -391,43 +391,43 @@ const reverseGeocode = async (lat, lng) => {
     // 백엔드 프록시 API 사용
     const { reverseGeocode } = await import('@/api/axiosInstance')
     const data = await reverseGeocode(lat, lng)
-    
+
     if (data && data.display_name) {
       // 주소 정보 저장
       form.value.address = data.display_name
-      
+
       // 주소 상세 정보 분리 (한국 주소 체계에 맞게 개선)
       if (data.address) {
         console.log('OpenStreetMap 원본 주소 데이터:', data.address)
-        
+
         // 한국 주소 체계에 맞게 시/도 정보 추출
         if (data.address.country === 'South Korea' || data.address.country === '대한민국') {
           // 시/도 정보 (province, state, city_district 등)
-          form.value.city = data.address.province || 
-                           data.address.state || 
+          form.value.city = data.address.province ||
+                           data.address.state ||
                            (data.address.city && data.address.city.includes('광역시') ? data.address.city : '') ||
                            (data.address.city && data.address.city.includes('특별시') ? data.address.city : '') ||
                            ''
-          
+
           // 구/군 정보 (city, county, district 등)
-          form.value.district = data.address.city_district || 
-                               data.address.county || 
+          form.value.district = data.address.city_district ||
+                               data.address.county ||
                                (data.address.city && !data.address.city.includes('광역시') && !data.address.city.includes('특별시') ? data.address.city : '') ||
                                data.address.district ||
                                ''
-          
+
           // 동 정보 (suburb, village, town, neighbourhood 등)
-          form.value.neighborhood = data.address.suburb || 
-                                   data.address.neighbourhood || 
-                                   data.address.village || 
-                                   data.address.town || 
+          form.value.neighborhood = data.address.suburb ||
+                                   data.address.neighbourhood ||
+                                   data.address.village ||
+                                   data.address.town ||
                                    data.address.quarter ||
                                    ''
-          
+
           // 대구광역시 특별 처리
           if (data.address.city === '대구광역시' || data.address.city === 'Daegu' || form.value.city.includes('대구')) {
             form.value.city = '대구광역시'
-            
+
             // 구/군 정보가 없는 경우 추가 처리
             if (!form.value.district) {
               // 주소에서 구 이름 추출 시도
@@ -440,13 +440,13 @@ const reverseGeocode = async (lat, lng) => {
               }
             }
           }
-          
+
           // 빈 값 처리
           form.value.city = form.value.city || '정보 없음'
           form.value.district = form.value.district || '정보 없음'
           form.value.neighborhood = form.value.neighborhood || '정보 없음'
         }
-        
+
         console.log('처리된 주소 상세 정보:', {
           city: form.value.city,
           district: form.value.district,
@@ -454,7 +454,7 @@ const reverseGeocode = async (lat, lng) => {
           raw: data.address
         })
       }
-      
+
       return data.display_name
     }
     return null
@@ -501,19 +501,19 @@ const openAddressSearch = () => {
       oncomplete: (data) => {
         // 전체 주소 정보 저장
         form.value.address = data.address
-        
+
         // 주소 상세 정보 분리하여 저장
         form.value.city = data.sido || ''  // 시/도 정보
         form.value.district = data.sigungu || '' // 구/군 정보
         form.value.neighborhood = data.bname || '' // 동 정보
-        
+
         console.log('다음 주소 API 응답:', data)
         console.log('주소 상세 정보 설정:', {
           city: form.value.city,
           district: form.value.district,
           neighborhood: form.value.neighborhood
         })
-        
+
         // 주소로 좌표 검색 - 카카오맵 API 대신 OpenStreetMap Nominatim API 사용
         searchCoordinatesByNominatim(data.address)
       }
@@ -536,7 +536,7 @@ onBeforeUnmount(() => {
       if (map) map.removeLayer(marker)
     })
   }
-  
+
   // 지도 정리
   if (map) {
     map.remove()
@@ -589,4 +589,4 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   display: inline-block;
 }
-</style> 
+</style>

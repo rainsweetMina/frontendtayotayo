@@ -23,14 +23,14 @@
     </div>
 
     <!-- 본문 -->
-    <div class="main-content">
+    <div class="main-content" :class="{ 'map-content': route.path === '/bus/map' }">
       <main>
         <slot/>
       </main>
     </div>
 
-    <!-- 푸터 (adminpage 경로가 아닐 때만 보이기) -->
-    <footer v-if="!route.path.startsWith('/admin','/bus/map')" class="main-footer">
+    <!-- 푸터 (adminpage 경로가 아니고 bus/map 경로가 아닐 때만 보이기) -->
+    <footer v-if="!route.path.startsWith('/admin') && route.path !== '/bus/map'" class="main-footer">
       <div class="footer-container">
         <div class="footer-top">
           <div class="footer-logo">
@@ -167,8 +167,23 @@ const toggleSidebar = () => {
   flex-direction: column;
 }
 
+/* 지도 페이지 본문 - 여백 제거 */
+.main-content.map-content {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100vh;
+}
+
 .main-content main {
   flex: 1; /* main 태그도 남은 공간을 모두 차지하도록 설정 */
+}
+
+.main-content.map-content main {
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
 }
 
 /* 푸터 영역 */

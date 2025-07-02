@@ -1,5 +1,5 @@
 <template>
-  <div id="map" ref="mapRef" class="leaflet-map p-0"></div>
+  <div id="map" ref="mapRef" class="leaflet-map"></div>
 
   <ContextMenu
       v-if="contextMenu.visible"
@@ -328,7 +328,14 @@ watch(
 .leaflet-map {
   width: 100%;
   height: 100vh;
-  border: 1px solid #ccc;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  z-index: 1;
 }
 </style>
