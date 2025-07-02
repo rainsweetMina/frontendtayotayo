@@ -41,76 +41,85 @@
       </div>
 
       <div>
-        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">🚀 노선 등록</button>
+        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">노선 등록</button>
       </div>
     </form>
+
+    <!-- ✅ BaseModal -->
+    <BaseModal :show="modal.show" :message="modal.message" @close="modal.show = false" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import api from '@/api/axiosInstance'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'   // ✅
 
+/* ── 모달 상태 & 헬퍼 ───────────────────────────── */
+const modal = reactive({ show: false, message: '' })
+const openModal = msg => { modal.message = msg; modal.show = true }
+
+/* ── 상태 ──────────────────────────────────────── */
 const searchKeyword = ref('')
 const route = ref({
-  routeId: '',
-  routeNo: '',
-  stBsId: '',
-  edBsId: '',
-  stNm: '',
-  edNm: '',
-  routeNote: '',
-  dataconnareacd: 'Y',
-  dirRouteNote: '',
-  ndirRouteNote: '',
-  routeTCd: ''
+  routeId: '', routeNo: '', stBsId: '', edBsId: '',
+  stNm: '', edNm: '', routeNote: '', dataconnareacd: 'Y',
+  dirRouteNote: '', ndirRouteNote: '', routeTCd: ''
 })
 
-const stopsForward = ref([])
+const stopsForward  = ref([])
 const stopsBackward = ref([])
 
-const addStop = (dir) => {
+/* ── 정류소 추가/삭제 ───────────────────────────── */
+const addStop = dir => {
   const list = dir === 'forward' ? stopsForward.value : stopsBackward.value
   list.push({ bsId: '', name: '', moveDir: dir === 'forward' ? '1' : '0' })
 }
-
 const removeStop = (dir, idx) => {
   const list = dir === 'forward' ? stopsForward.value : stopsBackward.value
   list.splice(idx, 1)
 }
 
-const fetchStopName = async (type) => {
+/* ── 정류소명 조회 ──────────────────────────────── */
+const fetchStopName = async type => {
   const bsId = type === 'st' ? route.value.stBsId : route.value.edBsId
   if (!bsId) return
-  const res = await api.get(`/api/bus/stop-name?bsId=${bsId}`)
-  if (type === 'st') route.value.stNm = res.data
-  else route.value.edNm = res.data
+  try {
+    const { data } = await api.get('/api/bus/stop-name', { params: { bsId } })
+    if (type === 'st') route.value.stNm = data
+    else route.value.edNm = data
+  } catch { /* 무시 */ }
 }
-
 const fetchStopNameInList = async (dir, idx) => {
   const list = dir === 'forward' ? stopsForward.value : stopsBackward.value
   const bsId = list[idx].bsId
-  const res = await api.get(`/api/bus/stop-name?bsId=${bsId}`)
-  list[idx].name = res.data
+  if (!bsId) return
+  try {
+    const { data } = await api.get('/api/bus/stop-name', { params: { bsId } })
+    list[idx].name = data
+  } catch { /* 무시 */ }
 }
 
+/* ── (선택) 정류소 검색 예시 ────────────────────── */
 const searchBus = () => {
-  if (!searchKeyword.value) return alert('검색어를 입력하세요.')
-  api.get(`/api/bus/searchBSorBN?keyword=${searchKeyword.value}`)
-      .then(res => console.log('검색결과:', res.data))
+  if (!searchKeyword.value) return openModal('검색어를 입력하세요.')   // ✅
+  api.get('/api/bus/searchBSorBN', { params: { keyword: searchKeyword.value } })
+      .then(res => console.log('검색 결과:', res.data))
 }
 
+/* ── 노선 등록 ─────────────────────────────────── */
 const submitRoute = async () => {
   const payload = {
     route: route.value,
-    stopsForward: stopsForward.value.map(s => ({ bsId: s.bsId, moveDir: '1' })),
+    stopsForward:  stopsForward.value.map(s => ({ bsId: s.bsId, moveDir: '1' })),
     stopsBackward: stopsBackward.value.map(s => ({ bsId: s.bsId, moveDir: '0' }))
   }
   try {
     await api.post('/api/bus/AddBusRoute', payload)
-    alert('노선이 성공적으로 추가되었습니다!')
+    openModal('✅ 노선이 성공적으로 추가되었습니다!')               // ✅
+    // 필요하다면 입력값 초기화
   } catch (e) {
-    alert('오류 발생: ' + e.response?.data?.message || e.message)
+    openModal('❌ 오류 발생: ' + (e.response?.data?.message || e.message)) // ✅
   }
 }
 </script>

@@ -27,9 +27,11 @@
         <p><strong>도착 정류소:</strong> {{ routeData.edNm }} ({{ routeData.edBsId }})</p>
         <p><strong>노선 설명:</strong> {{ routeData.routeNote }}</p>
       </div>
-      <div class="mt-4 flex gap-2">
-        <button @click="confirmDeleteRoute" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">🚫 노선 삭제</button>
-        <button @click="goToEditRoute" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">✏️ 노선 수정</button>
+      <div class="mt-4">
+        <button
+            @click="goToEditRoute"
+            class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        >노선 수정</button>
       </div>
     </div>
 
@@ -43,8 +45,7 @@
           <th class="px-4 py-2 text-left text-gray-500">방향</th>
           <th class="px-4 py-2 text-left text-gray-500">정류소 ID</th>
           <th class="px-4 py-2 text-left text-gray-500">정류소 이름</th>
-          <th class="px-4 py-2 text-left text-gray-500">좌표</th>
-          <th class="px-4 py-2 text-left text-gray-500">관리</th>
+          <th class="px-4 py-2 text-left text-gray-500">정류소 좌표</th>
         </tr>
         </thead>
         <tbody>
@@ -57,14 +58,8 @@
           <td class="px-4 py-2">{{ stop.moveDir === '1' ? '정방향' : '역방향' }}</td>
           <td class="px-4 py-2">{{ stop.bsId }}</td>
           <td class="px-4 py-2">{{ stop.bsNm || '-' }}</td>
-          <td class="px-4 py-2">{{ stop.xPos }}, {{ stop.yPos }}</td>
           <td class="px-4 py-2">
-            <span v-if="isProtectedStop(stop)" class="text-gray-400">🔒 보호됨</span>
-            <button
-                v-else
-                @click="deleteStop(stop.moveDir, stop.seq)"
-                class="text-red-600 underline hover:text-red-800"
-            >삭제</button>
+            {{ Number(stop.xPos).toFixed(2) }}, {{ Number(stop.yPos).toFixed(2) }}
           </td>
         </tr>
         </tbody>
@@ -75,99 +70,72 @@
       ⚠️ 노선 정보를 찾을 수 없습니다.
     </div>
 
+    <!-- 🔙 하단 중앙 정렬 버튼 -->
+    <div class="text-center mt-6">
+      <router-link
+          to="/bus/route/all"
+          class="inline-block px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 transition duration-200"
+      >
+        ← 전체 노선 리스트
+      </router-link>
+    </div>
+
+    <!-- BaseModal -->
+    <BaseModal :show="modal.show" :message="modal.message" @close="modal.show = false" />
   </div>
 </template>
 
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/axiosInstance'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const routeIdInput = ref('')
-const routeData = ref(null)
-const busStops = ref([])
-const searched = ref(false)
-const isLoading  = ref(false)
-const notFound  = ref(false)
+const routeData    = ref(null)
+const busStops     = ref([])
+const searched     = ref(false)
+const isLoading    = ref(false)
+const notFound     = ref(false)
+
+const modal = reactive({ show: false, message: '' })
+const openModal = msg => { modal.message = msg; modal.show = true }
 
 const loadBusStops = async () => {
   const id = routeIdInput.value.trim()
-  if (!id) return alert('노선 ID를 입력해주세요.')
+  if (!id) return openModal('노선 ID를 입력해주세요.')
 
-  // 초기화
-  searched.value  = true
+  searched.value = true
   isLoading.value = true
   notFound.value  = false
   routeData.value = null
   busStops.value  = []
 
-  /* ① 노선 정보 조회 */
   try {
     const { data } = await api.get('/api/bus/getRouteInfo', { params: { routeId: id } })
     routeData.value = data
   } catch {
-    // 실패 → notFound 플래그만 올리고 함수 종료
     notFound.value  = true
     isLoading.value = false
     return
   }
 
-  /* ② 정류소 목록 조회 (노선 정보를 찾은 경우에만) */
   try {
     const { data } = await api.get('/api/bus/bus-route', { params: { routeId: id } })
     busStops.value = data || []
   } catch {
-    alert('❌ 정류소 목록 조회 실패')
+    openModal('❌ 정류소 목록 조회 실패')
   }
 
   isLoading.value = false
 }
 
-const isProtectedStop = (stop) => {
-  const sameDir = busStops.value.filter(s => s.moveDir === stop.moveDir)
-  const seqs = sameDir.map(s => s.seq)
-  const min = Math.min(...seqs)
-  const max = Math.max(...seqs)
-  return stop.seq === min || stop.seq === max
-}
-
-const deleteStop = async (moveDir, seq) => {
-  const id = routeIdInput.value.trim()
-  if (!confirm(`정류소 ${seq}번 (${moveDir === '1' ? '정방향' : '역방향'})을 삭제하시겠습니까?`)) return
-
-  try {
-    await api.delete('/api/bus/delete-stop', { params: { routeId: id, moveDir, seq } })
-    alert('✅ 삭제 완료!')
-    await loadBusStops()
-  } catch (e) {
-    alert('❌ 삭제 실패: ' + (e.response?.data?.message || e.message))
-  }
-}
-
-const confirmDeleteRoute = async () => {
-  const id = routeIdInput.value.trim()
-  if (!id) return alert('노선 ID를 입력해주세요.')
-
-  if (!confirm(`정말로 노선 ${id}를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return
-
-  try {
-    await api.delete('/api/bus/deleteRoute', { params: { routeId: id } })
-    alert('✅ 노선이 삭제되었습니다.')
-    routeData.value = null
-    busStops.value = []
-    routeIdInput.value = ''
-  } catch (e) {
-    alert('❌ 노선 삭제 실패: ' + (e.response?.data?.message || e.message))
-  }
-}
-
 const goToEditRoute = () => {
-  if (!routeData.value?.routeId) return alert('노선 정보가 없습니다.')
-  router.push(`/bus/route/info/${routeData.value.routeId}`)
+  if (!routeData.value?.routeId) return openModal('노선 정보가 없습니다.')
+  router.push(`/bus/route/edit/${routeData.value.routeId}`)
 }
 
 onMounted(() => {
