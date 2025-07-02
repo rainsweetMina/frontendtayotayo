@@ -220,7 +220,6 @@ export const adminRoutes = {
     {
       path: '/bus/route/all',
       name: 'BusRouteAllView',
-      // component: () => import('../views/BusRouteAllView.vue'),
       component: BusRouteAllView,
       meta: { requiresAuth: true, role: 'ADMIN' },
     },
@@ -231,14 +230,14 @@ export const adminRoutes = {
       meta: { requiresAuth: true, role: 'ADMIN' },
     },
     {
-      path: '/bus/route/info',
+      path: '/bus/route/info/:routeId',
       name: 'BusRouteInfoView',
       component: BusRouteInfoView,
       meta: { requiresAuth: true, role: 'ADMIN' },
       props: true
     },
     {
-      path: '/bus/route/info/:routeId',
+      path: '/bus/route/edit/:routeId',
       name: 'RouteEdit',
       component: BusRouteEditView,
       meta: { requiresAuth: true, role: 'ADMIN' },

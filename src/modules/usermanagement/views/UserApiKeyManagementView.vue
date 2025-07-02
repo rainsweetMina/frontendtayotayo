@@ -91,8 +91,12 @@
 
       <!-- ⏩ 페이지네이션 -->
       <div class="mt-4 flex justify-center items-center gap-2 text-sm">
-        <button @click="currentPage = 0" :disabled="currentPage === 0" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">처음</button>
-        <button @click="currentPage--" :disabled="currentPage === 0" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">이전</button>
+        <button @click="currentPage = 0" :disabled="currentPage === 0"
+                class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">처음
+        </button>
+        <button @click="currentPage--" :disabled="currentPage === 0"
+                class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">이전
+        </button>
         <button
             v-for="p in pagesToShow"
             :key="p"
@@ -101,18 +105,45 @@
               'px-3 py-1 rounded',
               p === currentPage ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200'
             ]"
-        >{{ p + 1 }}</button>
-        <button @click="currentPage++" :disabled="currentPage + 1 >= totalPages" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">다음</button>
-        <button @click="currentPage = totalPages - 1" :disabled="currentPage + 1 >= totalPages" class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">마지막</button>
+        >{{ p + 1 }}
+        </button>
+        <button @click="currentPage++" :disabled="currentPage + 1 >= totalPages"
+                class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">다음
+        </button>
+        <button @click="currentPage = totalPages - 1" :disabled="currentPage + 1 >= totalPages"
+                class="px-2 py-1 bg-gray-200 rounded disabled:opacity-50">마지막
+        </button>
       </div>
     </div>
+    <BaseModal
+        :show="modal.show"
+        :message="modal.message"
+        @close="modal.show = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import {ref, reactive, computed, onMounted} from 'vue'
 import axios from '@/api/axiosInstance'
+import BaseModal from '@/modules/mypage/components/BaseModal.vue'   /* ❶ */
 
+// ───────────────────────────────────────
+// 모달 상태 & 헬퍼
+// ───────────────────────────────────────
+const modal = reactive({
+  show: false,
+  message: ''
+})
+
+function openModal(msg) {
+  modal.message = msg
+  modal.show = true
+}
+
+// ───────────────────────────────────────
+// API 키 관리 상태
+// ───────────────────────────────────────
 const apiKeys = ref([])
 const statuses = ['APPROVED', 'PENDING', 'EXPIRED']
 const statusChanges = ref({})
@@ -137,6 +168,7 @@ const fetchApiKeys = async () => {
     })
   } catch (err) {
     console.error('❌ API 키 목록 로딩 실패:', err)
+    openModal('API 키 목록을 불러오지 못했습니다.')
   }
 }
 
@@ -153,11 +185,12 @@ const toggleActive = async (id, isActive) => {
   const action = isActive ? '비활성화' : '활성화'
   if (!confirm(`API 키를 ${action} 하시겠습니까?`)) return
   try {
-    await axios.put(`/api/admin/apikey/${id}/active`, { active: !isActive })
-    alert(`API 키 ID ${id}가 ${action}되었습니다.`)
+    await axios.put(`/api/admin/apikey/${id}/active`, {active: !isActive})
+    openModal(`API 키 ID ${id}가 ${action}되었습니다.`)        /* ❸ */
     fetchApiKeys()
   } catch (err) {
     console.error('❌ 상태 전환 실패:', err)
+    openModal('상태 전환 중 오류가 발생했습니다.')
   }
 }
 
@@ -165,12 +198,13 @@ const updateStatus = async (id) => {
   const newStatus = statusChanges.value[id]
   try {
     await axios.post(`/api/admin/apikey/${id}/status`, null, {
-      params: { status: newStatus }
+      params: {status: newStatus}
     })
-    alert(`API 키 ID ${id}의 상태가 ${newStatus}로 변경되었습니다.`)
+    openModal(`API 키 ID ${id}의 상태가 ${newStatus}로 변경되었습니다.`)  /* ❸ */
     fetchApiKeys()
   } catch (err) {
     console.error('❌ 상태 변경 실패:', err)
+    openModal('상태 변경 중 오류가 발생했습니다.')
   }
 }
 
@@ -178,11 +212,11 @@ const deleteKey = async (id) => {
   if (!confirm(`API 키 ID ${id}를 삭제하시겠습니까?`)) return
   try {
     await axios.delete(`/api/admin/apikey/${id}`)
-    alert(`✅ API 키 ID ${id}가 삭제되었습니다.`)
+    openModal(`✅ API 키 ID ${id}가 삭제되었습니다.`)          /* ❸ */
     fetchApiKeys()
   } catch (err) {
     console.error('❌ 삭제 실패:', err)
-    alert('삭제 중 오류가 발생했습니다.')
+    openModal('삭제 중 오류가 발생했습니다.')
   }
 }
 
@@ -226,7 +260,9 @@ const filteredApiKeys = computed(() => {
   return result
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredApiKeys.value.length / pageSize)))
+const totalPages = computed(() =>
+    Math.max(1, Math.ceil(filteredApiKeys.value.length / pageSize))
+)
 
 const paginatedKeys = computed(() => {
   const start = currentPage.value * pageSize
@@ -239,7 +275,7 @@ const pagesToShow = computed(() => {
   let start = Math.max(0, cur - Math.floor(maxButtons / 2))
   let end = Math.min(total - 1, start + maxButtons - 1)
   if (end - start < maxButtons - 1) start = Math.max(0, end - maxButtons + 1)
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+  return Array.from({length: end - start + 1}, (_, i) => start + i)
 })
 
 onMounted(fetchApiKeys)

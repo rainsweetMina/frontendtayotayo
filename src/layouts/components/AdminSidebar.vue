@@ -122,12 +122,6 @@
                 노선 추가
               </router-link>
 
-              <router-link
-                  to="/bus/route/info"
-                  class="group flex items-center px-8 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-              >
-                노선 조회
-              </router-link>
             </div>
           </div>
 

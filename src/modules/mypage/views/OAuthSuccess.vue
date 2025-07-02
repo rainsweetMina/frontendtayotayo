@@ -16,16 +16,10 @@ const { fetchUserInfo, user } = useUserInfo()  // ✅ user 같이 구조분해 �
 const auth = useAuthStore()
 
 onMounted(() => {
-  console.log('[OAuthSuccess] 🚀 진입')
-
   setTimeout(async () => {
     const ok = await fetchUserInfo()
-    console.log('[OAuthSuccess] ✅ fetchUserInfo 결과:', ok)
-    console.log('[OAuthSuccess] ✅ user:', user.value)
-    console.log('[OAuthSuccess] ✅ auth.userId:', auth.userId)
 
     if (auth.userId) {
-      console.log('[OAuthSuccess] ✅ 마이페이지로 이동')
       router.push('/mypage')
     } else {
       console.warn('[OAuthSuccess] ⛔ 로그인 실패, 로그인 페이지로 이동')

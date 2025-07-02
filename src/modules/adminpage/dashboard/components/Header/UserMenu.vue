@@ -26,11 +26,7 @@ const { user, isLoggedIn, resetUserInfo } = useUserInfo()
 
 // localStorage에서 인증 정보 확인
 const isAuthenticated = computed(() => {
-  const accessToken = localStorage.getItem('accessToken')
-  const authData = localStorage.getItem('auth')
-  
-  // accessToken과 auth 정보가 모두 있어야 로그인된 것으로 간주
-  return !!(accessToken && authData && auth.userId)
+  return auth.isLoggedIn
 })
 
 const userRole = computed(() => {
@@ -66,7 +62,7 @@ onMounted(() => {
   // localStorage에 인증 정보가 있지만 auth store가 비어있는 경우 복원
   const accessToken = localStorage.getItem('accessToken')
   const authData = localStorage.getItem('auth')
-  
+
   if (accessToken && authData && !auth.userId) {
     try {
       const parsedAuth = JSON.parse(authData)
