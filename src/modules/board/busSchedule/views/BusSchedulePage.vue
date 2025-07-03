@@ -1,33 +1,45 @@
 <template>
-  <div class="board-main-container">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="title">버스 운행 시간표</h1>
+  <div :class="['bus-schedule-layout', { 'with-map': showRouteMap && routeId }]">
+    <!-- 메인 콘텐츠 박스 -->
+    <div
+        :class="['board-main-container', { 'narrow': showRouteMap && routeId }]"
+    >
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="title">버스 운행 시간표</h1>
+      </div>
+
+      <ScheduleSelector
+          v-model:routeNo="routeNo"
+          v-model:routeNote="routeNote"
+          v-model:moveDir="moveDir"
+          @route-id-updated="handleRouteIdUpdated"
+      />
+
+      <hr />
+
+      <ScheduleTable
+          v-if="shouldLoadSchedule"
+          :route-id="routeId"
+          :move-dir="moveDir"
+          :selected-stops="selectedStops"
+          :route-no="routeNo"
+          :route-note="routeNote"
+      />
+
+      <div class="route-toggle" v-if="shouldLoadSchedule">
+        <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
+          {{ showRouteMap ? '노선도 접기 ▲' : '노선도 보기 ▼' }}
+        </button>
+      </div>
     </div>
-    <ScheduleSelector
-      v-model:routeNo="routeNo"
-      v-model:routeNote="routeNote"
-      v-model:moveDir="moveDir"
-      @route-id-updated="handleRouteIdUpdated"
-    />
-    <hr/>
-    <ScheduleTable
-      v-if="shouldLoadSchedule"
-      :route-id="routeId"
-      :move-dir="moveDir"
-      :selected-stops="selectedStops"
-      :route-no="routeNo"
-      :route-note="routeNote"
-    />
-    <div class="route-toggle" v-if="shouldLoadSchedule">
-      <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
-        {{ showRouteMap ? '노선도 접기 ▲' : '노선도 보기 ▼' }}
-      </button>
-    </div>
-    <div class="side-route-map" v-show="routeId && showRouteMap">
-      <RouteMap :route-id="routeId" :move-dir="moveDir"/>
+
+    <!-- 노선도 (오른쪽) -->
+    <div class="outside-route-map" v-if="showRouteMap && routeId">
+      <RouteMap :route-id="routeId" :move-dir="moveDir" />
     </div>
   </div>
 </template>
+
 
 <script setup>
 import api from '@/api/axiosInstance'
@@ -83,61 +95,66 @@ watch([routeNo, routeNote, moveDir], () => {
 </script>
 
 <style scoped>
-@import "@/modules/board/assets/boardCommon.css";
+/*@import "@/modules/board/assets/boardCommon.css";*/
 @import "@/modules/board/assets/schedule.css";
 
+/* 기본 상태: 가운데 정렬 */
 .bus-schedule-layout {
+  display: block;
+  max-width: 1240px;
+  margin: 0px auto;
+}
+
+/* 노선도 열렸을 때만 flex로 전환 */
+.bus-schedule-layout.with-map {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 24px;
-  margin: 0 auto;
-  padding: 0 20px;
-  max-width: 1400px;
 }
 
-/* ✅ 디자인은 유지하되 너비만 고정 */
-.bus-schedule-page {
-  max-width: 1000px;
+/* 메인 콘텐츠 기본 */
+.board-main-container {
+  background: #fff;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
   width: 100%;
-  transition: all 0.3s;
+  max-width: 1240px;
+  transition: all 0.3s ease;
 }
 
-/* 노선도는 오른쪽에 자연스럽게 */
-.side-route-map {
+/* 노선도 있을 때 좁아지도록 */
+.board-main-container.narrow {
+  max-width: calc(100% - 320px); /* RouteMap 공간 확보 */
+}
+
+/* 오른쪽 노선도 */
+.outside-route-map {
   width: 300px;
-  align-self: stretch; /* 왼쪽 본문 높이만큼 자동 확장 */
-  background: none;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-  overflow: hidden; /* 스크롤 제거 */
-  transition: all 0.3s;
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
-/* 반응형 처리 */
+/* 모바일에서는 항상 세로 배치 */
 @media (max-width: 1024px) {
-  .bus-schedule-layout {
+  .bus-schedule-layout.with-map {
     flex-direction: column;
     align-items: center;
   }
 
-  .side-route-map {
+  .board-main-container,
+  .board-main-container.narrow,
+  .outside-route-map {
+    max-width: 100%;
     width: 100%;
-    max-height: none;
+  }
+
+  .outside-route-map {
     margin-top: 16px;
   }
 }
 
-.title {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 24px;
-  padding-left: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #2c3e50;
-  border-left: 6px solid #4d9eff;
-}
 </style>
