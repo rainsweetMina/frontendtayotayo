@@ -92,12 +92,20 @@
               <tr v-if="!notices || notices.length === 0">
                 <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">등록된 공지사항이 없습니다.</td>
               </tr>
-              <tr v-for="notice in notices" :key="notice.id" class="hover:bg-gray-50">
+              <tr v-for="notice in notices" 
+                  :key="notice.id" 
+                  :class="[
+                    notice.topNotice ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-50'
+                  ]">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ notice.id }}
+                  <span v-if="notice.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
+                  <span v-else>{{ notice.id }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <router-link :to="`/admin/notices/${notice.id}`" class="text-blue-600 hover:text-blue-900">
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <router-link 
+                    :to="`/admin/notices/${notice.id}`" 
+                    :class="{'font-bold text-black': notice.topNotice, 'text-blue-600 hover:text-blue-900': !notice.topNotice}"
+                  >
                     {{ notice.title }}
                   </router-link>
                 </td>
@@ -109,7 +117,10 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                   <router-link :to="`/admin/notices/${notice.id}/edit`" class="text-blue-600 hover:text-blue-900 mr-2">수정</router-link>
-                  <button @click="openDeleteModal(notice.id)" class="text-red-600 hover:text-red-900">삭제</button>
+                  <button @click="openDeleteModal(notice.id)" class="text-red-600 hover:text-red-900 mr-2">삭제</button>
+                  <button @click="toggleTopNotice(notice.id, !notice.topNotice)" class="text-purple-600 hover:text-purple-900">
+                    {{ notice.topNotice ? '탑공지 해제' : '탑공지 설정' }}
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -170,6 +181,7 @@ import { useNoticeApi } from '../../composables/useNoticeApi.js';
 import Breadcrumb from '../../partials/AppBreadcrumb.vue';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal.vue';
 import AlertMessage from '../../components/AlertMessage.vue';
+import axios from 'axios';
 
 export default {
   name: 'NoticeManagement',
@@ -260,26 +272,37 @@ export default {
     const fetchNotices = async () => {
       try {
         isLoading.value = true;
-        error.value = '';
-        console.log('모든 공지사항 데이터 요청 중...');
-
-        const response = await getNotices(0, 100); // 최대 100개 데이터 요청
-        console.log('공지사항 응답 데이터:', response.data);
-
-        // 백엔드 응답 구조에 맞게 수정
-        if (response.data && response.data.content) {
-          notices.value = response.data.content;
-        } else if (Array.isArray(response.data)) {
+        const response = await getNotices();
+        
+        if (Array.isArray(response)) {
+          notices.value = response;
+        } else if (response && Array.isArray(response.data)) {
           notices.value = response.data;
+        } else if (response && response.data && Array.isArray(response.data.content)) {
+          notices.value = response.data.content;
         } else {
           notices.value = [];
+          error.value = '공지사항을 불러오는데 실패했습니다.';
         }
+        
+        // 탑공지를 상단에 정렬하는 로직 추가
+        notices.value.sort((a, b) => {
+          // 1. 둘 다 탑공지면 최신순
+          if (a.topNotice && b.topNotice) {
+            return new Date(b.createdDate || b.createdAt) - new Date(a.createdDate || a.createdAt);
+          }
+          // 2. a만 탑공지면 a가 위로
+          if (a.topNotice) return -1;
+          // 3. b만 탑공지면 b가 위로
+          if (b.topNotice) return 1;
+          // 4. 둘 다 탑공지가 아니면 최신순
+          return new Date(b.createdDate || b.createdAt) - new Date(a.createdDate || a.createdAt);
+        });
 
-        console.log(`총 ${notices.value.length}개 공지사항 로드 완료, 전체 페이지: ${totalPages.value}`);
+        console.log('공지사항 로드 완료:', notices.value.length, '개');
       } catch (err) {
-        console.error('공지사항 목록 조회 실패:', err);
-        error.value = '공지사항 목록을 불러오는데 실패했습니다.';
-        notices.value = [];
+        console.error('공지사항 로드 실패:', err);
+        error.value = '공지사항을 불러오는데 실패했습니다.';
       } finally {
         isLoading.value = false;
       }
@@ -367,6 +390,47 @@ export default {
       console.log(`검색 결과: ${resultCount}개 항목 찾음`);
     };
 
+    // 탑공지 설정/해제
+    const toggleTopNotice = async (id, isTop) => {
+      try {
+        isLoading.value = true;
+        console.log(`공지 ${id} 탑공지 ${isTop ? '설정' : '해제'} 시도`);
+        
+        // PATCH API 호출
+        const response = await axios.patch(`/api/admin/notices/${id}/top?isTop=${isTop}`);
+        console.log('탑공지 변경 응답:', response.data);
+        
+        // 성공 시 목록 다시 불러오기
+        await fetchNotices();
+        
+        // 성공 알림 표시
+        alert.value = {
+          show: true,
+          type: 'success',
+          title: '성공',
+          message: `공지사항 ${id}번의 탑공지가 ${isTop ? '설정' : '해제'}되었습니다.`,
+          timeout: setTimeout(() => {
+            alert.value.show = false;
+          }, 3000)
+        };
+      } catch (error) {
+        console.error('탑공지 설정 실패:', error);
+        
+        // 실패 알림 표시
+        alert.value = {
+          show: true,
+          type: 'error',
+          title: '오류',
+          message: `탑공지 ${isTop ? '설정' : '해제'} 중 오류가 발생했습니다.`,
+          timeout: setTimeout(() => {
+            alert.value.show = false;
+          }, 3000)
+        };
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
     // 컴포넌트 언마운트 시 타이머 정리
     onBeforeUnmount(() => {
       if (alert.value && alert.value.timeout) {
@@ -404,7 +468,8 @@ export default {
           hour: '2-digit',
           minute: '2-digit'
         });
-      }
+      },
+      toggleTopNotice
     };
   }
 };

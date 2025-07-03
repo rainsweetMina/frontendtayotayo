@@ -26,7 +26,7 @@
               :disabled="isSubmitting"
             />
           </div>
-          
+
           <div class="mb-6">
             <label for="content" class="block text-sm font-medium text-gray-700 mb-2">내용</label>
             <QuillEditor
@@ -171,23 +171,23 @@ class QuillPasteHandler {
 
   imageHandler(blob) {
     if (!blob) return;
-    
+
     // 이미지 압축 추가
     compressImage(blob, 800, 800, 0.6).then(compressedFile => {
       console.log(`붙여넣기 - 원본: ${blob.size}바이트, 압축 후: ${compressedFile.size}바이트`);
-      
+
       // 이미지 파일 업로드 및 에디터에 삽입
       const fileName = `pasted-image-${new Date().getTime()}.png`;
       const imageFile = new File([compressedFile], fileName, { type: compressedFile.type });
-      
+
       const formData = new FormData();
       formData.append('file', imageFile);
-      
+
       axios.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
-          
+
           // 첨부파일에도 추가 (첨부파일 표시용)
           if (typeof this.addFileToAttachments === 'function') {
             this.addFileToAttachments(imageFile);
@@ -242,19 +242,19 @@ class QuillDragDropHandler {
     // 이미지 압축 추가
     compressImage(file, 800, 800, 0.6).then(compressedFile => {
       console.log(`드래그앤드롭 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
-      
+
       // 이미지 파일 업로드 및 에디터에 삽입
       const fileName = file.name || `dropped-image-${new Date().getTime()}.png`;
       const imageFile = new File([compressedFile], fileName, { type: compressedFile.type });
-      
+
       const formData = new FormData();
       formData.append('file', imageFile);
-      
+
       axios.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
-          
+
           // 첨부파일에도 추가 (첨부파일 표시용)
           if (typeof this.addFileToAttachments === 'function') {
             this.addFileToAttachments(imageFile);
@@ -295,20 +295,20 @@ const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) =
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        
+
         // 크기 비율 유지하면서 축소
         if (width > maxWidth || height > maxHeight) {
           const ratio = Math.min(maxWidth / width, maxHeight / height);
           width *= ratio;
           height *= ratio;
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         // 압축된 이미지를 Blob으로 변환
         canvas.toBlob((blob) => {
           resolve(new File([blob], file.name, { type: file.type }));
@@ -335,7 +335,8 @@ export default {
       files: [],
       showPopup: false,
       popupStart: '',
-      popupEnd: ''
+      popupEnd: '',
+      isTopNotice: false
     });
     const errorMessage = ref('');
     const isSubmitting = ref(false);
@@ -378,9 +379,9 @@ export default {
     // 에디터 초기화 후 설정
     const initQuillEditor = () => {
       if (!quillEditor.value) return;
-      
+
       const quill = quillEditor.value.getQuill();
-      
+
       // 이미지 붙여넣기 비활성화 (별도의 이미지 업로드 버튼 사용)
       quill.clipboard.addMatcher('img', (node, delta) => {
         // 이미지 노드를 제거하고 텍스트만 유지
@@ -391,11 +392,11 @@ export default {
       // 붙여넣기 및 드래그앤드롭 핸들러에 addFileToAttachments 함수 전달
       const pasteHandler = quill.getModule('pasteHandler');
       const dragDropHandler = quill.getModule('dragDropHandler');
-      
+
       if (pasteHandler) {
         pasteHandler.addFileToAttachments = addFileToAttachments;
       }
-      
+
       if (dragDropHandler) {
         dragDropHandler.addFileToAttachments = addFileToAttachments;
       }
@@ -429,32 +430,32 @@ export default {
       try {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         // 파일 크기 제한 (5MB)
         const maxSizeInBytes = 5 * 1024 * 1024;
         if (file.size > maxSizeInBytes) {
           alert('이미지 크기가 5MB를 초과합니다. 더 작은 이미지를 선택해주세요.');
           return;
         }
-        
+
         // 이미지 압축
         const compressedFile = await compressImage(file, 800, 800, 0.6);
         console.log(`이미지 업로드 - 원본: ${file.size}바이트, 압축 후: ${compressedFile.size}바이트`);
-        
+
         // 이미지 파일 업로드 후 에디터에 삽입 (본문에 표시)
         const formData = new FormData();
         formData.append('file', compressedFile);
-        
+
         const response = await axios.post('/api/admin/notices/upload/image', formData);
         const imageUrl = response.data.url;
-        
+
         // 에디터에 이미지 삽입
         insertImage(imageUrl);
-        
+
         // 첨부파일에 이미지 추가 (첨부파일 표시용)
         const imageFile = new File([compressedFile], file.name, { type: compressedFile.type });
         addFileToAttachments(imageFile);
-        
+
         // 파일 인풋 초기화
         event.target.value = null;
       } catch (error) {
@@ -478,22 +479,33 @@ export default {
           return;
         }
 
+        // 디버깅 - 폼 데이터 출력
+        console.log('폼 데이터:', {
+          title: form.value.title,
+          content: form.value.content.substring(0, 100) + '...',
+          showPopup: form.value.showPopup,
+          popupStart: form.value.popupStart,
+          popupEnd: form.value.popupEnd,
+          isTopNotice: form.value.isTopNotice,
+          topNotice: form.value.isTopNotice // 필드명 불일치 해결을 위해 둘 다 전송
+        });
+
         // 에디터 내용에서 이미지 태그 검색
         const imgRegex = /<img[^>]+src="([^">]+)"/g;
         let match;
         let hasInlineImages = false;
         let processedContent = form.value.content;
-        
+
         // 모든 base64 이미지를 서버에 업로드하고 URL로 변경
         while ((match = imgRegex.exec(form.value.content)) !== null) {
           const imageUrl = match[1];
           hasInlineImages = true;
-          
+
           // 이미 서버 URL인 경우에는 변환하지 않음
           if (imageUrl.startsWith('https://localhost:8081/api/admin/notices/')) {
             continue;
           }
-          
+
           // Base64 이미지인 경우 서버에 업로드하고 URL로 변환
           if (imageUrl.startsWith('data:image/')) {
             try {
@@ -501,11 +513,11 @@ export default {
               const blob = dataURLtoBlob(imageUrl);
               const imgFormData = new FormData();
               imgFormData.append('file', blob, 'embedded-image.png');
-              
+
               // 동기적으로 업로드 처리
               const uploadResponse = await axios.post('/api/admin/notices/upload/image', imgFormData);
               const newUrl = uploadResponse.data.url;
-              
+
               // 원본 URL을 새 URL로 교체
               processedContent = processedContent.replace(imageUrl, newUrl);
               console.log('이미지 업로드 성공:', newUrl);
@@ -515,7 +527,7 @@ export default {
             }
           }
         }
-        
+
         // 인라인 이미지가 있을 경우 더미 첨부파일 추가 (첨부파일 표시용)
         if (hasInlineImages && form.value.files.length === 0) {
           // 이미 첨부파일이 없는 경우에만 더미 파일 추가
@@ -524,7 +536,7 @@ export default {
         }
 
         const formData = new FormData();
-        
+
         // 이미지가 URL로 변환된 content를 사용
         const noticeData = {
           title: form.value.title.trim(),
@@ -532,11 +544,13 @@ export default {
           author: '관리자',  // 기본값으로 설정
           showPopup: form.value.showPopup,
           popupStart: form.value.showPopup ? form.value.popupStart : null,
-          popupEnd: form.value.showPopup ? form.value.popupEnd : null
+          popupEnd: form.value.showPopup ? form.value.popupEnd : null,
+          isTopNotice: form.value.isTopNotice,
+          topNotice: form.value.isTopNotice // 필드명 불일치 해결을 위해 둘 다 전송
         };
 
         console.log('Submitting notice data:', noticeData);
-        
+
         // notice 데이터를 JSON 문자열로 변환
         const noticeBlob = new Blob([JSON.stringify(noticeData)], {
           type: 'application/json'
@@ -546,12 +560,12 @@ export default {
         // 파일 추가 (이미 업로드된 파일과 새 파일 구분하여 처리)
         if (form.value.files.length > 0) {
           console.log('Adding files to FormData:', form.value.files);
-          
+
           // 이미 업로드된 파일의 UUID 목록 (삭제되지 않은 파일만)
           const existingFileUUIDs = form.value.files
             .filter(file => file.uploaded && file.uuid)
             .map(file => file.uuid);
-          
+
           // 이미 업로드된 파일 UUID 목록을 JSON으로 FormData에 추가
           if (existingFileUUIDs.length > 0) {
             formData.append('existingFiles', new Blob([JSON.stringify(existingFileUUIDs)], {
@@ -559,7 +573,7 @@ export default {
             }));
             console.log('기존 파일 UUIDs:', existingFileUUIDs);
           }
-          
+
           // 새로 업로드할 파일만 files로 추가
           const newFiles = form.value.files.filter(file => !file.uploaded);
           newFiles.forEach((file, index) => {
@@ -582,25 +596,25 @@ export default {
         try {
           if (isEdit.value) {
             console.log('Updating notice ID:', route.params.id);
-            
+
             // 이미 모든 이미지가 처리되었으므로 추가 변환 작업 필요 없음
             response = await updateNotice(route.params.id, formData);
           } else {
             console.log('Creating new notice');
             response = await createNotice(formData);
           }
-          
+
           console.log('Server response:', response);
           router.push('/admin/notices');
         } catch (apiError) {
           console.error('API 호출 오류:', apiError);
-          
+
           if (apiError.response) {
             // 서버에서 응답이 왔지만 에러 상태코드인 경우
             console.error('Status:', apiError.response.status);
             console.error('Headers:', apiError.response.headers);
             console.error('Data:', apiError.response.data);
-            
+
             if (apiError.response.data) {
               if (typeof apiError.response.data === 'string') {
                 errorMessage.value = apiError.response.data;
@@ -623,7 +637,7 @@ export default {
             console.error('Error config:', apiError.config);
             errorMessage.value = '요청 처리 중 오류가 발생했습니다: ' + apiError.message;
           }
-          
+
           throw apiError; // 오류를 다시 throw하여 상위 catch 블록에서 처리하도록 함
         }
       } catch (error) {
@@ -638,15 +652,15 @@ export default {
 
     const fetchNotice = async () => {
       if (!isEdit.value) return;
-      
+
       try {
         const response = await getNoticeDetail(route.params.id);
         const notice = response.data;
-        
+
         // 콘솔에 파일 정보 로깅
         console.log('수정할 공지사항 정보:', notice);
         console.log('파일 정보:', notice.files);
-        
+
         // 첨부파일 정보 처리
         let fileArray = [];
         if (notice.files && Array.isArray(notice.files) && notice.files.length > 0) {
@@ -664,14 +678,15 @@ export default {
           });
           console.log('변환된 파일 배열:', fileArray);
         }
-        
+
         form.value = {
           title: notice.title,
           content: notice.content,
           files: fileArray, // 변환된 파일 배열 사용
           showPopup: notice.showPopup || false,
           popupStart: notice.popupStart || '',
-          popupEnd: notice.popupEnd || ''
+          popupEnd: notice.popupEnd || '',
+          isTopNotice: notice.isTopNotice || false
         };
       } catch (error) {
         console.error('공지사항 조회 실패:', error);
@@ -682,7 +697,7 @@ export default {
     onMounted(async () => {
       // 에디터 초기화
       initQuillEditor();
-      
+
       if (isEdit.value) {
         try {
           await fetchNotice();
@@ -726,4 +741,4 @@ export default {
   max-width: 100%;
   height: auto;
 }
-</style> 
+</style>

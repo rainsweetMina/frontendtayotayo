@@ -51,14 +51,19 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="(notice, index) in pagedNotices" :key="notice.id" class="hover:bg-gray-50">
+          <tr v-for="(notice, index) in pagedNotices" 
+              :key="notice.id" 
+              :class="[
+                notice.topNotice ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-50'
+              ]">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ notices.length - ((currentPage - 1) * pageSize + index) }}
+              <span v-if="notice.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
+              <span v-else>{{ notices.length - ((currentPage - 1) * pageSize + index) }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
               <router-link
                 :to="'/notice/' + notice.id"
-                class="text-gray-900 hover:text-blue-600"
+                :class="{'font-bold text-black': notice.topNotice, 'text-gray-900 hover:text-blue-600': !notice.topNotice}"
               >
                 {{ notice.title }}
                 <span v-if="notice.hasAttachment" class="ml-2 inline-block">
@@ -158,6 +163,16 @@ const fetchNotices = async () => {
       const response = await axios.get(`https://localhost:8081/api/public/notices`);
       console.log('공지사항 목록 응답:', response.data);
 
+      // 디버깅 - 응답 구조 확인
+      if (response.data && response.data.length > 0) {
+        console.log('첫 번째 공지사항 데이터 구조:', response.data[0]);
+        console.log('탑공지 필드 확인:', {
+          isTopNotice: response.data[0].isTopNotice,
+          topNotice: response.data[0].topNotice,
+          _isTopNotice: response.data[0]._isTopNotice
+        });
+      }
+
       if (response.data && Array.isArray(response.data)) {
         // 배열 형태 응답 (public API 응답 형식)
         notices.value = response.data.map(notice => ({
@@ -185,6 +200,20 @@ const fetchNotices = async () => {
       } else {
         throw new Error('응답 데이터가 없습니다');
       }
+
+      // 탑공지를 상단에 정렬하는 로직 추가
+      notices.value.sort((a, b) => {
+        // 1. 둘 다 탑공지면 최신순
+        if (a.topNotice && b.topNotice) {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        // 2. a만 탑공지면 a가 위로
+        if (a.topNotice) return -1;
+        // 3. b만 탑공지면 b가 위로
+        if (b.topNotice) return 1;
+        // 4. 둘 다 탑공지가 아니면 최신순
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
 
       console.log(`총 ${notices.value.length}개 공지사항 로드 완료, 전체 페이지: ${totalPages.value}`);
     } catch (apiError) {
