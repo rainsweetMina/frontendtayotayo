@@ -24,6 +24,19 @@
         </div>
         
         <div class="mb-6">
+          <div class="flex items-center">
+            <input 
+              id="topNotice" 
+              type="checkbox" 
+              v-model="formData.topNotice"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" 
+            />
+            <label for="topNotice" class="ml-2 block text-sm text-gray-900">탑공지로 설정</label>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">탑공지로 설정된 게시글은 목록의 최상단에 고정됩니다.</p>
+        </div>
+
+        <div class="mb-6">
           <label for="content" class="block text-sm font-medium text-gray-700 mb-2">내용</label>
           <QuillEditor
             v-model:content="formData.content"
@@ -166,7 +179,8 @@ export default {
     
     const formData = ref({
       title: '',
-      content: ''
+      content: '',
+      topNotice: false
     });
     
     const uploadedFiles = ref([]);
@@ -189,7 +203,8 @@ export default {
         
         formData.value = {
           title: lowFloorBus.title || '',
-          content: lowFloorBus.content || ''
+          content: lowFloorBus.content || '',
+          topNotice: lowFloorBus.topNotice || false
         };
         
         if (lowFloorBus.files && lowFloorBus.files.length > 0) {
@@ -282,7 +297,8 @@ export default {
         const lowFloorBusData = {
           title: formData.value.title.trim(),
           author: '관리자', // 기본값으로 '관리자' 설정
-          content: processedContent // 이미지 URL이 변환된 콘텐츠
+          content: processedContent, // 이미지 URL이 변환된 콘텐츠
+          topNotice: formData.value.topNotice
         };
         
         console.log('전송할 데이터:', JSON.stringify(lowFloorBusData));

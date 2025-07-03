@@ -111,14 +111,16 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="(lowFloorBus, index) in pagedLowFloorBuses" :key="lowFloorBus.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ lowFloorBuses.length - ((currentPage - 1) * pageSize + index) }}
+          <tr v-for="(lowFloorBus, index) in pagedLowFloorBuses" :key="lowFloorBus.id"
+            :class="[lowFloorBus.topNotice ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-50']">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-bold">
+              <span v-if="lowFloorBus.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
+              <span v-else>{{ lowFloorBuses.length - ((currentPage - 1) * pageSize + index) }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
               <router-link
                 :to="'/lowfloorbus/' + lowFloorBus.id"
-                class="text-gray-900 hover:text-blue-600"
+                :class="{'text-gray-900 hover:text-blue-600': !lowFloorBus.topNotice, 'font-bold text-black': lowFloorBus.topNotice}"
               >
                 {{ lowFloorBus.title }}
                 <span v-if="lowFloorBus.hasAttachment" class="ml-2 inline-block">

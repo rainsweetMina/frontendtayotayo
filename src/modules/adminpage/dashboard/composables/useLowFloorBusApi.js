@@ -125,12 +125,25 @@ export function useLowFloorBusApi() {
       throw error;
     }
   };
+  
+  const toggleTopNotice = async (id, isTop) => {
+    try {
+      console.log(`저상버스 대체 안내 탑공지 설정: ID=${id}, 상태=${isTop}`);
+      const response = await axios.patch(`/api/admin/lowfloorbuses/${id}/top-notice?topNotice=${isTop}`);
+      console.log('탑공지 설정 응답:', response.data);
+      return response;
+    } catch (error) {
+      console.error('탑공지 설정 오류:', error);
+      throw error;
+    }
+  };
 
   return {
     getLowFloorBuses,
     getLowFloorBusDetail,
     createLowFloorBus,
     updateLowFloorBus,
-    deleteLowFloorBus
+    deleteLowFloorBus,
+    toggleTopNotice
   };
 } 

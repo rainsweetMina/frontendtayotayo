@@ -92,12 +92,15 @@
               <tr v-if="!lowFloorBuses || lowFloorBuses.length === 0">
                 <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">등록된 저상버스 대체 안내가 없습니다.</td>
               </tr>
-              <tr v-for="lowFloorBus in lowFloorBuses" :key="lowFloorBus.id" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ lowFloorBus.id }}
+              <tr v-for="lowFloorBus in lowFloorBuses" :key="lowFloorBus.id"
+                  :class="[lowFloorBus.topNotice ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-50']">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-bold">
+                  <span v-if="lowFloorBus.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
+                  <span v-else>{{ lowFloorBus.id }}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <router-link :to="`/admin/lowfloorbus/${lowFloorBus.id}`" class="text-blue-600 hover:text-blue-900">
+                  <router-link :to="`/admin/lowfloorbus/${lowFloorBus.id}`"
+                    :class="{'text-blue-600 hover:text-blue-900': !lowFloorBus.topNotice, 'font-bold text-black': lowFloorBus.topNotice}">
                     {{ lowFloorBus.title }}
                   </router-link>
                 </td>
@@ -108,6 +111,12 @@
                   {{ formatDate(lowFloorBus.createdDate) }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                  <span
+                    @click="handleTopNotice(lowFloorBus.id, !lowFloorBus.topNotice)"
+                    class="cursor-pointer text-purple-600 font-semibold hover:underline mr-2"
+                  >
+                    {{ lowFloorBus.topNotice ? '탑공지 해제' : '탑공지 설정' }}
+                  </span>
                   <router-link :to="`/admin/lowfloorbus/${lowFloorBus.id}/edit`" class="text-blue-600 hover:text-blue-900 mr-2">수정</router-link>
                   <button @click="openDeleteModal(lowFloorBus.id)" class="text-red-600 hover:text-red-900">삭제</button>
                 </td>
@@ -197,7 +206,7 @@ export default {
       timeout: null
     });
 
-    const { getLowFloorBuses, deleteLowFloorBus: apiDeleteLowFloorBus } = useLowFloorBusApi();
+    const { getLowFloorBuses, deleteLowFloorBus: apiDeleteLowFloorBus, toggleTopNotice } = useLowFloorBusApi();
 
     // 필터링된 저상버스 목록
     const filteredLowFloorBuses = computed(() => {
@@ -351,6 +360,20 @@ export default {
       }
     };
 
+    const handleTopNotice = async (id, isTop) => {
+      try {
+        isLoading.value = true;
+        await toggleTopNotice(id, isTop);
+        await fetchLowFloorBuses(); // 목록 새로고침
+        showAlert('success', '성공', `저상버스 대체 안내가 ${isTop ? '탑공지로 설정' : '탑공지 해제'} 되었습니다.`);
+      } catch (err) {
+        console.error('탑공지 설정 실패:', err);
+        showAlert('error', '오류', '탑공지 설정에 실패했습니다.');
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
     // 컴포넌트 언마운트 시 타이머 정리
     onBeforeUnmount(() => {
       if (alert.value && alert.value.timeout) {
@@ -388,7 +411,8 @@ export default {
       confirmDelete,
       alert,
       closeAlert,
-      showAlert
+      showAlert,
+      handleTopNotice
     };
   }
 };
