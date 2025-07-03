@@ -4,8 +4,8 @@
     <div
         :class="['board-main-container', { 'narrow': showRouteMap && routeId }]"
     >
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="title">버스 운행 시간표</h1>
+      <div class="flex justify-between items-center">
+        <h1 class="title mb-0">버스 운행 시간표</h1>
       </div>
 
       <ScheduleSelector
@@ -104,6 +104,12 @@ watch([routeNo, routeNote, moveDir], () => {
   max-width: 1240px;
   margin: 0px auto;
 }
+
+.selector-container {
+  padding: 20px;
+  margin: 16px 0;
+}
+
 
 /* 노선도 열렸을 때만 flex로 전환 */
 .bus-schedule-layout.with-map {
