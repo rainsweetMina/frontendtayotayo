@@ -200,7 +200,7 @@
 <script setup>
 import { ref, onMounted, nextTick, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '@/api/axiosInstance';
 import SearchBar from '../components/SearchBar.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay.vue';
@@ -213,6 +213,9 @@ import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
 const banners = ref([])
 const router = useRouter();
 const searchStore = useSearchStore();
+
+// BASE_URL을 computed로 선언
+const BASE_URL = computed(() => import.meta.env.VITE_BASE_URL)
 
 // 공지사항 데이터
 const notices = ref([]);
@@ -339,19 +342,15 @@ const onPopupMouseUp = () => {
 
 const fetchPopupAd = async () => {
   try {
-    const res = await axios.get('https://localhost:8081/api/ad/popup')
+    const res = await axios.get('/api/ad/popup')
     const ad = res.data
     const today = new Date().toISOString().split('T')[0]
-    const dismissed = JSON.parse(localStorage.getItem('dismissedPopups') || '{}')
-
-    if (!dismissed[`${today}_${ad.id}`]) {
+    
+    if (ad && ad.startDate <= today && ad.endDate >= today) {
       popupAd.value = ad
-      showPopup.value = true
-      await nextTick()
-      setInitialPopupPosition()
     }
   } catch (e) {
-    // console.log('팝업 광고 없음 또는 오류:', e)
+    console.error('팝업 광고 로드 실패:', e)
   }
 }
 
@@ -368,156 +367,54 @@ const closePopup = () => {
   showPopup.value = false
 }
 
-// 공지사항 데이터 불러오기
 const fetchNotices = async () => {
   try {
-    isLoading.value = true;
-    error.value = '';
+    // 일반 사용자용 공지사항 API로 변경
+    const response = await axios.get('/api/public/notices');
+    console.log('공지사항 API 응답:', response.data);
 
-    console.log('메인 페이지: 공지사항 로드 시도...');
-
-    // 실제 API 연동 시도
-    try {
-      // 일반 사용자용 공지사항 API로 변경
-      const response = await axios.get('https://localhost:8081/api/public/notices');
-      console.log('공지사항 API 응답:', response.data);
-
-      // 서버에서 받은 공지사항 데이터 처리
-      if (response.data && Array.isArray(response.data)) {
-        // 일반 배열 형태로 응답이 오는 경우
-        notices.value = response.data.map(notice => ({
-          id: notice.id,
-          title: notice.title,
-          content: notice.content || '',
-          date: formatDate(notice.createdAt || notice.createdDate)
-        })).slice(0, 3); // 최근 3개만 표시
-      } else if (response.data && response.data.content) {
-        // 페이징된 응답 구조 처리
-        notices.value = response.data.content.map(notice => ({
-          id: notice.id,
-          title: notice.title,
-          content: notice.content || '',
-          date: formatDate(notice.createdAt || notice.createdDate)
-        })).slice(0, 3); // 최근 3개만 표시
-      } else {
-        // 기타 다른 형식인 경우 (단일 객체 등)
-        console.log('응답 형식이 예상과 다릅니다. 목업 데이터 사용');
-        throw new Error('응답 형식이 지원되지 않습니다.');
-      }
-    } catch (apiError) {
-      console.log('API 호출 실패, 목업 데이터 사용:', apiError);
-      throw apiError; // 상위 catch 블록으로 오류 전달
+    if (response.data && Array.isArray(response.data)) {
+      notices.value = response.data.slice(0, 5); // 최대 5개만 표시
+    } else if (response.data && Array.isArray(response.data.content)) {
+      notices.value = response.data.content.slice(0, 5);
+    } else {
+      notices.value = [];
     }
-
-  } catch (err) {
-    console.error('공지사항 로드 실패:', err);
-    console.error('응답 데이터:', err.response?.data);
-    console.error('응답 상태:', err.response?.status);
-    error.value = '공지사항을 불러오는데 실패했습니다.';
-
-    // 에러 발생 시 목업 데이터 표시
-    console.log('목업 공지사항 데이터 사용');
-    notices.value = [
-      {
-        id: 1,
-        title: '시스템 점검 안내',
-        content: '시스템 점검으로 인해 일시적으로 서비스가 중단될 수 있습니다.',
-        date: '2024.10.08'
-      },
-      {
-        id: 2,
-        title: '추석 연휴 시내버스 특별운행 안내',
-        content: '추석 연휴 기간 동안 시내버스 특별 운행 일정을 안내드립니다.',
-        date: '2024.08.30'
-      },
-      {
-        id: 3,
-        title: '버스 노선 변경 안내',
-        content: '일부 버스 노선이 변경되었습니다. 자세한 내용은 공지사항을 확인해주세요.',
-        date: '2024.07.15'
-      }
-    ];
-  } finally {
-    isLoading.value = false;
+  } catch (error) {
+    console.error('공지사항 로드 실패:', error);
+    notices.value = [];
   }
-};
+}
 
-// 저상버스 대체안내 데이터 불러오기
 const fetchLowFloorBuses = async () => {
   try {
-    console.log('메인 페이지: 저상버스 대체안내 로드 시도...');
+    // 일반 사용자용 저상버스 대체안내 API 호출
+    const response = await axios.get('/api/public/lowfloorbuses');
+    console.log('저상버스 대체안내 API 응답:', response.data);
 
-    // 실제 API 연동 시도
-    try {
-      // 일반 사용자용 저상버스 대체안내 API 호출
-      const response = await axios.get('https://localhost:8081/api/public/lowfloorbuses');
-      console.log('저상버스 대체안내 API 응답:', response.data);
-
-      // 서버에서 받은 저상버스 대체안내 데이터 처리
-      if (response.data && Array.isArray(response.data)) {
-        // 일반 배열 형태로 응답이 오는 경우
-        lowFloorBuses.value = response.data.map(bus => ({
-          id: bus.id,
-          title: bus.title,
-          content: bus.content || '',
-          date: formatDate(bus.createdAt || bus.createdDate)
-        })).slice(0, 1); // 최근 1개만 표시
-      } else if (response.data && response.data.content) {
-        // 페이징된 응답 구조 처리
-        lowFloorBuses.value = response.data.content.map(bus => ({
-          id: bus.id,
-          title: bus.title,
-          content: bus.content || '',
-          date: formatDate(bus.createdAt || bus.createdDate)
-        })).slice(0, 1); // 최근 1개만 표시
-      } else {
-        // 기타 다른 형식인 경우 (단일 객체 등)
-        console.log('응답 형식이 예상과 다릅니다.');
-        throw new Error('응답 형식이 지원되지 않습니다.');
-      }
-    } catch (apiError) {
-      console.log('API 호출 실패:', apiError);
-      throw apiError; // 상위 catch 블록으로 오류 전달
+    if (response.data && Array.isArray(response.data)) {
+      lowFloorBuses.value = response.data.slice(0, 3); // 최대 3개만 표시
+    } else if (response.data && Array.isArray(response.data.content)) {
+      lowFloorBuses.value = response.data.content.slice(0, 3);
+    } else {
+      lowFloorBuses.value = [];
     }
-  } catch (err) {
-    console.error('저상버스 대체안내 로드 실패:', err);
-    console.error('응답 데이터:', err.response?.data);
-    console.error('응답 상태:', err.response?.status);
-
-    // 에러 발생 시 목업 데이터 표시
-    console.log('목업 저상버스 대체안내 데이터 사용');
-    lowFloorBuses.value = [
-      {
-        id: 1,
-        title: '금일(6월 12일) 저상버스 3231호(북구3번 노선) 대체운행 안내',
-        content: '금일 저상버스 3231호 차량 정비로 인해 일반 버스로 대체 운행됩니다.',
-        date: '2025.06.12'
-      }
-    ];
-  }
-};
-
-// 날짜 포맷팅 함수
-const formatDate = (dateString) => {
-  if (!dateString) return '';
-
-  try {
-    // Intl.DateTimeFormat을 사용한 지역화된 날짜 포맷팅
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).replace(/\s/g, '').replace(/\./g, '.');
   } catch (error) {
-    // 에러 발생 시 간단한 포맷으로 변환
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}.${month}.${day}`;
+    console.error('저상버스 대체안내 로드 실패:', error);
+    lowFloorBuses.value = [];
   }
-};
+}
+
+const fetchBanners = async () => {
+  try {
+    // 진행중 광고만(공개용 API가 있다면 /api/ad/active, 없다면 /api/ad)
+    const response = await axios.get('/api/ad/active')
+    banners.value = response.data
+  } catch (e) {
+    console.error('배너 로드 실패:', e)
+    banners.value = []
+  }
+}
 
 const handleSearch = (searchData) => {
   const { keyword } = searchData;
@@ -572,15 +469,6 @@ const viewLowFloorBus = (busId) => {
   router.push(`/lowfloorbus/${busId}`);
 };
 
-const fetchBanners = async () => {
-  try {
-    // 진행중 광고만(공개용 API가 있다면 /api/ad/active, 없다면 /api/ad)
-    const response = await axios.get('https://localhost:8081/api/ad/active')
-    banners.value = response.data
-  } catch (e) {
-    banners.value = []
-  }
-}
 const goToAdLink = (url) => {
   if (url) window.open(url, '_blank')
 }
@@ -662,17 +550,6 @@ onMounted(async () => {
 
   // 로컬 스토리지에서 검색 히스토리 로드
   searchStore.loadRecentSearchesFromCache();
-
-  // 진단용 로그
-  // setTimeout(() => {
-  //   console.log('popupNotice.value:', popupNotice.value);
-  //   console.log('hasPopupImage:', hasPopupImage.value);
-  //   console.log('popupImageUrl:', popupImageUrl.value);
-  //   console.log('showNoticePopup:', showNoticePopup.value);
-  //   if (popupNotice.value) {
-  //     console.log('popupNotice.value.content:', popupNotice.value.content);
-  //   }
-  // }, 1500);
 });
 </script>
 

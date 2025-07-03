@@ -154,97 +154,25 @@ const totalPages = computed(() => {
 
 const fetchNotices = async () => {
   try {
-    isLoading.value = true;
-    error.value = '';
-    console.log('공지사항 목록 조회 요청');
-
-    try {
-      // 일반 사용자용 공지사항 API로 변경
-      const response = await axios.get(`https://localhost:8081/api/public/notices`);
-      console.log('공지사항 목록 응답:', response.data);
-
-      // 디버깅 - 응답 구조 확인
-      if (response.data && response.data.length > 0) {
-        console.log('첫 번째 공지사항 데이터 구조:', response.data[0]);
-        console.log('탑공지 필드 확인:', {
-          isTopNotice: response.data[0].isTopNotice,
-          topNotice: response.data[0].topNotice,
-          _isTopNotice: response.data[0]._isTopNotice
-        });
-      }
-
-      if (response.data && Array.isArray(response.data)) {
-        // 배열 형태 응답 (public API 응답 형식)
-        notices.value = response.data.map(notice => ({
-          ...notice,
-          createdAt: notice.createdAt || notice.createdDate || new Date().toISOString(),
-          content: notice.content || '',
-          viewCount: notice.viewCount || 0
-        }));
-      } else if (response.data && response.data.content) {
-        // 페이징된 응답 구조
-        notices.value = response.data.content.map(notice => ({
-          ...notice,
-          createdAt: notice.createdAt || notice.createdDate || new Date().toISOString(),
-          content: notice.content || '',
-          viewCount: notice.viewCount || 0
-        }));
-      } else if (response.data) {
-        // 단일 객체 응답
-        notices.value = [{
-          ...response.data,
-          createdAt: response.data.createdAt || response.data.createdDate || new Date().toISOString(),
-          content: response.data.content || '',
-          viewCount: response.data.viewCount || 0
-        }];
-      } else {
-        throw new Error('응답 데이터가 없습니다');
-      }
-
-      // 탑공지를 상단에 정렬하는 로직 추가
-      notices.value.sort((a, b) => {
-        // 1. 둘 다 탑공지면 최신순
-        if (a.topNotice && b.topNotice) {
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        }
-        // 2. a만 탑공지면 a가 위로
-        if (a.topNotice) return -1;
-        // 3. b만 탑공지면 b가 위로
-        if (b.topNotice) return 1;
-        // 4. 둘 다 탑공지가 아니면 최신순
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-
-      console.log(`총 ${notices.value.length}개 공지사항 로드 완료, 전체 페이지: ${totalPages.value}`);
-    } catch (apiError) {
-      console.error('API 호출 오류:', apiError);
-      throw apiError;
+    isLoading.value = true
+    error.value = ''
+    
+    const response = await axios.get('/api/public/notices')
+    console.log('공지사항 API 응답:', response.data)
+    
+    if (response.data && Array.isArray(response.data)) {
+      notices.value = response.data
+    } else if (response.data && Array.isArray(response.data.content)) {
+      notices.value = response.data.content
+    } else {
+      notices.value = []
     }
-  } catch (error) {
-    console.error('공지사항 로딩 실패:', error);
-    console.error('응답 데이터:', error.response?.data);
-    console.error('응답 상태:', error.response?.status);
-    error.value = '공지사항을 불러오는데 실패했습니다.';
-
-    // 에러 발생 시 목업 데이터 표시
-    notices.value = [
-      {
-        id: 1,
-        title: '시스템 점검 안내',
-        content: '시스템 점검으로 인해 일시적으로 서비스가 중단될 수 있습니다.',
-        createdAt: '2024-10-08',
-        viewCount: 42
-      },
-      {
-        id: 2,
-        title: '추석 연휴 시내버스 특별운행 안내',
-        content: '추석 연휴 기간 동안 시내버스 특별 운행 일정을 안내드립니다.',
-        createdAt: '2024-08-30',
-        viewCount: 56
-      }
-    ];
+  } catch (err) {
+    console.error('공지사항 로드 실패:', err)
+    error.value = '공지사항을 불러오는데 실패했습니다.'
+    notices.value = []
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
 }
 
@@ -261,7 +189,7 @@ const checkAdminRole = async () => {
     isAdmin.value = false;
 
     // 오류 발생하는 API 주석 처리
-    // const response = await axios.get('https://localhost:8081/api/auth/check-role')
+    // const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/auth/check-role`)
     // isAdmin.value = response.data.hasRole === 'ROLE_ADMIN'
   } catch (error) {
     console.error('관리자 권한 확인 실패:', error);

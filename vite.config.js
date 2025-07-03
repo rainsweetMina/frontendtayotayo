@@ -42,18 +42,18 @@ export default defineConfig({
         },
         proxy: {
             '/api': {
-                target: 'https://localhost:8081',
+                target: process.env.VITE_BASE_URL || 'https://localhost:8094',
                 changeOrigin: true,
                 secure: false, // ⚠️ 개발 중이므로 false (SSL 인증서 검증 비활성화)
                 configure: (proxy) => {
                     proxy.on('proxyReq', (proxyReq, req, res) => {
                         // ✅ 인증 쿠키를 프록시 요청에 포함
-                        proxyReq.setHeader('origin', 'https://localhost:8081');
+                        proxyReq.setHeader('origin', process.env.VITE_BASE_URL || 'https://localhost:8094');
                     });
                 }
             },
             '/auth': {
-                target: 'https://localhost:8081',
+                target: process.env.VITE_BASE_URL || 'https://localhost:8094',
                 changeOrigin: true,
                 secure: false
             },

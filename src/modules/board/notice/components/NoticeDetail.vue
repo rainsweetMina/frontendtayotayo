@@ -112,7 +112,7 @@ const fetchNoticeDetail = async (id) => {
     
     try {
       // 일반 사용자용 공지사항 상세 API로 변경
-      const response = await axios.get(`https://localhost:8081/api/public/notices/${id}`);
+      const response = await axios.get(`/api/public/notices/${id}`);
       console.log('공지사항 상세 응답:', response.data);
       
       if (!response.data || !response.data.id) {
@@ -154,28 +154,34 @@ const fetchNoticeDetail = async (id) => {
 
 const downloadFile = async (file, index) => {
   try {
-    const noticeId = notice.value.id;
-    // 일반 사용자용 첨부파일 다운로드 경로로 변경
-    let url = `https://localhost:8081/api/public/notices/${noticeId}/files/${index}`;
+    let url = `/api/public/notices/${props.noticeId}/files/${index}`
+    
+    // 파일 타입에 따라 다른 엔드포인트 사용
+    if (file.fileType && file.fileType.startsWith('image/')) {
+      url = `/api/public/notices/${props.noticeId}/images/${index}`
+    }
     
     const response = await axios.get(url, {
       responseType: 'blob'
-    });
+    })
     
-    const blob = new Blob([response.data]);
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = file.originalName || file.fileName || '첨부파일';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
+    // 파일 다운로드 처리
+    const blob = new Blob([response.data])
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = file.originalName || '첨부파일'
+    
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    window.URL.revokeObjectURL(downloadUrl)
   } catch (error) {
-    console.error('파일 다운로드 실패:', error);
-    alert('파일 다운로드에 실패했습니다.');
+    console.error('파일 다운로드 실패:', error)
+    alert('파일 다운로드에 실패했습니다.')
   }
-};
+}
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -201,9 +207,8 @@ const isImageFile = (file) => {
 
 // 이미지 URL 생성
 const getImageUrl = (file, index) => {
-  // 일반 사용자용 이미지 조회 경로로 변경
-  return `https://localhost:8081/api/public/notices/${notice.value.id}/images/${index}`;
-};
+  return `${import.meta.env.VITE_BASE_URL}/api/public/notices/${props.noticeId}/images/${index}`
+}
 
 // 파일 크기 포맷팅
 const formatFileSize = (bytes) => {

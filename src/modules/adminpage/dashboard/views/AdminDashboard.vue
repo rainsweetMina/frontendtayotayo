@@ -15,7 +15,7 @@
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800">{{ authError }}</h3>
           <div class="mt-2">
-            <a href="https://localhost:8081/auth/login" target="_blank" class="text-sm font-medium text-red-600 hover:text-red-500">
+            <a :href="`${BASE_URL}/auth/login`" target="_blank" class="text-sm font-medium text-red-600 hover:text-red-500">
               백엔드 로그인 페이지로 이동 →
             </a>
           </div>
@@ -233,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import Chart from 'chart.js/auto'
 import { getDashboardStats, getPostsStats, getUserStats, getRequestVolume } from '@/api/admin'
 import SockJS from 'sockjs-client'
@@ -242,6 +242,9 @@ import axios from '@/api/axiosInstance'
 import PostsStatsCard from '../components/PostsStatsCard.vue'
 import LineChart from '../components/charts/LineChart.vue'
 import BarChart from '../components/charts/BarChart.vue'
+
+// BASE_URL을 computed로 선언
+const BASE_URL = computed(() => import.meta.env.VITE_BASE_URL)
 
 // 상태 데이터
 const stats = ref({
@@ -295,7 +298,7 @@ const requestVolumeData = ref({
 
 const connectWebSocket = () => {
   console.log('Attempting to connect to WebSocket...')
-  const socket = new SockJS('https://localhost:8081/ws')
+  const socket = new SockJS(`${BASE_URL}/ws`)
   
   socket.onopen = () => {
     console.log('SockJS connection opened')

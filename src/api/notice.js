@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'https://localhost:8081/api/notices',
+    baseURL: import.meta.env.VITE_BASE_URL + '/api/notices',
 });
 
 // 요청 인터셉터 추가
