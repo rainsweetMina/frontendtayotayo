@@ -109,7 +109,7 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style>
 .mypage-container {
   max-width: 1140px;
   margin: 40px auto;
@@ -119,7 +119,7 @@ onMounted(async () => {
 }
 
 .welcome-box {
-  background-color: #f5f8ff;
+  background-color: #efede7;
   border-radius: 16px;
   padding: 1.5rem 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -173,7 +173,8 @@ onMounted(async () => {
 }
 
 .summary-card {
-  background-color: #ffffff;
+  background-color: #f0f4ff !important;
+  border: 1px solid #d0d7e7;
   border-radius: 12px;
   padding: 1.2rem;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);

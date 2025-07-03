@@ -173,13 +173,18 @@ onMounted(async () => {
 
 <style scoped>
 .back-button {
+  background: none;
+  color: #4889cd;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin: 0 auto 10px auto;
   display: block;
-  margin: 2rem auto 0 auto;
-  color: #007bff;
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 500;
   text-align: center;
+
+  position: relative;
+  z-index: 10; /* 모달이나 다른 요소보다 위에 오도록 */
 }
 
 .apikey-wrapper { max-width: 600px; margin: 0 auto; padding: 30px; background: #f9f9f9; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); text-align: center; }
