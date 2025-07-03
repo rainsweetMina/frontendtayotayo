@@ -260,15 +260,13 @@ li {
   font-size: 14px;
   cursor: pointer;
   text-decoration: underline;
-  margin: 0 auto 10px auto; /* 가운데 정렬 + 하단 여백 */
-  display: block;           /* 가운데 정렬 위해 block 설정 */
+  margin: 0 auto 10px auto;
+  display: block;
+  text-align: center;
+
+  position: relative;
+  z-index: 10; /* 모달이나 다른 요소보다 위에 오도록 */
 }
-.back-button:hover {
-  color: #2877cd;
-}
-
-
-
 .clickable-item {
   cursor: pointer;
   transition: background-color 0.2s;

@@ -160,26 +160,17 @@ const goToDetailPage = (item) => {
 }
 
 .back-button {
-  position: fixed;
-  right: 32px;
-  bottom: 32px;
-  z-index: 50;
-  padding: 14px 28px;
-  background-color: #2563eb;
-  color: #fff;
-  border-radius: 9999px;
-  font-weight: 500;
-  font-size: 1.05rem;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.13);
-  transition: background 0.2s, color 0.2s, transform 0.15s;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.back-button:hover {
-  background-color: #1d4ed8;
-  color: #fff;
-  transform: scale(1.06);
+  background: none;
+  color: #4889cd;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin: 0 auto 10px auto;
+  display: block;
+  text-align: center;
+
+  position: relative;
+  z-index: 10; /* 모달이나 다른 요소보다 위에 오도록 */
 }
 </style>
