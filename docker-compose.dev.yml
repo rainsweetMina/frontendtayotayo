@@ -7,13 +7,14 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "15173:5173"
+      - "15173:5173"  # HTTP
+      - "15174:5173"  # HTTPS
     volumes:
       - .:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - VITE_BASE_URL=http://localhost:8094
+      - VITE_BASE_URL=https://localhost:8094
     networks:
       - app-network
     restart: unless-stopped
