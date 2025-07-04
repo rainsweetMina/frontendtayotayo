@@ -25,16 +25,20 @@ COPY . .
 # 프로덕션 빌드
 RUN npm run build
 
-# 2단계: Nginx 서빙 환경
-FROM nginx:alpine
+# 2단계: Node.js 서빙 환경
+FROM node:18-alpine
 
-# Nginx 설정 파일 복사
-COPY nginx.conf /etc/nginx/nginx.conf
+# 작업 디렉토리 설정
+WORKDIR /app
 
-# 빌드된 파일들을 Nginx로 복사
-COPY --from=builder /app/dist /usr/share/nginx/html
+# serve 패키지 설치
+RUN npm install -g serve
+
+# 빌드된 파일들을 복사
+COPY --from=builder /app/dist ./dist
+
 # 포트 노출
-EXPOSE 80
+EXPOSE 5173
 
-# Nginx 시작
-CMD ["nginx", "-g", "daemon off;"] 
+# serve로 정적 파일 서빙
+CMD ["serve", "-s", "dist", "-l", "3000"] 

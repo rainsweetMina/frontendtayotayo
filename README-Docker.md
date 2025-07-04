@@ -1,45 +1,89 @@
-# Docker Compose 설정 가이드
+# Docker를 사용한 Vue.js 애플리케이션 실행 가이드
 
-이 프로젝트는 Docker Compose를 사용하여 Vue.js 애플리케이션을 컨테이너화했습니다.
+이 프로젝트는 Docker를 사용하여 Vue.js 애플리케이션을 실행할 수 있도록 구성되어 있습니다.
 
-## 🚀 빠른 시작
+## 프로덕션 환경 실행
 
-### 1. 프로덕션 환경 실행
-
+### 1. 프로덕션 빌드 및 실행
 ```bash
-# 전체 스택 실행
-docker-compose up -d
+# 프로덕션 환경 시작
+docker-compose up --build
 
-# 로그 확인
-docker-compose logs -f
-
-# 특정 서비스 로그 확인
-docker-compose logs -f frontend
+# 백그라운드에서 실행
+docker-compose up -d --build
 ```
 
-### 2. 개발 환경 실행
+### 2. 접속
+- 브라우저에서 `http://localhost:15173`으로 접속
 
+## 개발 환경 실행
+
+### 1. 개발 서버 실행
 ```bash
-# 개발 환경 실행
-docker-compose -f docker-compose.dev.yml up -d
+# 개발 환경 시작
+docker-compose -f docker-compose.dev.yml up --build
 
-# 개발 환경 로그 확인
-docker-compose -f docker-compose.dev.yml logs -f
+# 백그라운드에서 실행
+docker-compose -f docker-compose.dev.yml up -d --build
 ```
 
-## 📋 서비스 구성
+### 2. 접속
+- 브라우저에서 `http://localhost:15173`으로 접속
+- 핫 리로드 지원 (코드 변경 시 자동 새로고침)
+
+## 스크립트 사용
 
 ### 프로덕션 환경
-
-| 서비스 | 포트 | 설명 |
-|--------|------|------|
-| frontend | 15173:80 | Vue.js 프론트엔드 (Nginx) |
+```bash
+./scripts/start.sh
+```
 
 ### 개발 환경
+```bash
+./scripts/start-dev.sh
+```
 
-| 서비스 | 포트 | 설명 |
-|--------|------|------|
-| frontend-dev | 15173:5173 | Vue.js 개발 서버 |
+## 컨테이너 관리
+
+### 컨테이너 중지
+```bash
+# 프로덕션 환경
+docker-compose down
+
+# 개발 환경
+docker-compose -f docker-compose.dev.yml down
+```
+
+### 로그 확인
+```bash
+# 프로덕션 환경
+docker-compose logs -f frontend
+
+# 개발 환경
+docker-compose -f docker-compose.dev.yml logs -f frontend-dev
+```
+
+### 컨테이너 재시작
+```bash
+# 프로덕션 환경
+docker-compose restart frontend
+
+# 개발 환경
+docker-compose -f docker-compose.dev.yml restart frontend-dev
+```
+
+## 기술 스택
+
+- **프론트엔드**: Vue.js 3 + Vite
+- **컨테이너**: Docker
+- **서빙**: Node.js serve (프로덕션), Vite Dev Server (개발)
+- **포트**: 15173 (외부 접속)
+
+## 주의사항
+
+1. 프로덕션 환경에서는 `serve` 패키지를 사용하여 정적 파일을 서빙합니다.
+2. 개발 환경에서는 Vite 개발 서버를 사용하여 핫 리로드를 지원합니다.
+3. 모든 환경에서 포트 15173으로 외부 접속이 가능합니다.
 
 ## 🛠️ 관리 명령어
 
