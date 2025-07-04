@@ -6,7 +6,10 @@ import nodePolyfills from 'rollup-plugin-node-polyfills'
 import fs from 'fs'
 import history from 'connect-history-api-fallback'
 import { fileURLToPath, URL } from 'node:url'
+import path from 'path'
 
+const keyPath = path.resolve(__dirname, 'localhost2-key.pem');
+const certPath = path.resolve(__dirname, 'localhost2.pem');
 
 export default defineConfig({
     plugins: [
@@ -47,8 +50,8 @@ export default defineConfig({
         open: false,
         // https: true, // basicSsl 플러그인이 자체 서명 인증서를 생성함
         https: {
-            key: fs.readFileSync('./localhost+2-key.pem'),
-            cert: fs.readFileSync('./localhost+2.pem')
+            key: fs.readFileSync(path.resolve(__dirname, 'localhost2-key.pem')),
+            cert: fs.readFileSync(path.resolve(__dirname, 'localhost2.pem')),
         },
         proxy: {
             '/api': {

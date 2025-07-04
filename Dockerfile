@@ -2,11 +2,19 @@
 # 1단계: Node.js 빌드 환경
 FROM node:18-alpine AS builder
 
+ENV NODE_ENV=production
+
+
 # 작업 디렉토리 설정
 WORKDIR /app
 
 # package.json과 package-lock.json 복사
 COPY package*.json ./
+
+COPY ./localhost2-key.pem /app/localhost2-key.pem
+COPY ./localhost2.pem /app/localhost2.pem
+COPY ./vite.config.js /app/vite.config.js
+
 
 # 의존성 설치
 RUN npm ci
@@ -25,7 +33,6 @@ COPY nginx.conf /etc/nginx/nginx.conf
 
 # 빌드된 파일들을 Nginx로 복사
 COPY --from=builder /app/dist /usr/share/nginx/html
-
 # 포트 노출
 EXPOSE 80
 
