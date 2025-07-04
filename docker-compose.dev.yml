@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # Vue.js 개발 서버
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "15173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_BASE_URL=http://localhost:8094
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: npm run dev
+
+networks:
+  app-network:
+    driver: bridge 

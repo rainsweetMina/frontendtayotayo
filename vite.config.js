@@ -17,18 +17,28 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
-            global: 'globalThis'
+            global: 'globalThis',
+            buffer: 'buffer'
         }
     },
     define: {
         'process.env': {},
         global: 'globalThis'
     },
+    optimizeDeps: {
+        include: ['buffer']
+    },
     build: {
-        outDir: '../backend/src/main/resources/static',  // 백엔드 정적 리소스 위치
-        emptyOutDir: true, // 기존 static 폴더 지우고 새로 생성
+        outDir: 'dist',  // 독립적인 Vue.js 프로젝트를 위한 dist 폴더
+        emptyOutDir: true, // 기존 dist 폴더 지우고 새로 생성
         rollupOptions: {
-            plugins: [nodePolyfills()]
+            plugins: [nodePolyfills()],
+            external: [],
+            output: {
+                globals: {
+                    buffer: 'Buffer'
+                }
+            }
         }
     },
     server: {

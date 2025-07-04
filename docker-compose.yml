@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Vue.js 프론트엔드
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "15173:80"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app-network:
+    driver: bridge 
