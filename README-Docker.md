@@ -14,7 +14,8 @@ docker-compose up -d --build
 ```
 
 ### 2. 접속
-- 브라우저에서 `http://localhost:15173`으로 접속
+- **HTTP**: `http://localhost:15173`
+- **HTTPS**: `https://localhost:15174` (자체 서명 인증서 사용)
 
 ## 개발 환경 실행
 
@@ -28,7 +29,8 @@ docker-compose -f docker-compose.dev.yml up -d --build
 ```
 
 ### 2. 접속
-- 브라우저에서 `http://localhost:15173`으로 접속
+- **HTTP**: `http://localhost:15173`
+- **HTTPS**: `https://localhost:15174` (자체 서명 인증서 사용)
 - 핫 리로드 지원 (코드 변경 시 자동 새로고침)
 
 ## 스크립트 사용
@@ -77,13 +79,30 @@ docker-compose -f docker-compose.dev.yml restart frontend-dev
 - **프론트엔드**: Vue.js 3 + Vite
 - **컨테이너**: Docker
 - **서빙**: Node.js serve (프로덕션), Vite Dev Server (개발)
-- **포트**: 15173 (외부 접속)
+- **포트**: 
+  - 15173 (HTTP)
+  - 15174 (HTTPS)
+- **SSL**: 자체 서명 인증서 (개발용)
+
+## HTTPS 설정
+
+### 자체 서명 인증서
+프로젝트에는 개발용 자체 서명 SSL 인증서가 포함되어 있습니다:
+- 인증서 파일: `cert/cert.pem`
+- 개인키 파일: `cert/key.pem`
+
+### 브라우저에서 HTTPS 접근 시
+자체 서명 인증서를 사용하므로 브라우저에서 보안 경고가 표시될 수 있습니다:
+1. 경고 페이지에서 "고급" 클릭
+2. "안전하지 않은 사이트로 이동" 클릭
+3. 또는 인증서를 브라우저에 신뢰할 수 있는 인증서로 추가
 
 ## 주의사항
 
 1. 프로덕션 환경에서는 `serve` 패키지를 사용하여 정적 파일을 서빙합니다.
 2. 개발 환경에서는 Vite 개발 서버를 사용하여 핫 리로드를 지원합니다.
-3. 모든 환경에서 포트 15173으로 외부 접속이 가능합니다.
+3. 모든 환경에서 HTTP(15173)와 HTTPS(15174) 포트로 접근이 가능합니다.
+4. 자체 서명 인증서는 개발용이므로 프로덕션 환경에서는 공식 SSL 인증서를 사용하세요.
 
 ## 🛠️ 관리 명령어
 

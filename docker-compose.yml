@@ -7,14 +7,15 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "15173:3000"
+      - "15173:5173"  # HTTP
+      - "15174:5173"  # HTTPS
     environment:
       - NODE_ENV=production
     networks:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
       interval: 30s
       timeout: 10s
       retries: 3

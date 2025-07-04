@@ -37,8 +37,11 @@ RUN npm install -g serve
 # 빌드된 파일들을 복사
 COPY --from=builder /app/dist ./dist
 
+# SSL 인증서 복사
+COPY --from=builder /app/cert ./cert
+
 # 포트 노출
 EXPOSE 5173
 
-# serve로 정적 파일 서빙
-CMD ["serve", "-s", "dist", "-l", "3000"] 
+# serve로 정적 파일 서빙 (HTTPS 지원)
+CMD ["serve", "-s", "dist", "-l", "5173", "--ssl-cert", "./cert/cert.pem", "--ssl-key", "./cert/key.pem"] 
