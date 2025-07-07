@@ -35,46 +35,22 @@
         />
 
         <!-- 검색 및 필터 -->
-        <div class="flex justify-between items-center mb-4">
-          <div class="flex space-x-2">
-            <select class="border border-gray-200 rounded-md px-3 py-2 focus:border-blue-600 focus:ring focus:ring-opacity-40 focus:ring-blue-500 text-gray-700 w-24">
+        <div class="w-full flex justify-start mb-4">
+          <div class="flex flex-col sm:flex-row items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm w-full sm:w-auto">
+            <select class="h-10 min-w-[90px] border border-gray-200 rounded-md bg-white px-2 py-1 text-base text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
               <option value="all">전체</option>
               <option value="title">제목</option>
               <option value="content">내용</option>
               <option value="user">작성자</option>
             </select>
-            <div class="relative mx-4 lg:mx-0">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              <input
-                v-model="searchKeyword"
-                class="w-32 pl-10 pr-4 text-gray-700 border-gray-200 rounded-md sm:w-64 focus:border-blue-600 focus:ring focus:ring-opacity-40 focus:ring-blue-500"
-                type="text"
-                placeholder="검색어를 입력하세요"
-                @keyup.enter="handleSearch(searchKeyword)"
-              />
-            </div>
-            <button
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              @click="handleSearch(searchKeyword)"
-            >
-              검색
-            </button>
-            <button
-              class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-              @click="resetSearch"
-            >
-              초기화
-            </button>
+            <input
+              v-model="searchKeyword"
+              :placeholder="'검색어를 입력하세요'"
+              class="h-10 w-full sm:w-80 border border-gray-200 rounded-md bg-transparent px-2 py-1 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              @keyup.enter="handleSearch(searchKeyword)"
+            />
+            <button class="h-10 px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm font-semibold" @click="handleSearch(searchKeyword)">검색</button>
+            <button class="h-10 px-4 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition text-sm font-semibold" @click="resetSearch">초기화</button>
           </div>
         </div>
 

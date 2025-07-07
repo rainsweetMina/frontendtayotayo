@@ -146,9 +146,9 @@ const companyList = ref([])
 const searchKeyword = ref('')
 const page = ref(1)
 const pageSize = 10
-const totalPages = computed(() => Math.ceil(companyList.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredCompanyList.value.length / pageSize))
 const pagedCompanyList = computed(() =>
-  companyList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+  filteredCompanyList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
 )
 
 // Alert state
@@ -191,8 +191,8 @@ const fetchData = async () => {
 
 // 검색 기능
 const handleSearch = (keyword) => {
-  console.log('Search keyword:', keyword)
   searchKeyword.value = keyword
+  page.value = 1
 }
 
 const resetSearch = () => {
