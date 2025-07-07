@@ -177,7 +177,7 @@ async function fetchBusLocations() {
   if (!props.routeId) return
 
   try {
-    const res = await axios.get(`/api/bus/bus-route-Bus?routeId=${props.routeId}`)
+    const res = await api.get(`/api/bus/bus-route-Bus?routeId=${props.routeId}`)
     clearBusMarkers()
 
     const locations = res.data.busLocationList || []

@@ -107,7 +107,7 @@ async function toggleRoute(idx, route = null) {
   if (coords.length < 2) return
 
   try {
-    const res = await axios.post('/api/bus/ors/polyline', coords)
+    const res = await api.post('/api/bus/ors/polyline', coords)
 
     const polyline = res.data
     const firstStop = route.stationIds[0]

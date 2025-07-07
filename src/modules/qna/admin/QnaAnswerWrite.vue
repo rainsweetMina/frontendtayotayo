@@ -61,7 +61,7 @@ const modalConfirmType = ref('primary')
 
 const fetchQna = async () => {
   try {
-    const res = await axios.get(`/api/qna/${route.params.id}`)
+    const res = await api.get(`/api/qna/${route.params.id}`)
     qna.value = res.data
     loading.value = false
   } catch (e) {
@@ -71,7 +71,7 @@ const fetchQna = async () => {
 
 const handleSubmit = async () => {
   try {
-    await axios.put(`/api/qna/${route.params.id}/answer`, { answer: answer.value })
+    await api.put(`/api/qna/${route.params.id}/answer`, { answer: answer.value })
     showSuccessModal('답변이 저장되었습니다.')
   } catch (e) {
     showErrorModal('답변 저장에 실패했습니다.')

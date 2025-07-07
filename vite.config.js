@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
-import basicSsl from '@vitejs/plugin-basic-ssl'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
-import fs from 'fs'
 import history from 'connect-history-api-fallback'
 import { fileURLToPath, URL } from 'node:url'
+import fs from 'fs'
 
 
 export default defineConfig({
@@ -25,8 +24,8 @@ export default defineConfig({
         global: 'globalThis'
     },
     build: {
-        outDir: '../backend/src/main/resources/static',  // 백엔드 정적 리소스 위치
-        emptyOutDir: true, // 기존 static 폴더 지우고 새로 생성
+        outDir: 'dist',
+        emptyOutDir: true,
         rollupOptions: {
             plugins: [nodePolyfills()]
         }
@@ -35,28 +34,14 @@ export default defineConfig({
         port: 5173,
         host: '0.0.0.0',
         open: false,
-        // https: true, // basicSsl 플러그인이 자체 서명 인증서를 생성함
         https: {
             key: fs.readFileSync('./localhost+2-key.pem'),
             cert: fs.readFileSync('./localhost+2.pem')
         },
-        proxy: {
-            '/api': {
-                target: process.env.VITE_BASE_URL || 'https://localhost:8094',
-                changeOrigin: true,
-                secure: false, // ⚠️ 개발 중이므로 false (SSL 인증서 검증 비활성화)
-                configure: (proxy) => {
-                    proxy.on('proxyReq', (proxyReq, req, res) => {
-                        // ✅ 인증 쿠키를 프록시 요청에 포함
-                        proxyReq.setHeader('origin', process.env.VITE_BASE_URL || 'https://localhost:8094');
-                    });
-                }
-            },
-            '/auth': {
-                target: process.env.VITE_BASE_URL || 'https://localhost:8094',
-                changeOrigin: true,
-                secure: false
-            },
+        hmr: {
+            host: 'docs.yi.or.kr',
+            port: 15173,
+            protocol: 'wss'
         },
         cors: true,
         fs: {

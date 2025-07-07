@@ -273,7 +273,7 @@ function selectRoute(route) {
   const map = window.leafletMap
   clearMapElements(map)
 
-  axios.all([
+  api.all([
     axios.get('/api/bus/bus-route', {params: {routeId}}),
     axios.get('/api/bus/bus-route-link', {params: {routeId}}),
     axios.get('/api/bus/bus-route-Bus', {params: {routeId}})

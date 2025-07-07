@@ -40,7 +40,7 @@
           <h3 class="text-lg font-medium mb-2">첨부파일</h3>
           <ul class="space-y-2">
             <li v-for="(file, index) in lowFloorBus.files" :key="index" class="flex items-center">
-              <a :href="`${BASE_URL}/api/admin/files/${file.id}/download`" target="_blank" class="text-blue-600 hover:text-blue-800 flex items-center">
+              <a :href="`/api/admin/files/${file.id}/download`" target="_blank" class="text-blue-600 hover:text-blue-800 flex items-center">
                 <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                 </svg>

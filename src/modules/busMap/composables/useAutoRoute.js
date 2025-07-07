@@ -11,7 +11,7 @@ export function useAutoRoute(store) {
 
             // 출발지 → 근처 정류장
             if (startCoord) {
-                const res = await axios.get('/api/bus/nearby-stops', {
+                const res = await api.get('/api/bus/nearby-stops', {
                     params: {
                         startX: startCoord.lng,
                         startY: startCoord.lat,
@@ -26,7 +26,7 @@ export function useAutoRoute(store) {
 
             // 도착지 → 근처 정류장
             if (endCoord) {
-                const res = await axios.get('/api/bus/nearby-stops', {
+                const res = await api.get('/api/bus/nearby-stops', {
                     params: {
                         startX: endCoord.lng,
                         startY: endCoord.lat,
@@ -57,7 +57,7 @@ export function useAutoRoute(store) {
                         busStops: [startStop, endStop]
                     }])
                 } else {
-                    const { data: routeData } = await axios.get('/api/bus/findRoutes', {
+                    const { data: routeData } = await api.get('/api/bus/findRoutes', {
                         params: {
                             startBsId: startStop.bsId,
                             endBsId: endStop.bsId

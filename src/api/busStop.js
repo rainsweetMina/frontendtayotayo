@@ -16,7 +16,7 @@ export const getAllBusStops = async (keyword = '', page = 0, size = 10) => {
       console.warn(`대용량 데이터 요청: ${validSize}개의 정류장을 요청합니다. 서버 부하와 성능에 영향을 줄 수 있습니다.`);
     }
     
-    const response = await api.get(`${BASE_URL}/api/bus/AllBusStop`, {
+    const response = await api.get(`/api/bus/AllBusStop`, {
       params: { 
         keyword, 
         page: validPage, 
@@ -88,7 +88,7 @@ export const getAllBusStops = async (keyword = '', page = 0, size = 10) => {
 // 정류장 상세 정보 조회
 export const getBusStopDetail = async (bsId) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus/busStop`, {
+    const response = await api.get(`/api/bus/busStop`, {
       params: { bsId }
     })
     
@@ -115,7 +115,7 @@ export const getBusStopDetail = async (bsId) => {
 // 정류장 추가
 export const addBusStop = async (busStopData) => {
   try {
-    const response = await api.post(`${BASE_URL}/api/bus/addBusStop`, busStopData)
+    const response = await api.post(`/api/bus/addBusStop`, busStopData)
     return response.data
   } catch (error) {
     console.error('정류장 추가 실패:', error)
@@ -126,7 +126,7 @@ export const addBusStop = async (busStopData) => {
 // 정류장 정보 수정
 export const updateBusStop = async (bsId, busStopData) => {
   try {
-    const response = await api.put(`${BASE_URL}/api/bus/updateStop/${bsId}`, busStopData)
+    const response = await api.put(`/api/bus/updateStop/${bsId}`, busStopData)
     return response.data
   } catch (error) {
     console.error('정류장 정보 수정 실패:', error)
@@ -137,7 +137,7 @@ export const updateBusStop = async (bsId, busStopData) => {
 // 정류장 삭제
 export const deleteBusStop = async (bsId) => {
   try {
-    const response = await api.delete(`${BASE_URL}/api/bus/deleteBusStop`, {
+    const response = await api.delete(`/api/bus/deleteBusStop`, {
       params: { bsId }
     })
     return response.data
@@ -150,7 +150,7 @@ export const deleteBusStop = async (bsId) => {
 // 정류장에 오는 노선 조회
 export const getRoutesForBusStop = async (bsId) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus/RouteByBS`, {
+    const response = await api.get(`/api/bus/RouteByBS`, {
       params: { bsId }
     })
     return response.data
@@ -163,7 +163,7 @@ export const getRoutesForBusStop = async (bsId) => {
 // 정류장 검색 (키워드로 검색)
 export const searchBusStops = async (keyword) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus/searchBS`, {
+    const response = await api.get(`/api/bus/searchBS`, {
       params: { keyword }
     })
     return response.data
@@ -176,7 +176,7 @@ export const searchBusStops = async (keyword) => {
 // 구 목록 조회
 export const getDistricts = async () => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus-info/districts`)
+    const response = await api.get(`/api/bus-info/districts`)
     return response.data
   } catch (error) {
     console.error('구 목록 조회 실패:', error)
@@ -187,7 +187,7 @@ export const getDistricts = async () => {
 // 동 목록 조회
 export const getNeighborhoods = async (district) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus-info/neighborhoods`, {
+    const response = await api.get(`/api/bus-info/neighborhoods`, {
       params: { district }
     })
     return response.data
@@ -200,7 +200,7 @@ export const getNeighborhoods = async (district) => {
 // 정류소 정보 조회 (구/동 기준)
 export const searchBusStopsByDistrict = async (district, neighborhood) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus-info/search`, {
+    const response = await api.get(`/api/bus-info/search`, {
       params: { district, neighborhood }
     })
     return response.data
@@ -213,7 +213,7 @@ export const searchBusStopsByDistrict = async (district, neighborhood) => {
 // 노선 유형에 해당하는 노선 번호 목록 반환
 export const getRouteNosByType = async (type) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus-info/route-nos`, {
+    const response = await api.get(`/api/bus-info/route-nos`, {
       params: { type }
     })
     return response.data
@@ -226,7 +226,7 @@ export const getRouteNosByType = async (type) => {
 // 노선 번호로 정류소 목록 조회
 export const getStopsByRouteNo = async (routeNo) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus-info/search-by-route`, {
+    const response = await api.get(`/api/bus-info/search-by-route`, {
       params: { routeNo }
     })
     return response.data
@@ -239,7 +239,7 @@ export const getStopsByRouteNo = async (routeNo) => {
 // 지도 영역 내 정류장 조회
 export const getBusStopsInBounds = async (minX, minY, maxX, maxY) => {
   try {
-    const response = await api.get(`${BASE_URL}/api/bus/user-busStopsInBounds`, {
+    const response = await api.get(`/api/bus/user-busStopsInBounds`, {
       params: { minX, minY, maxX, maxY }
     })
     return response.data

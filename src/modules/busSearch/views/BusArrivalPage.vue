@@ -34,7 +34,7 @@ onMounted(async () => {
   if (!bsId) return
 
   try {
-    const res = await axios.get(`/api/bus/bus-arrival`, {
+    const res = await api.get(`/api/bus/bus-arrival`, {
       params: { bsId }
     })
     const items = res.data?.body?.items || []

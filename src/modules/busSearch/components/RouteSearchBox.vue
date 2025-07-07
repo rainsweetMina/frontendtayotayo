@@ -75,7 +75,7 @@ const endActiveIndex = ref(-1)
 
 const debouncedFetch = debounce(async (type, keyword) => {
   try {
-    const { data } = await axios.get('/api/bus/search-bus-stops', {
+    const { data } = await api.get('/api/bus/search-bus-stops', {
       params: { keyword }
     })
 

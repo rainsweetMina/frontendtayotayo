@@ -17,7 +17,7 @@ export async function tryFindRoute() {
     store.setRouteResults([])
 
     try {
-        const { data } = await axios.get('/api/bus/findRoutes', {
+        const { data } = await api.get('/api/bus/findRoutes', {
             params: {
                 startBsId: startStop.bsId,
                 endBsId: endStop.bsId

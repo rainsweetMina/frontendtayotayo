@@ -15,7 +15,7 @@
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800">{{ authError }}</h3>
           <div class="mt-2">
-            <a :href="`${BASE_URL}/auth/login`" target="_blank" class="text-sm font-medium text-red-600 hover:text-red-500">
+            <a :href="`/auth/login`" target="_blank" class="text-sm font-medium text-red-600 hover:text-red-500">
               백엔드 로그인 페이지로 이동 →
             </a>
           </div>
@@ -298,53 +298,53 @@ const requestVolumeData = ref({
 
 const connectWebSocket = () => {
   console.log('Attempting to connect to WebSocket...')
-  const socket = new SockJS(`${BASE_URL}/ws`)
-  
+  const socket = new SockJS(`https://docs.yi.or.kr:8094/ws`)
+
   socket.onopen = () => {
     console.log('SockJS connection opened')
   }
-  
+
   socket.onclose = (event) => {
     console.log('SockJS connection closed:', event)
     setTimeout(connectWebSocket, 3000)
   }
-  
+
   socket.onerror = (error) => {
     console.error('SockJS error:', error)
   }
-  
+
   stompClient = Stomp.over(socket)
-  
-  stompClient.debug = function(str) {
+
+  stompClient.debug = function (str) {
     console.log('STOMP: ', str)
   }
-  
+
   const headers = {
     login: '',
     passcode: '',
     'heart-beat': '10000,10000'
   }
-  
+
   stompClient.connect(headers, frame => {
     console.log('STOMP Connected:', frame)
-    
+
     // Redis 메모리 정보 구독
     stompClient.subscribe('/topic/redis-memory', message => {
       console.log('Received Redis memory info:', message.body)
       try {
         // 메시지 파싱
         const memoryInfo = typeof message.body === 'string' ? JSON.parse(message.body) : message.body;
-        
+
         // 유효성 검사
         if (!memoryInfo || typeof memoryInfo.usedMemory !== 'number') {
           console.error('유효하지 않은 Redis 메모리 정보:', memoryInfo);
           return;
         }
-        
-        console.log('처리된 Redis 메모리 정보:', 
-          `메모리 사용량=${memoryInfo.usedMemory.toFixed(2)}MB, ` +
-          `클라이언트=${memoryInfo.connectedClients}`);
-        
+
+        console.log('처리된 Redis 메모리 정보:',
+            `메모리 사용량=${memoryInfo.usedMemory.toFixed(2)}MB, ` +
+            `클라이언트=${memoryInfo.connectedClients}`);
+
         // 차트 업데이트
         updateRedisChart(memoryInfo);
       } catch (error) {
@@ -369,12 +369,12 @@ const connectWebSocket = () => {
 
 const updateRedisChart = (memoryInfo) => {
   console.log('updateRedisChart 호출됨:', memoryInfo);
-  
+
   // 게이지 텍스트 플러그인 정의
   const gaugeText = {
     id: 'gaugeText',
     afterDatasetsDraw(chart, args, pluginOptions) {
-      const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+      const {ctx, data, chartArea: {top, bottom, left, right, width, height}} = chart;
 
       ctx.save();
       const xCenter = width / 2 + left;
@@ -383,7 +383,7 @@ const updateRedisChart = (memoryInfo) => {
       // 메모리 사용량 및 클라이언트 수 가져오기
       let usedMemory = 0;
       let clients = 0;
-      
+
       if (chart.config && chart.config._config && chart.config._config.customData) {
         usedMemory = chart.config._config.customData.usedMemory;
         clients = chart.config._config.customData.clients;
@@ -395,7 +395,7 @@ const updateRedisChart = (memoryInfo) => {
       ctx.font = 'bold 24px Arial';
       ctx.fillStyle = '#333';
       ctx.fillText(`${usedMemory.toFixed(2)} MB`, xCenter, yCenter);
-      
+
     }
   };
 
@@ -454,9 +454,9 @@ const updateRedisChart = (memoryInfo) => {
     const usedMemory = memoryInfo.usedMemory;
     const clients = memoryInfo.connectedClients || 0;
     const maxValue = Math.max(1, usedMemory * 2);  // 최소 1MB 설정하고 여유 공간이 보이도록 조정
-    
+
     console.log('차트 업데이트 - 사용 메모리:', usedMemory, 'MB, 최대값:', maxValue, 'MB');
-    
+
     // 커스텀 데이터 저장
     if (redisChart.config && redisChart.config._config) {
       redisChart.config._config.customData = {
@@ -464,7 +464,7 @@ const updateRedisChart = (memoryInfo) => {
         clients: clients
       };
     }
-    
+
     // 차트 데이터 업데이트
     redisChart.data.datasets[0].data = [usedMemory, maxValue - usedMemory];
     redisChart.data.datasets[0].backgroundColor = [
@@ -478,7 +478,7 @@ const updateRedisChart = (memoryInfo) => {
       'rgba(211, 211, 211, 0.3)',
       'rgba(211, 211, 211, 0.3)'
     ];
-    
+
     if (redisChart.config && redisChart.config._config) {
       redisChart.config._config.customData = {
         usedMemory: 0,
@@ -486,7 +486,7 @@ const updateRedisChart = (memoryInfo) => {
       };
     }
   }
-  
+
   // 차트 강제 업데이트
   redisChart.update('none'); // 애니메이션 없이 즉시 업데이트
 }
@@ -494,28 +494,28 @@ const updateRedisChart = (memoryInfo) => {
 // 활동 로그 처리 함수
 const addActivityLog = (logEntry) => {
   // user가 활동한 로그 또는 버스 회사 조회 로그는 제외
-  if (logEntry.adminId && 
-     (logEntry.adminId.toLowerCase() === 'user' || 
-      logEntry.adminId.toLowerCase() === 'anonymoususer')) {
+  if (logEntry.adminId &&
+      (logEntry.adminId.toLowerCase() === 'user' ||
+          logEntry.adminId.toLowerCase() === 'anonymoususer')) {
     return;
   }
-  
+
   // 버스 회사 조회 로그 제외
-  if (logEntry.action && logEntry.target && 
-     (logEntry.action.includes('조회') || logEntry.action.includes('확인') || logEntry.action.includes('검색')) && 
-     (logEntry.target.includes('버스') || logEntry.target.includes('Bus') || 
-      logEntry.target.includes('bus') || logEntry.target.includes('BusCompany') || 
-      logEntry.target.includes('버스회사'))) {
+  if (logEntry.action && logEntry.target &&
+      (logEntry.action.includes('조회') || logEntry.action.includes('확인') || logEntry.action.includes('검색')) &&
+      (logEntry.target.includes('버스') || logEntry.target.includes('Bus') ||
+          logEntry.target.includes('bus') || logEntry.target.includes('BusCompany') ||
+          logEntry.target.includes('버스회사'))) {
     return;
   }
-  
+
   const activity = {
     id: logEntry.id || Date.now(),
     type: getActivityType(logEntry.action),
     description: `${logEntry.adminId}님이 ${logEntry.target}을(를) ${logEntry.action}했습니다.`,
     timestamp: new Date(logEntry.timestamp).toLocaleString()
   }
-  
+
   recentActivities.value.unshift(activity)
   if (recentActivities.value.length > 5) {  // 최대 5개로 제한
     recentActivities.value.pop()
@@ -537,46 +537,50 @@ const getActivityTypeClass = (type) => {
 // 활동 타입에 따른 이모티콘 반환
 const getActivityEmoji = (type) => {
   switch (type) {
-    case '등록': return '✨'
-    case '수정': return '✏️'
-    case '삭제': return '🗑️'
-    default: return '⚡'
+    case '등록':
+      return '✨'
+    case '수정':
+      return '✏️'
+    case '삭제':
+      return '🗑️'
+    default:
+      return '⚡'
   }
 }
 
 // 초기 활동 로그 로드
 const loadInitialLogs = async () => {
   try {
-    const response = await axios.get('/api/admin/logs', {
-      params: { limit: 10 } // 필터링 후 충분한 로그를 확보하기 위해 더 많이 가져옴
+    const response = await api.get('/api/admin/logs', {
+      params: {limit: 10} // 필터링 후 충분한 로그를 확보하기 위해 더 많이 가져옴
     })
     const data = response.data
     console.log('Received audit logs:', data)
 
     // 데이터가 content 필드 내에 있는 경우를 처리
     const logs = Array.isArray(data) ? data : (data.content || [])
-    
+
     // user 활동 및 버스 회사 조회 로그 필터링
     const filteredLogs = logs.filter(log => {
       // user 활동 제외
-      if (log.adminId && 
-         (log.adminId.toLowerCase() === 'user' || 
-          log.adminId.toLowerCase() === 'anonymoususer')) {
+      if (log.adminId &&
+          (log.adminId.toLowerCase() === 'user' ||
+              log.adminId.toLowerCase() === 'anonymoususer')) {
         return false;
       }
-      
+
       // 버스 회사 조회 로그 제외
-      if (log.action && log.target && 
-         (log.action.includes('조회') || log.action.includes('확인') || log.action.includes('검색')) && 
-         (log.target.includes('버스') || log.target.includes('Bus') || 
-          log.target.includes('bus') || log.target.includes('BusCompany') || 
-          log.target.includes('버스회사'))) {
+      if (log.action && log.target &&
+          (log.action.includes('조회') || log.action.includes('확인') || log.action.includes('검색')) &&
+          (log.target.includes('버스') || log.target.includes('Bus') ||
+              log.target.includes('bus') || log.target.includes('BusCompany') ||
+              log.target.includes('버스회사'))) {
         return false;
       }
-      
+
       return true;
     });
-    
+
     // 최대 5개만 사용
     recentActivities.value = filteredLogs.slice(0, 5).map(log => ({
       id: log.id,
@@ -586,12 +590,12 @@ const loadInitialLogs = async () => {
     }))
   } catch (error) {
     console.error('Failed to load initial audit logs:', error)
-    
+
     // 인증 에러인 경우 표시
     if (error.message === 'Authentication required') {
       isAuthenticated.value = false
       authError.value = '인증이 필요합니다. 다시 로그인해주세요.'
-      
+
       // 더미 데이터 표시
       recentActivities.value = [
         {
@@ -615,16 +619,16 @@ const loadDashboardData = async () => {
     const postsData = await getPostsStats()
     console.log('게시물 통계 데이터 로드 완료:', postsData)
     postsStats.value = postsData
-    
+
     // 회원 통계 데이터 로드
     try {
       const userData = await getUserStats()
       console.log('로드된 회원 통계 데이터:', userData)
-      
+
       stats.value.users = userData.totalUsers || 0
       stats.value.usersIncrease = userData.increaseRate || 0
       stats.value.newUsersToday = userData.newUsersToday || 0
-    
+
       // 회원 타입별 데이터 설정
       if (userData.usersByType) {
         stats.value.usersByType = {
@@ -652,7 +656,7 @@ const loadDashboardData = async () => {
         ADMIN: 30
       }
     }
-    
+
     // 요청 처리량 데이터 로드
     const requestVolumeData = await getRequestVolume()
     if (Array.isArray(requestVolumeData) && requestVolumeData.length > 0) {
@@ -664,9 +668,9 @@ const loadDashboardData = async () => {
       stats.value.requestVolume = 1112
       stats.value.requestVolumeIncrease = 8
     }
-    
+
     stats.value.pendingQna = 5
-    
+
     // 데이터 로드 성공 시 인증 상태 업데이트
     isAuthenticated.value = true
     authError.value = ''
@@ -680,7 +684,7 @@ const loadDashboardData = async () => {
 const updateRequestVolumeChart = (data) => {
   console.log('요청 처리량 차트 업데이트 함수 호출, 데이터:', data);
   console.log('데이터 타입:', Array.isArray(data) ? 'Array' : typeof data);
-  
+
   if (Array.isArray(data) && data.length > 0) {
     console.log('첫 번째 항목 상세 정보:', {
       item: data[0],
@@ -689,7 +693,7 @@ const updateRequestVolumeChart = (data) => {
       countType: typeof data[0].count,
       countValue: data[0].count
     });
-    
+
     try {
       // 시간 카테고리 추출
       const categories = data.map(item => {
@@ -700,13 +704,13 @@ const updateRequestVolumeChart = (data) => {
             console.log(`시간 형식 그대로 사용: ${item.time}`);
             return String(item.time);
           }
-          
+
           // 숫자만 있는 경우 시간 형식으로 변환
           if (typeof item.time === 'string' && !isNaN(item.time)) {
             console.log(`숫자를 시간 형식으로 변환: ${item.time} -> ${item.time}:00`);
             return String(item.time) + ':00';
           }
-          
+
           console.log(`처리할 수 없는 시간 형식: ${item.time}, 타입: ${typeof item.time}`);
           return String(item.time || '');
         } else if (item.date) {
@@ -721,7 +725,7 @@ const updateRequestVolumeChart = (data) => {
         console.log('시간 정보 없음');
         return '';
       });
-      
+
       // 데이터 값 추출
       const values = data.map(item => {
         // count 또는 value 필드에서 값을 추출
@@ -736,48 +740,47 @@ const updateRequestVolumeChart = (data) => {
         }
         return 0;
       });
-      
-      console.log('차트 데이터 변환 결과:', { categories, values });
+
+      console.log('차트 데이터 변환 결과:', {categories, values});
       console.log('카테고리 배열 타입:', typeof categories);
       console.log('카테고리 항목 타입 샘플:', categories.map(c => typeof c));
-      
+
       // 데이터가 유효한지 확인
       if (categories.length === 0 || values.length === 0) {
         throw new Error('변환된 데이터가 비어있습니다.');
       }
-      
+
       // 데이터 형식이 일치하는지 확인
       if (categories.length !== values.length) {
         throw new Error(`카테고리와 데이터 길이가 일치하지 않습니다: 카테고리(${categories.length}) vs 데이터(${values.length})`);
       }
-      
+
       // 명시적으로 새 객체 생성하여 반응성 보장
       requestVolumeData.value = {
         categories: [...categories],
         data: [...values]
       };
-      
+
       console.log('BarChart 컴포넌트에 전달된 최종 데이터:', JSON.stringify(requestVolumeData.value));
-      
+
       // 강제로 상태 업데이트 트리거
-      requestVolumeData.value = { ...requestVolumeData.value };
-      
+      requestVolumeData.value = {...requestVolumeData.value};
+
       return true; // 성공적으로 업데이트됨
     } catch (error) {
       console.error('차트 데이터 처리 중 오류 발생:', error);
     }
   }
-  
+
   console.warn('유효한 데이터가 없어 기본 데이터 사용');
   // 기본 데이터 설정
   requestVolumeData.value = {
     categories: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
     data: [30, 70, 45, 50, 49, 80, 70, 30]
   };
-  
+
   return false; // 기본 데이터 사용됨
 };
-
 
 
 // WebSocket 설정 및 연결
@@ -785,7 +788,7 @@ const setupWebSocket = () => {
   try {
     connectWebSocket();
     loadInitialLogs();
-    
+
     // Redis 차트 초기화
     if (redisMemoryChart.value) {
       updateRedisChart(null);
@@ -799,44 +802,44 @@ const setupWebSocket = () => {
 onMounted(async () => {
   console.log('AdminDashboard 컴포넌트 마운트됨');
   await loadDashboardData();
-  
+
   // 요청 처리량 데이터 로드 및 차트 업데이트
   try {
     console.log('요청 처리량 데이터 로드 시작');
     const volumeData = await getRequestVolume();
     console.log('백엔드에서 받아온 원본 요청 처리량 데이터:', volumeData);
-    
+
     if (Array.isArray(volumeData) && volumeData.length > 0) {
       console.log('유효한 요청 처리량 데이터 확인됨, 항목 수:', volumeData.length);
-      
+
       // 데이터 형식 확인
       const sampleItem = volumeData[0];
       console.log('데이터 샘플 항목:', sampleItem);
       console.log('time 필드 타입:', typeof sampleItem.time, '값:', sampleItem.time);
       console.log('count 필드 타입:', typeof sampleItem.count, '값:', sampleItem.count);
-      
+
       // 데이터를 직접 설정하여 테스트
       const testData = volumeData.map((item, index) => ({
         time: item.time || `${9 + index}:00`,
         count: item.count || Math.floor(Math.random() * 500) + 100
       }));
-      
+
       console.log('테스트 데이터:', testData);
-      
+
       // 차트 업데이트 시도
       const success = updateRequestVolumeChart(testData);
-      
+
       if (!success) {
         console.warn('차트 업데이트 실패, 하드코딩된 데이터로 시도');
-        
+
         // 하드코딩된 데이터로 시도
         requestVolumeData.value = {
           categories: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'],
           data: [502, 761, 746, 891, 258, 922]
         };
-        
+
         // 강제로 상태 업데이트 트리거
-        requestVolumeData.value = { ...requestVolumeData.value };
+        requestVolumeData.value = {...requestVolumeData.value};
       }
     } else {
       console.warn('유효한 요청 처리량 데이터가 없음, 기본 데이터 사용');
@@ -847,12 +850,11 @@ onMounted(async () => {
     // 기본 데이터로 차트 초기화
     updateRequestVolumeChart([]);
   }
-  
 
-  
+
   // WebSocket 설정
   setupWebSocket();
-  
+
   // 차트 컴포넌트에 전달된 데이터 확인
   console.log('BarChart 컴포넌트에 전달된 최종 데이터:', requestVolumeData.value);
 })

@@ -51,7 +51,7 @@ const neighborhoods = ref([])
 onMounted(fetchDistricts)
 
 function fetchDistricts() {
-  axios.get('/api/bus-info/districts').then(res => {
+  api.get('/api/bus-info/districts').then(res => {
     districts.value = res.data
   })
 }
@@ -72,7 +72,7 @@ function onNeighborhoodChange(newNeighborhood) {
 
 function fetchNeighborhoods(district) {
   if (!district) return
-  axios.get('/api/bus-info/neighborhoods', {
+  api.get('/api/bus-info/neighborhoods', {
     params: { district },
   }).then(res => {
     neighborhoods.value = res.data
@@ -85,7 +85,7 @@ function fetchBusStops(district, neighborhood) {
   const params = { district }
   if (neighborhood) params.neighborhood = neighborhood
 
-  axios.get('/api/bus-info/search', { params }).then(res => {
+  api.get('/api/bus-info/search', { params }).then(res => {
     emit('update-stops', res.data)
   })
 }

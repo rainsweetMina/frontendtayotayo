@@ -186,7 +186,7 @@ class QuillPasteHandler {
       const formData = new FormData();
       formData.append('file', imageFile);
 
-      axios.post('/api/admin/notices/upload/image', formData)
+      api.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
@@ -253,7 +253,7 @@ class QuillDragDropHandler {
       const formData = new FormData();
       formData.append('file', imageFile);
 
-      axios.post('/api/admin/notices/upload/image', formData)
+      api.post('/api/admin/notices/upload/image', formData)
         .then(response => {
           const url = response.data.url;
           this.insertToEditor(url);
@@ -449,7 +449,7 @@ export default {
         const formData = new FormData();
         formData.append('file', compressedFile);
 
-        const response = await axios.post('/api/admin/notices/upload/image', formData);
+        const response = await api.post('/api/admin/notices/upload/image', formData);
         const imageUrl = response.data.url;
 
         // 에디터에 이미지 삽입
@@ -505,7 +505,7 @@ export default {
           hasInlineImages = true;
 
           // 이미 서버 URL인 경우에는 변환하지 않음
-          if (imageUrl.startsWith(`${BASE_URL}/api/admin/notices/`)) {
+          if (imageUrl.startsWith(`/api/admin/notices/`)) {
             continue;
           }
 
@@ -518,7 +518,7 @@ export default {
               imgFormData.append('file', blob, 'embedded-image.png');
 
               // 동기적으로 업로드 처리
-              const uploadResponse = await axios.post('/api/admin/notices/upload/image', imgFormData);
+              const uploadResponse = await api.post('/api/admin/notices/upload/image', imgFormData);
               const newUrl = uploadResponse.data.url;
 
               // 원본 URL을 새 URL로 교체

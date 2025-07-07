@@ -1,11 +1,11 @@
-import axios from '@/api/axiosInstance'
+import api from '@/api/axiosInstance'
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://localhost:8094'
 
 // 일주일간의 응답 시간 데이터 조회
 export const getDashboardStats = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/admin/metrics/response-time`)
+    const response = await api.get(`/api/admin/metrics/response-time`)
     return response.data
   } catch (error) {
     console.error('주간 API 응답 데이터 조회 실패:', error)
@@ -18,7 +18,7 @@ export const getApiResponseTimes = async () => {
   try {
     // 5분 단위 데이터 시도 (최근 3시간)
     try {
-      const response = await axios.get(`${BASE_URL}/api/admin/metrics/response-time/5min/3`)
+      const response = await api.get(`/api/admin/metrics/response-time/5min/3`)
       console.log('5분 단위 API 응답 시간 데이터 원본 응답:', response.data)
       
       // 원본 데이터가 있으면 그대로 반환
@@ -33,7 +33,7 @@ export const getApiResponseTimes = async () => {
     
     // 시간별 데이터 시도
     try {
-      const response = await axios.get(`${BASE_URL}/api/admin/metrics/response-time/hourly`)
+      const response = await api.get(`/api/admin/metrics/response-time/hourly`)
       console.log('시간별 API 응답 시간 데이터 원본 응답:', response.data)
       
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -75,7 +75,7 @@ export const getApiResponseTimes = async () => {
 export const getRequestVolume = async () => {
   try {
     // XML 응답을 직접 처리하기 위해 responseType을 text로 설정
-    const response = await axios.get(`${BASE_URL}/api/admin/metrics/request-volume/hourly`, {
+    const response = await api.get(`/api/admin/metrics/request-volume/hourly`, {
       responseType: 'text',
       transformResponse: [data => data] // 자동 변환 방지
     });
@@ -182,7 +182,7 @@ export const getRequestVolume = async () => {
 export const getErrorCounts = async () => {
   try {
     // XML 응답을 직접 처리하기 위해 responseType을 text로 설정
-    const response = await axios.get(`${BASE_URL}/api/admin/metrics/errors/hourly`, {
+    const response = await api.get(`/api/admin/metrics/errors/hourly`, {
       responseType: 'text',
       transformResponse: [data => data] // 자동 변환 방지
     });
@@ -294,14 +294,14 @@ export async function getPostsStats() {
   try {
     // 먼저 새 경로로 시도
     try {
-      const response = await axios.get('/api/admin/stats/posts');
+      const response = await api.get('/api/admin/stats/posts');
       
       // 백엔드에서 삭제된 항목 통계를 제공하지 않는 경우 추가 처리
       if (response.data) {
         // 직접 각 API를 호출하여 삭제된 항목을 제외한 통계로 수정
         try {
           // QnA 데이터 (deleted=true인 항목 제외)
-          const qnaResponse = await axios.get('/api/qna/admin');
+          const qnaResponse = await api.get('/api/qna/admin');
           const qnaList = qnaResponse.data || [];
           const activeQnaList = qnaList.filter(item => !item.deleted);
           
@@ -317,7 +317,7 @@ export async function getPostsStats() {
           }).length;
           
           // 광고 데이터 (status=DELETED인 항목 제외)
-          const adResponse = await axios.get('/api/ad');
+          const adResponse = await api.get('/api/ad');
           const adList = adResponse.data || [];
           const activeAdList = adList.filter(item => item.status !== 'DELETED');
           
@@ -341,14 +341,14 @@ export async function getPostsStats() {
       }
     } catch (error) {
       // 실패하면 기존 모니터링 경로로 시도
-      const response = await axios.get('/api/admin/monitoring/stats/posts');
+      const response = await api.get('/api/admin/monitoring/stats/posts');
       
       // 백엔드에서 제공하는 기본 통계가 있으면 사용
       if (response.data) {
         // 직접 각 API를 호출하여 삭제된 항목을 제외한 통계로 수정
         try {
           // QnA 데이터 (deleted=true인 항목 제외)
-          const qnaResponse = await axios.get('/api/qna/admin');
+          const qnaResponse = await api.get('/api/qna/admin');
           const qnaList = qnaResponse.data || [];
           const activeQnaList = qnaList.filter(item => !item.deleted);
           
@@ -364,7 +364,7 @@ export async function getPostsStats() {
           }).length;
           
           // 광고 데이터 (status=DELETED인 항목 제외)
-          const adResponse = await axios.get('/api/ad');
+          const adResponse = await api.get('/api/ad');
           const adList = adResponse.data || [];
           const activeAdList = adList.filter(item => item.status !== 'DELETED');
           
@@ -392,16 +392,16 @@ export async function getPostsStats() {
     console.log('백엔드 통계 API 사용 불가, 개별 API 호출로 통계 계산 시작');
     
     // 공지사항 데이터
-    const noticesResponse = await axios.get('/api/admin/notices');
+    const noticesResponse = await api.get('/api/admin/notices');
     const notices = noticesResponse.data.content || noticesResponse.data || [];
     
     // QnA 데이터 (deleted=true인 항목 제외)
-    const qnaResponse = await axios.get('/api/qna/admin');
+    const qnaResponse = await api.get('/api/qna/admin');
     const qnaList = qnaResponse.data || [];
     const activeQnaList = qnaList.filter(item => !item.deleted);
     
     // 광고 데이터 (status=DELETED인 항목 제외)
-    const adResponse = await axios.get('/api/ad');
+    const adResponse = await api.get('/api/ad');
     const adList = adResponse.data || [];
     const activeAdList = adList.filter(item => item.status !== 'DELETED');
     
@@ -452,7 +452,7 @@ export async function getPostsStats() {
  */
 export const getUserStats = async () => {
   try {
-    const response = await axios.get('/api/admin/stats/users')
+    const response = await api.get('/api/admin/stats/users')
     console.log('회원 통계 원본 응답:', JSON.stringify(response.data))
     
     // 증가율이 10%로 고정되어 있는 경우를 처리
@@ -493,7 +493,7 @@ export const testFileDownloadUrls = async (noticeId) => {
   
   for (const url of testUrls) {
     try {
-      const response = await axios.head(url); // HEAD 요청으로 확인
+      const response = await api.head(url); // HEAD 요청으로 확인
       console.log(`✅ URL works: ${url}`, response.status);
       return url;
     } catch (error) {

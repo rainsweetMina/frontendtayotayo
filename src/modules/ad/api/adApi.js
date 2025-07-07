@@ -4,31 +4,31 @@ import api from "@/api/axiosInstance.js";
 
 // 광고 목록 조회
 export async function fetchAds() {
-    const res = await axios.get('/api/ad')
+    const res = await api.get('/api/ad')
     return res.data
 }
 
 // 광고 단건 조회
 export async function fetchAd(id) {
-    const res = await axios.get(`/api/ad/${id}`)
+    const res = await api.get(`/api/ad/${id}`)
     return res.data
 }
 
 // 광고 등록
 export async function createAd(data) {
-    const res = await axios.post('/api/ad', data)
+    const res = await api.post('/api/ad', data)
     return res.data
 }
 
 // 광고 수정
 export async function updateAd(id, data) {
-    const res = await axios.put(`/api/ad/${id}`, data)
+    const res = await api.put(`/api/ad/${id}`, data)
     return res.data
 }
 
 // 광고 삭제
 export async function deleteAd(id) {
-    return axios.delete(`/api/ad/${id}`)
+    return api.delete(`/api/ad/${id}`)
 }
 
 // 광고 연장

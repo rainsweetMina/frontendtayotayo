@@ -2,7 +2,8 @@
 import axios from 'axios'
 
 // 기본 설정 상수
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL || "https://docs.yi.or.kr:8094";
+console.log("BASE_URL---->", BASE_URL)
 const HTTPS_AGENT = {
     rejectUnauthorized: false
 };
@@ -21,7 +22,7 @@ const removeTokens = () => {
 
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
-    baseURL: BASE_URL,
+    baseURL: "https://docs.yi.or.kr:8094",
     withCredentials: true,
     httpsAgent: HTTPS_AGENT
 });
@@ -35,12 +36,12 @@ api.interceptors.request.use(
         if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
-        
+
         // SSL 인증서 검증 비활성화 설정 재확인
         if (!config.httpsAgent) {
             config.httpsAgent = HTTPS_AGENT;
         }
-        
+
         return config;
     },
     error => {
@@ -55,7 +56,7 @@ api.interceptors.response.use(
         // JWT 토큰이 응답 헤더에 있으면 저장
         const newAccessToken = response.headers['x-access-token'] || response.headers['X-Access-Token'];
         const newRefreshToken = response.headers['x-refresh-token'] || response.headers['X-Refresh-Token'];
-        
+
         if (newAccessToken || newRefreshToken) {
             saveTokens(newAccessToken, newRefreshToken);
             console.log('[api] ✅ 새로운 토큰이 저장되었습니다.');
@@ -127,7 +128,7 @@ api.interceptors.response.use(
             if (refreshToken && refreshToken !== 'undefined' && refreshToken !== 'null') {
                 try {
                     console.log('[api] 🔄 RefreshToken을 사용하여 새로운 AccessToken 요청 중...');
-                    
+
                     const response = await api.post('/api/auth/refresh', {
                         refreshToken: refreshToken
                     }, {
@@ -136,30 +137,30 @@ api.interceptors.response.use(
                         },
                         _retry: true // 재시도 플래그 설정
                     });
-                    
+
                     const newAccessToken = response.data.accessToken;
                     const newRefreshToken = response.data.refreshToken;
-                    
+
                     if (newAccessToken) {
                         // 새 토큰 저장
                         saveTokens(newAccessToken, newRefreshToken);
                         console.log('[api] ✅ 새로운 AccessToken이 저장되었습니다.');
-                        
+
                         // 원래 요청을 새로운 토큰으로 재시도
                         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                         return api(originalRequest);
                     }
                 } catch (refreshError) {
                     console.error('[api] ❌ Token 갱신 실패:', refreshError);
-                    
+
                     // refreshToken도 만료된 경우 localStorage에서 토큰들 제거
                     removeTokens();
-                    
+
                     if (!isAdminPage && !isPublicPage) {
                         console.warn('[api] 401 응답 → /login 이동');
                         window.location.href = '/login';
                     }
-                    
+
                     return Promise.reject(refreshError);
                 }
             } else {
@@ -195,7 +196,7 @@ export const reverseGeocode = async (lat, lon) => {
         // 최대 2번까지 재시도
         let retries = 2;
         let lastError = null;
-        
+
         while (retries >= 0) {
             try {
                 const response = await api.get('/api/reverse-geocode', {
@@ -207,19 +208,19 @@ export const reverseGeocode = async (lat, lon) => {
                 lastError = error;
                 console.warn(`역지오코딩 API 호출 실패 (남은 재시도: ${retries}):`, error);
                 retries--;
-                
+
                 // 서버 오류(5xx)인 경우에만 재시도
                 if (!error.response || error.response.status < 500) {
                     break;
                 }
-                
+
                 // 재시도 전 잠시 대기
                 if (retries >= 0) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
         }
-        
+
         throw lastError || new Error('역지오코딩 API 호출 실패');
     } catch (error) {
         console.error('역지오코딩 API 호출 실패:', error);
@@ -246,7 +247,7 @@ export const jsonpRequest = (url) => {
     return new Promise((resolve, reject) => {
         // 콜백 함수 이름 생성 (유니크한 이름)
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
-        
+
         // 전역 콜백 함수 등록
         window[callbackName] = function(data) {
             // 스크립트 태그 제거
@@ -256,10 +257,10 @@ export const jsonpRequest = (url) => {
             // 데이터 반환
             resolve(data);
         };
-        
+
         // 콜백 파라미터 추가
         const jsonpUrl = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
-        
+
         // 스크립트 태그 생성 및 추가
         const script = document.createElement('script');
         script.src = jsonpUrl;
@@ -274,23 +275,23 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
         // 기본 API 키 (이미 인코딩된 형식)
         const defaultApiKey = 'oDPMcPKGx7dsFyVw5YzReqSK07UuJoUrABe2dbwM7zt9yVfOjSlE7SQtdIir%2BEW%2BDWAcIvio0lm1rR2sMnW7iw%3D%3D';
         const apiKey = options.apiKey || defaultApiKey;
-        
+
         // API 키가 이미 URL 인코딩되어 있는지 확인
         const isEncoded = apiKey.includes('%');
-        
+
         // 파라미터에 API 키 추가 (이미 인코딩된 경우 그대로 사용)
         const queryParams = { ...params };
-        
+
         // serviceKey 파라미터 설정 (이미 인코딩된 경우 encodeURIComponent 사용 안 함)
         if (isEncoded) {
             queryParams.serviceKey = apiKey;
         } else {
             queryParams.serviceKey = encodeURIComponent(apiKey);
         }
-        
+
         // 응답 타입 확인 (기본값은 JSON)
         const responseType = options.responseType || queryParams.returnType || 'json';
-        
+
         // 쿼리 문자열 생성 (serviceKey 제외)
         const queryString = Object.entries(queryParams)
             .map(([key, value]) => {
@@ -302,11 +303,11 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
                 return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
             })
             .join('&');
-        
+
         // 전체 URL 생성
         const url = `${baseUrl}/${path}?${queryString}`;
         // console.log('생성된 원본 URL:', url);
-        
+
         // CORS 프록시 서버 목록
         const corsProxies = [
             'https://api.allorigins.win/raw?url=',
@@ -314,41 +315,41 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
             'https://cors-anywhere.herokuapp.com/',
             'https://thingproxy.freeboard.io/fetch/'
         ];
-        
+
         // 첫 번째 시도는 직접 호출
         try {
             // console.log('직접 API 호출 시도:', url);
             const response = await fetch(url);
             const text = await response.text();
-            
+
             // 응답 텍스트가 XML인지 확인
             const isXml = text.trim().startsWith('<');
-            
+
             if (isXml) {
                 console.log('XML 응답 감지됨, XML 처리 모드로 전환');
-                
+
                 // XML 응답인 경우, XML 파싱
                 if (responseType.toLowerCase() === 'json') {
                     // XML을 JSON으로 변환 (간단한 변환)
                     const parser = new DOMParser();
                     const xmlDoc = parser.parseFromString(text, 'text/xml');
-                    
+
                     // 오류 메시지 확인
                     const errorNode = xmlDoc.querySelector('errMsg');
                     if (errorNode && errorNode.textContent) {
                         console.warn('API 오류:', errorNode.textContent);
                         throw new Error(errorNode.textContent);
                     }
-                    
+
                     // 성공 응답인 경우 목업 데이터 반환
                     console.log('XML 응답을 목업 데이터로 대체');
                     return options.mockData || { items: [] };
                 }
-                
+
                 // XML 응답을 그대로 반환
                 return { xmlString: text };
             }
-            
+
             try {
                 // JSON 파싱 시도
                 return JSON.parse(text);
@@ -358,13 +359,13 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
             }
         } catch (directError) {
             console.warn('직접 API 호출 실패, 프록시 시도:', directError);
-            
+
             // 프록시 서버를 통한 호출 시도
             let lastError = directError;
             for (const proxy of corsProxies) {
                 try {
                     console.log(`${proxy} 프록시 사용 시도`);
-                    
+
                     // 각 프록시 서버에 맞는 URL 형식 생성
                     let proxyUrl;
                     if (proxy.includes('allorigins')) {
@@ -380,39 +381,39 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
                         // 기타 프록시(thingproxy 등)는 URL을 그대로 사용
                         proxyUrl = proxy + url;
                     }
-                    
+
                     console.log('프록시 URL:', proxyUrl);
                     const response = await fetch(proxyUrl);
                     const text = await response.text();
-                    
+
                     // 응답 텍스트가 XML인지 확인
                     const isXml = text.trim().startsWith('<');
-                    
+
                     if (isXml) {
                         console.log('XML 응답 감지됨, XML 처리 모드로 전환');
-                        
+
                         // XML 응답인 경우, XML 파싱
                         if (responseType.toLowerCase() === 'json') {
                             // XML을 JSON으로 변환 (간단한 변환)
                             const parser = new DOMParser();
                             const xmlDoc = parser.parseFromString(text, 'text/xml');
-                            
+
                             // 오류 메시지 확인
                             const errorNode = xmlDoc.querySelector('errMsg');
                             if (errorNode && errorNode.textContent) {
                                 console.warn('API 오류:', errorNode.textContent);
                                 throw new Error(errorNode.textContent);
                             }
-                            
+
                             // 성공 응답인 경우 목업 데이터 반환
                             console.log('XML 응답을 목업 데이터로 대체');
                             return options.mockData || { items: [] };
                         }
-                        
+
                         // XML 응답을 그대로 반환
                         return { xmlString: text };
                     }
-                    
+
                     try {
                         // JSON 파싱 시도
                         return JSON.parse(text);
@@ -427,7 +428,7 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
                     continue;
                 }
             }
-            
+
             // 모든 프록시 시도 실패
             throw lastError;
         }

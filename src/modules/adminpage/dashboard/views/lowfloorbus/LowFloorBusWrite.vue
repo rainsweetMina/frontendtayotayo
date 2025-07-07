@@ -75,7 +75,7 @@
             <div v-for="(file, index) in existingFiles" :key="file.id" class="flex items-center justify-between space-x-2 mb-2">
               <span class="text-gray-700">{{ file.originalName }}</span>
               <div class="flex items-center">
-                <a :href="`${BASE_URL}/api/admin/files/${file.id}/download`" target="_blank" class="text-blue-500 hover:text-blue-700 mr-2">
+                <a :href="`/api/admin/files/${file.id}/download`" target="_blank" class="text-blue-500 hover:text-blue-700 mr-2">
                   다운로드
                 </a>
                 <button type="button" class="text-xs text-red-600 hover:underline" @click="removeExistingFile(index)">
@@ -212,7 +212,7 @@ const saveLowFloorBus = async () => {
       hasInlineImages = true;
       
       // 이미 서버 URL인 경우에는 변환하지 않음
-      if (imageUrl.startsWith(`${BASE_URL}/api/`)) {
+      if (imageUrl.startsWith(`/api/`)) {
         continue;
       }
       
@@ -225,7 +225,7 @@ const saveLowFloorBus = async () => {
           imgFormData.append('file', blob, 'embedded-image.png');
           
           // 동기적으로 업로드 처리
-          const uploadResponse = await axios.post('/api/admin/files/upload', imgFormData);
+          const uploadResponse = await api.post('/api/admin/files/upload', imgFormData);
           const newUrl = uploadResponse.data.url;
           
           // 원본 URL을 새 URL로 교체

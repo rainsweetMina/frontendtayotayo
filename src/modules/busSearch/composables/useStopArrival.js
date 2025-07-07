@@ -21,7 +21,7 @@ export function useStopArrival(arrivalDataMap, openedStopId) {
 
         if (!arrivalDataMap.value[bsId]) {
             try {
-                const { data } = await axios.get('/api/bus/bus-arrival', {
+                const { data } = await api.get('/api/bus/bus-arrival', {
                     params: { bsId }
                 })
                 arrivalDataMap.value[bsId] = data?.body?.items || []

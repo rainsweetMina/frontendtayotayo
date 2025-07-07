@@ -19,7 +19,7 @@ export function useLowFloorBusApi() {
         }
       }
       
-      const response = await axios.get('/api/admin/lowfloorbuses', { params });
+      const response = await api.get('/api/admin/lowfloorbuses', { params });
       console.log('API 응답 구조:', {
         status: response.status,
         hasContent: response.data && response.data.content ? true : false,
@@ -36,7 +36,7 @@ export function useLowFloorBusApi() {
   const getLowFloorBusDetail = async (id) => {
     try {
       console.log('Fetching lowFloorBus detail:', id);
-      const response = await axios.get(`/api/admin/lowfloorbuses/${id}`);
+      const response = await api.get(`/api/admin/lowfloorbuses/${id}`);
       console.log('LowFloorBus detail response:', response.data);
       return response;
     } catch (error) {
@@ -55,7 +55,7 @@ export function useLowFloorBusApi() {
         console.log(`- ${key}`);
       }
       
-      const response = await axios.post('/api/admin/lowfloorbuses', formData, {
+      const response = await api.post('/api/admin/lowfloorbuses', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json'
@@ -89,7 +89,7 @@ export function useLowFloorBusApi() {
         console.log(`- ${key}`);
       }
       
-      const response = await axios.put(`/api/admin/lowfloorbuses/${id}`, formData, {
+      const response = await api.put(`/api/admin/lowfloorbuses/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json'
@@ -117,7 +117,7 @@ export function useLowFloorBusApi() {
   const deleteLowFloorBus = async (id) => {
     try {
       console.log('Deleting lowFloorBus:', id);
-      const response = await axios.delete(`/api/admin/lowfloorbuses/${id}`);
+      const response = await api.delete(`/api/admin/lowfloorbuses/${id}`);
       console.log('Delete lowFloorBus response:', response.data);
       return response;
     } catch (error) {
@@ -129,7 +129,7 @@ export function useLowFloorBusApi() {
   const toggleTopNotice = async (id, isTop) => {
     try {
       console.log(`저상버스 대체 안내 탑공지 설정: ID=${id}, 상태=${isTop}`);
-      const response = await axios.patch(`/api/admin/lowfloorbuses/${id}/top-notice?topNotice=${isTop}`);
+      const response = await api.patch(`/api/admin/lowfloorbuses/${id}/top-notice?topNotice=${isTop}`);
       console.log('탑공지 설정 응답:', response.data);
       return response;
     } catch (error) {

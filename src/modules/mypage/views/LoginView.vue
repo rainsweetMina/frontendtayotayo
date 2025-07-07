@@ -148,8 +148,8 @@ const handleLogin = async () => {
 }
 
 const goToRegister = () => router.push('/register')
-const loginWithGoogle = () => (window.location.href = `${BASE_URL}/oauth2/authorization/google`)
-const loginWithKakao = () => (window.location.href = `${BASE_URL}/oauth2/authorization/kakao`)
+const loginWithGoogle = () => (window.location.href = `/oauth2/authorization/google`)
+const loginWithKakao = () => (window.location.href = `/oauth2/authorization/kakao`)
 </script>
 
 <style scoped>

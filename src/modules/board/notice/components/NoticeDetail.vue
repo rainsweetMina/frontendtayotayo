@@ -112,7 +112,7 @@ const fetchNoticeDetail = async (id) => {
     
     try {
       // 일반 사용자용 공지사항 상세 API로 변경
-      const response = await axios.get(`/api/public/notices/${id}`);
+      const response = await api.get(`/api/public/notices/${id}`);
       console.log('공지사항 상세 응답:', response.data);
       
       if (!response.data || !response.data.id) {
@@ -161,7 +161,7 @@ const downloadFile = async (file, index) => {
       url = `/api/public/notices/${props.noticeId}/images/${index}`
     }
     
-    const response = await axios.get(url, {
+    const response = await api.get(url, {
       responseType: 'blob'
     })
     

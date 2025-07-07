@@ -316,7 +316,7 @@ const fetchQnaList = async () => {
   try {
     isLoading.value = true
     error.value = ''
-    const res = await axios.get('/api/qna/admin')
+    const res = await api.get('/api/qna/admin')
     qnaList.value = res.data
     filterQna()
   } catch (e) {
@@ -402,7 +402,7 @@ const handleHide = (id) => {
     try {
       isLoading.value = true
       error.value = ''
-      await axios.patch(`/api/qna/admin/hide/${id}`)
+      await api.patch(`/api/qna/admin/hide/${id}`)
       await fetchQnaList()
       alertMessage.value = '숨김 처리되었습니다.'
       showAlert.value = true
@@ -420,7 +420,7 @@ const handleDelete = (id) => {
     try {
       isLoading.value = true
       error.value = ''
-      await axios.delete(`/api/qna/admin/${id}`)
+      await api.delete(`/api/qna/admin/${id}`)
       await fetchQnaList()
       alertMessage.value = '삭제되었습니다.'
       showAlert.value = true

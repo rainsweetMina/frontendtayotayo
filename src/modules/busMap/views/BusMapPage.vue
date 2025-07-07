@@ -80,7 +80,7 @@ function handleSearch({ keyword, newStart, newEnd }) {
   
   console.log('검색 API 호출:', keyword);
 
-  axios.get('/api/bus/searchBSorBN', { params: { keyword } })
+  api.get('/api/bus/searchBSorBN', { params: { keyword } })
       .then(({ data }) => {
         console.log('검색 결과:', data);
         busStops.value = data.busStops || []

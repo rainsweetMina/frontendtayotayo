@@ -342,7 +342,7 @@ const onPopupMouseUp = () => {
 
 const fetchPopupAd = async () => {
   try {
-    const res = await axios.get('/api/ad/popup')
+    const res = await api.get('/api/ad/popup')
     const ad = res.data
     const today = new Date().toISOString().split('T')[0]
     
@@ -370,7 +370,7 @@ const closePopup = () => {
 const fetchNotices = async () => {
   try {
     // 일반 사용자용 공지사항 API로 변경
-    const response = await axios.get('/api/public/notices');
+    const response = await api.get('/api/public/notices');
     console.log('공지사항 API 응답:', response.data);
 
     if (response.data && Array.isArray(response.data)) {
@@ -389,7 +389,7 @@ const fetchNotices = async () => {
 const fetchLowFloorBuses = async () => {
   try {
     // 일반 사용자용 저상버스 대체안내 API 호출
-    const response = await axios.get('/api/public/lowfloorbuses');
+    const response = await api.get('/api/public/lowfloorbuses');
     console.log('저상버스 대체안내 API 응답:', response.data);
 
     if (response.data && Array.isArray(response.data)) {
@@ -408,7 +408,7 @@ const fetchLowFloorBuses = async () => {
 const fetchBanners = async () => {
   try {
     // 진행중 광고만(공개용 API가 있다면 /api/ad/active, 없다면 /api/ad)
-    const response = await axios.get('/api/ad/active')
+    const response = await api.get('/api/ad/active')
     banners.value = response.data
   } catch (e) {
     console.error('배너 로드 실패:', e)
@@ -480,7 +480,7 @@ const fetchPopupNotice = async () => {
     const dismissed = JSON.parse(localStorage.getItem('dismissedNoticePopups') || '{}')
     // 이미 닫은 팝업은 오늘 다시 안 띄움
     if (dismissed[today]) return
-    let res = await axios.get('/api/public/notices/popup', { headers: { Accept: 'application/json' } })
+    let res = await api.get('/api/public/notices/popup', { headers: { Accept: 'application/json' } })
     let data = res.data
     // 만약 문자열(XML/HTML 등)로 오면 JSON 파싱 시도
     if (typeof data === 'string') {

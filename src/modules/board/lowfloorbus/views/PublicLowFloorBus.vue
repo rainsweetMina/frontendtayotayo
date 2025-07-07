@@ -215,7 +215,7 @@ const fetchLowFloorBuses = async () => {
     isLoading.value = true
     error.value = ''
     
-    const response = await axios.get('/api/public/lowfloorbuses')
+    const response = await api.get('/api/public/lowfloorbuses')
     console.log('저상버스 대체안내 API 응답:', response.data)
     
     if (response.data && Array.isArray(response.data)) {
@@ -243,7 +243,7 @@ const changePage = (newPage) => {
 
 const checkUserRole = async () => {
   try {
-    const response = await axios.get('/api/auth/check-role')
+    const response = await api.get('/api/auth/check-role')
     userRole.value = response.data.role
     isAdmin.value = response.data.role === 'ADMIN'
   } catch (err) {
@@ -255,7 +255,7 @@ const checkUserRole = async () => {
 
 const fetchLowFloorBusDetail = async (id) => {
   try {
-    const response = await axios.get(`/api/public/lowfloorbuses/${id}`)
+    const response = await api.get(`/api/public/lowfloorbuses/${id}`)
     return response.data
   } catch (err) {
     console.error('저상버스 대체안내 상세 조회 실패:', err)

@@ -304,7 +304,7 @@ const downloadFile = async (file, index) => {
     const url = `${BASE_URL.value}/api/admin/notices/${notice.value.id}/files/${index}`
     console.log('Download URL:', url)
     
-    const response = await axios.get(url, {
+    const response = await api.get(url, {
       responseType: 'blob'
     })
     
@@ -335,7 +335,7 @@ const downloadSingleFile = async () => {
   try {
     const url = getSingleFileUrl()
     
-    const response = await axios.get(url, {
+    const response = await api.get(url, {
       responseType: 'blob'
     })
     
@@ -359,7 +359,7 @@ const downloadByFileName = async () => {
   try {
     const url = `${BASE_URL.value}/api/admin/notices/${notice.value.id}/download?filename=${encodeURIComponent(notice.value.fileName)}`
     
-    const response = await axios.get(url, {
+    const response = await api.get(url, {
       responseType: 'blob'
     })
     

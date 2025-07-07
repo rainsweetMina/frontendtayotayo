@@ -157,7 +157,7 @@ const fetchNotices = async () => {
     isLoading.value = true
     error.value = ''
     
-    const response = await axios.get('/api/public/notices')
+    const response = await api.get('/api/public/notices')
     console.log('공지사항 API 응답:', response.data)
     
     if (response.data && Array.isArray(response.data)) {
@@ -189,7 +189,7 @@ const checkAdminRole = async () => {
     isAdmin.value = false;
 
     // 오류 발생하는 API 주석 처리
-    // const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/auth/check-role`)
+    // const response = await api.get(`${import.meta.env.VITE_BASE_URL}/api/auth/check-role`)
     // isAdmin.value = response.data.hasRole === 'ROLE_ADMIN'
   } catch (error) {
     console.error('관리자 권한 확인 실패:', error);

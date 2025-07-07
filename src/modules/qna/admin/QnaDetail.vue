@@ -84,7 +84,7 @@ const closeModal = () => { modalOpen.value = false }
 
 const fetchQna = async () => {
   try {
-    const res = await axios.get(`/api/qna/${route.params.id}`)
+    const res = await api.get(`/api/qna/${route.params.id}`)
     qna.value = res.data
   } catch (e) {
     openModal('오류', 'QnA 정보를 불러올 수 없습니다.', '확인', 'danger')
@@ -109,7 +109,7 @@ const openDeleteConfirm = () => {
 const handleHide = async () => {
   modalOpen.value = false
   try {
-    await axios.patch(`/api/qna/admin/hide/${qna.value.id}`)
+    await api.patch(`/api/qna/admin/hide/${qna.value.id}`)
     openModal('완료', '숨김 처리되었습니다.', '확인', 'success')
     await fetchQna()
   } catch (e) {
@@ -120,7 +120,7 @@ const handleHide = async () => {
 const handleDelete = async () => {
   modalOpen.value = false
   try {
-    await axios.delete(`/api/qna/admin/${qna.value.id}`)
+    await api.delete(`/api/qna/admin/${qna.value.id}`)
     openModal('완료', '삭제되었습니다.', '확인', 'success', false, () => router.push('/admin/qna'))
   } catch (e) {
     openModal('오류', '삭제에 실패했습니다.', '확인', 'danger')

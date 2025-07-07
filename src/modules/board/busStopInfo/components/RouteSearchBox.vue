@@ -53,7 +53,7 @@ function onTypeChange(type) {
   routeNos.value = []
 
   if (!type) return
-  axios.get('/api/bus-info/route-nos', { params: { type } }).then(res => {
+  api.get('/api/bus-info/route-nos', { params: { type } }).then(res => {
     routeNos.value = res.data
   })
 }
@@ -63,7 +63,7 @@ function onRouteChange(routeNo) {
   emit('update:routeNo', routeNo)
   if (!routeNo) return
 
-  axios.get('/api/bus-info/search-by-route', {
+  api.get('/api/bus-info/search-by-route', {
     params: { routeNo }
   }).then(res => {
     emit('update-stops', res.data)

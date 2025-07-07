@@ -397,7 +397,7 @@ export default {
         console.log(`공지 ${id} 탑공지 ${isTop ? '설정' : '해제'} 시도`);
         
         // PATCH API 호출
-        const response = await axios.patch(`/api/admin/notices/${id}/top?isTop=${isTop}`);
+        const response = await api.patch(`/api/admin/notices/${id}/top?isTop=${isTop}`);
         console.log('탑공지 변경 응답:', response.data);
         
         // 성공 시 목록 다시 불러오기

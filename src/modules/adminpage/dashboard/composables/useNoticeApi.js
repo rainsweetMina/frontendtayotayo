@@ -19,7 +19,7 @@ export function useNoticeApi() {
         }
       }
       
-      const response = await axios.get('/api/admin/notices', { params });
+      const response = await api.get('/api/admin/notices', { params });
       console.log('API 응답 구조:', {
         status: response.status,
         hasContent: response.data && response.data.content ? true : false,
@@ -36,7 +36,7 @@ export function useNoticeApi() {
   const getNoticeDetail = async (id) => {
     try {
       console.log('Fetching notice detail:', id);
-      const response = await axios.get(`/api/admin/notices/${id}`);
+      const response = await api.get(`/api/admin/notices/${id}`);
       console.log('Notice detail response:', response.data);
       return response;
     } catch (error) {
@@ -55,7 +55,7 @@ export function useNoticeApi() {
         console.log(`- ${key}`);
       }
       
-      const response = await axios.post('/api/admin/notices', formData, {
+      const response = await api.post('/api/admin/notices', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json'
@@ -89,7 +89,7 @@ export function useNoticeApi() {
         console.log(`- ${key}`);
       }
       
-      const response = await axios.put(`/api/admin/notices/${id}`, formData, {
+      const response = await api.put(`/api/admin/notices/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json'
@@ -117,7 +117,7 @@ export function useNoticeApi() {
   const deleteNotice = async (id) => {
     try {
       console.log('Deleting notice:', id);
-      const response = await axios.delete(`/api/admin/notices/${id}`);
+      const response = await api.delete(`/api/admin/notices/${id}`);
       console.log('Delete notice response:', response.data);
       return response;
     } catch (error) {
