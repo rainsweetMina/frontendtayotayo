@@ -1,4 +1,4 @@
-import axios from '@/api/axiosInstance';
+import api from '@/api/axiosInstance';
 
 export function useNoticeApi() {
   const getNotices = async (page = 0, pageSize = 10, searchType = '', searchKeyword = '') => {

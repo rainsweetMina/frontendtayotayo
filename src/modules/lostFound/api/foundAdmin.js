@@ -1,12 +1,5 @@
 import api from '@/api/axiosInstance.js'
 
-// axios 인스턴스 생성
-const axiosInstance = axios.create({
-    withCredentials: true,
-    headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-    }
-});
 
 const ADMIN_FOUND_API = '/api/admin/found';
 

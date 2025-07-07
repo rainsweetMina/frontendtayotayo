@@ -67,7 +67,7 @@ const series = ref([
 let ws;
 
 const connectWebSocket = () => {
-  ws = new WebSocket('ws://your-backend-url/redis-metrics');
+  ws = new WebSocket('ws://docs.yi.or.kr:8094/redis-metrics');
   
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);

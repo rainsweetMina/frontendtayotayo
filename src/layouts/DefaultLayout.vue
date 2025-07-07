@@ -78,8 +78,8 @@
 <script setup>
 import {useRoute} from 'vue-router'
 import {useSearchStore} from '@/stores/searchStore'
-import HeaderComponent from '/src/modules/adminpage/dashboard/components/Header/HeaderComponent.vue'
-import BusSearchPage from '/src/modules/busSearch/views/BusSearchPage.vue'
+import HeaderComponent from '@/modules/adminpage/dashboard/components/Header/HeaderComponent.vue'
+import BusSearchPage from '@/modules/busSearch/views/BusSearchPage.vue'
 import { ref } from 'vue'
 
 const route = useRoute()

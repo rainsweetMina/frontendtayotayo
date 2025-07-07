@@ -240,7 +240,7 @@ import AppBreadcrumb from '@/partials/AppBreadcrumb.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import AlertMessage from '@/modules/adminpage/dashboard/components/AlertMessage.vue'
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
+const IMAGE_BASE_URL = import.meta.env.VITE_BASE_URL+"/uploads"
 
 const router = useRouter()
 const adList = ref([])

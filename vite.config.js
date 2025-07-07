@@ -38,11 +38,7 @@ export default defineConfig({
             key: fs.readFileSync('./localhost+2-key.pem'),
             cert: fs.readFileSync('./localhost+2.pem')
         },
-        hmr: {
-            host: 'docs.yi.or.kr',
-            port: 15173,
-            protocol: 'wss'
-        },
+
         cors: true,
         fs: {
             strict: false

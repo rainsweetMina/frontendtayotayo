@@ -24,12 +24,53 @@ const removeTokens = () => {
 const api = axios.create({
     baseURL: "https://docs.yi.or.kr:8094",
     withCredentials: true,
-    httpsAgent: HTTPS_AGENT,
-    headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json; charset=utf-8'
-    }
+    httpsAgent: HTTPS_AGENT
 });
+
+
+api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+    formData.append(dtoKey, blob);
+    if (Array.isArray(files)) {
+        files.forEach(file => {
+            if (file) formData.append(fileKey, file);
+        });
+    } else if (files) {
+        formData.append(fileKey, files);
+    }
+    const token = localStorage.getItem('token');
+    return api.post(url, formData, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+};
+
+// PUT용 멀티파트 업로드 메서드 추가
+api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+
+    console.log('🟡 dto3----->:', dto);
+    console.log('🟡 files3----->:', files);
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
+    formData.append(dtoKey, blob);
+    if (Array.isArray(files)) {
+        files.forEach(file => {
+            if (file) formData.append(fileKey, file);
+        });
+    } else if (files) {
+        formData.append(fileKey, files);
+    }
+    console.log('🟡 formData----->:', formData);
+
+    const token = localStorage.getItem('token');
+    return api.put(url, formData, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+};
 
 // api 인스턴스에 대한 인터셉터 설정
 // 요청 인터셉터
