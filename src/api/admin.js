@@ -1,6 +1,6 @@
 import axios from '@/api/axiosInstance'
 
-const BASE_URL = import.meta.env.VITE_APP_API_URL || 'https://localhost:8081'
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://localhost:8094'
 
 // 일주일간의 응답 시간 데이터 조회
 export const getDashboardStats = async () => {

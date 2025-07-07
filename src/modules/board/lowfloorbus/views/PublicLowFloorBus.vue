@@ -212,58 +212,25 @@ const totalPages = computed(() => {
 
 const fetchLowFloorBuses = async () => {
   try {
-    isLoading.value = true;
-    error.value = '';
-    console.log('저상버스 대체 안내 목록 조회 요청');
-
-    try {
-      // 일반 사용자용 저상버스 대체 안내 API 호출
-      const response = await axios.get(`https://localhost:8081/api/public/lowfloorbuses`);
-      console.log('저상버스 대체 안내 목록 응답:', response.data);
-
-      if (response.data && Array.isArray(response.data)) {
-        // 배열 형태 응답 (public API 응답 형식)
-        lowFloorBuses.value = response.data.map(lowFloorBus => ({
-          ...lowFloorBus,
-          createdAt: lowFloorBus.createdAt || lowFloorBus.createdDate || new Date().toISOString(),
-          content: lowFloorBus.content || '',
-          viewCount: lowFloorBus.viewCount || 0
-        }));
-      } else if (response.data && response.data.content) {
-        // 페이징된 응답 구조
-        lowFloorBuses.value = response.data.content.map(lowFloorBus => ({
-          ...lowFloorBus,
-          createdAt: lowFloorBus.createdAt || lowFloorBus.createdDate || new Date().toISOString(),
-          content: lowFloorBus.content || '',
-          viewCount: lowFloorBus.viewCount || 0
-        }));
-      } else if (response.data) {
-        // 단일 객체 응답
-        lowFloorBuses.value = [{
-          ...response.data,
-          createdAt: response.data.createdAt || response.data.createdDate || new Date().toISOString(),
-          content: response.data.content || '',
-          viewCount: response.data.viewCount || 0
-        }];
-      } else {
-        throw new Error('응답 데이터가 없습니다');
-      }
-
-      console.log(`총 ${lowFloorBuses.value.length}개 저상버스 대체 안내 로드 완료, 전체 페이지: ${totalPages.value}`);
-    } catch (apiError) {
-      console.error('API 호출 오류:', apiError);
-      throw apiError;
+    isLoading.value = true
+    error.value = ''
+    
+    const response = await axios.get('/api/public/lowfloorbuses')
+    console.log('저상버스 대체안내 API 응답:', response.data)
+    
+    if (response.data && Array.isArray(response.data)) {
+      lowFloorBuses.value = response.data
+    } else if (response.data && Array.isArray(response.data.content)) {
+      lowFloorBuses.value = response.data.content
+    } else {
+      lowFloorBuses.value = []
     }
-  } catch (error) {
-    console.error('저상버스 대체 안내 로딩 실패:', error);
-    console.error('응답 데이터:', error.response?.data);
-    console.error('응답 상태:', error.response?.status);
-    error.value = '저상버스 대체 안내를 불러오는데 실패했습니다.';
-
-    // 목업 데이터 제거
-    lowFloorBuses.value = [];
+  } catch (err) {
+    console.error('저상버스 대체안내 로드 실패:', err)
+    error.value = '저상버스 대체안내를 불러오는데 실패했습니다.'
+    lowFloorBuses.value = []
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
 }
 
@@ -274,47 +241,25 @@ const changePage = (newPage) => {
   if (typeof window !== 'undefined') window.scrollTo({top: 0, behavior: 'smooth'});
 };
 
-const checkAdminRole = async () => {
+const checkUserRole = async () => {
   try {
-    // 실제 API 호출로 변경
-    const response = await axios.get('https://localhost:8081/api/auth/check-role')
-    isAdmin.value = response.data.isAdmin
-  } catch (error) {
-    console.error('관리자 권한 확인 실패:', error)
+    const response = await axios.get('/api/auth/check-role')
+    userRole.value = response.data.role
+    isAdmin.value = response.data.role === 'ADMIN'
+  } catch (err) {
+    console.error('사용자 역할 확인 실패:', err)
+    userRole.value = 'USER'
     isAdmin.value = false
   }
 }
 
 const fetchLowFloorBusDetail = async (id) => {
   try {
-    isLoading.value = true;
-    error.value = '';
-    console.log(`저상버스 대체 안내 상세 조회 요청: ID=${id}`);
-
-    try {
-      const response = await axios.get(`https://localhost:8081/api/public/lowfloorbuses/${id}`);
-      console.log('저상버스 대체 안내 상세 응답:', response.data);
-
-      if (response.data) {
-        selectedLowFloorBus.value = {
-          ...response.data,
-          createdAt: response.data.createdAt || response.data.createdDate || new Date().toISOString(),
-          content: response.data.content || '',
-          viewCount: response.data.viewCount || 0
-        };
-      } else {
-        throw new Error('응답 데이터가 없습니다');
-      }
-    } catch (apiError) {
-      console.error('API 호출 오류:', apiError);
-      throw apiError;
-    }
-  } catch (error) {
-    console.error('저상버스 대체 안내 상세 로딩 실패:', error);
-    error.value = '저상버스 대체 안내를 불러오는데 실패했습니다.';
-    selectedLowFloorBus.value = null;
-  } finally {
-    isLoading.value = false;
+    const response = await axios.get(`/api/public/lowfloorbuses/${id}`)
+    return response.data
+  } catch (err) {
+    console.error('저상버스 대체안내 상세 조회 실패:', err)
+    throw err
   }
 }
 
@@ -330,11 +275,11 @@ const isImageFile = (file) => {
 }
 
 const getImageUrl = (file) => {
-  return `https://localhost:8081/api/public/files/${file.id}`;
+  return `${import.meta.env.VITE_BASE_URL}/api/public/files/${file.id}`;
 }
 
 const downloadFile = (file) => {
-  window.open(`https://localhost:8081/api/public/files/${file.id}/download`, '_blank');
+  window.open(`${import.meta.env.VITE_BASE_URL}/api/public/files/${file.id}/download`, '_blank');
 }
 
 const formatFileSize = (bytes) => {
@@ -366,7 +311,7 @@ watch(() => route.params.id, (newId) => {
 }, { immediate: true });
 
 onMounted(async () => {
-  await checkAdminRole();
+  await checkUserRole();
   if (!route.params.id) {
     fetchLowFloorBuses();
   }

@@ -130,6 +130,9 @@ import Quill from 'quill';
 import axios from '@/api/axiosInstance.js';
 import Breadcrumb from '../../partials/AppBreadcrumb.vue';
 
+// BASE_URL을 computed로 선언
+const BASE_URL = computed(() => import.meta.env.VITE_BASE_URL);
+
 // Base64 형식의 이미지를 Blob으로 변환
 function dataURLtoBlob(dataURL) {
   const arr = dataURL.split(',');
@@ -502,7 +505,7 @@ export default {
           hasInlineImages = true;
 
           // 이미 서버 URL인 경우에는 변환하지 않음
-          if (imageUrl.startsWith('https://localhost:8081/api/admin/notices/')) {
+          if (imageUrl.startsWith(`${BASE_URL}/api/admin/notices/`)) {
             continue;
           }
 

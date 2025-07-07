@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 // 기본 설정 상수
-const BASE_URL = 'https://localhost:8081';
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 const HTTPS_AGENT = {
     rejectUnauthorized: false
 };

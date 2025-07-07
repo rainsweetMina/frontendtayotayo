@@ -40,7 +40,7 @@
           <h3 class="text-lg font-medium mb-2">첨부파일</h3>
           <ul class="space-y-2">
             <li v-for="(file, index) in lowFloorBus.files" :key="index" class="flex items-center">
-              <a :href="`https://localhost:8081/api/admin/files/${file.id}/download`" target="_blank" class="text-blue-600 hover:text-blue-800 flex items-center">
+              <a :href="`${BASE_URL}/api/admin/files/${file.id}/download`" target="_blank" class="text-blue-600 hover:text-blue-800 flex items-center">
                 <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                 </svg>
@@ -55,88 +55,77 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useLowFloorBusApi } from '../../composables/useLowFloorBusApi.js';
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useLowFloorBusApi } from '../../composables/useLowFloorBusApi.js'
 
-export default {
-  name: 'LowFloorBusDetail',
-  setup() {
-    const route = useRoute();
-    const router = useRouter();
-    const id = route.params.id;
-    const lowFloorBus = ref(null);
-    const isLoading = ref(false);
-    const error = ref('');
+const route = useRoute()
+const router = useRouter()
 
-    const { getLowFloorBusDetail, deleteLowFloorBus: apiDeleteLowFloorBus } = useLowFloorBusApi();
+// BASE_URL을 computed로 선언
+const BASE_URL = computed(() => import.meta.env.VITE_BASE_URL)
 
-    const fetchLowFloorBusDetail = async () => {
-      try {
-        isLoading.value = true;
-        error.value = '';
-        const response = await getLowFloorBusDetail(id);
-        
-        // 백엔드 응답 구조에 맞게 처리
-        if (response.data) {
-          lowFloorBus.value = response.data;
-        } else {
-          throw new Error('저상버스 대체 안내 데이터가 없습니다.');
-        }
-      } catch (err) {
-        console.error('저상버스 대체 안내 상세 조회 실패:', err);
-        error.value = '저상버스 대체 안내 상세 정보를 불러오는데 실패했습니다.';
-        lowFloorBus.value = null;
-      } finally {
-        isLoading.value = false;
-      }
-    };
+const id = route.params.id
+const lowFloorBus = ref(null)
+const isLoading = ref(false)
+const error = ref('')
 
-    const deleteLowFloorBus = async () => {
-      if (confirm('정말 삭제하시겠습니까?')) {
-        try {
-          await apiDeleteLowFloorBus(id);
-          router.push('/admin/lowfloorbus');
-        } catch (err) {
-          console.error('저상버스 대체 안내 삭제 실패:', err);
-          alert('저상버스 대체 안내 삭제에 실패했습니다.');
-        }
-      }
-    };
+const { getLowFloorBusDetail, deleteLowFloorBus: apiDeleteLowFloorBus } = useLowFloorBusApi()
 
-    const formatFileSize = (bytes) => {
-      if (!bytes) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
-    const formatDate = (date) => {
-      if (!date) return '';
-      return new Date(date).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
-
-    onMounted(fetchLowFloorBusDetail);
-
-    return {
-      id,
-      lowFloorBus,
-      isLoading,
-      error,
-      deleteLowFloorBus,
-      formatFileSize,
-      formatDate
-    };
+const fetchLowFloorBusDetail = async () => {
+  try {
+    isLoading.value = true
+    error.value = ''
+    const response = await getLowFloorBusDetail(id)
+    
+    // 백엔드 응답 구조에 맞게 처리
+    if (response.data) {
+      lowFloorBus.value = response.data
+    } else {
+      throw new Error('저상버스 대체 안내 데이터가 없습니다.')
+    }
+  } catch (err) {
+    console.error('저상버스 대체 안내 상세 조회 실패:', err)
+    error.value = '저상버스 대체 안내 상세 정보를 불러오는데 실패했습니다.'
+    lowFloorBus.value = null
+  } finally {
+    isLoading.value = false
   }
-};
+}
+
+const deleteLowFloorBus = async () => {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      await apiDeleteLowFloorBus(id)
+      router.push('/admin/lowfloorbus')
+    } catch (err) {
+      console.error('저상버스 대체 안내 삭제 실패:', err)
+      alert('저상버스 대체 안내 삭제에 실패했습니다.')
+    }
+  }
+}
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const formatDate = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+onMounted(fetchLowFloorBusDetail)
 </script>
 
 <style scoped>

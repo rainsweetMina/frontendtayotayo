@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, watch, nextTick} from 'vue'
+import {ref, onMounted, watch, nextTick, computed} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/api/axiosInstance'
 import { useAuthStore } from '@/stores/auth'
@@ -55,6 +55,9 @@ const userId = ref('admin')
 const password = ref('!1aaaaaa')
 const rememberId = ref(false)
 const error = ref('')
+
+// BASE_URL을 computed로 선언
+const BASE_URL = computed(() => import.meta.env.VITE_BASE_URL)
 
 /* --------------------------------------------------
  * 저장된 아이디 복원
@@ -145,8 +148,8 @@ const handleLogin = async () => {
 }
 
 const goToRegister = () => router.push('/register')
-const loginWithGoogle = () => (window.location.href = 'https://localhost:8081/oauth2/authorization/google')
-const loginWithKakao = () => (window.location.href = 'https://localhost:8081/oauth2/authorization/kakao')
+const loginWithGoogle = () => (window.location.href = `${BASE_URL}/oauth2/authorization/google`)
+const loginWithKakao = () => (window.location.href = `${BASE_URL}/oauth2/authorization/kakao`)
 </script>
 
 <style scoped>

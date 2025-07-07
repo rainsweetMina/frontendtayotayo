@@ -145,243 +145,238 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useNoticeApi } from '../../composables/useNoticeApi.js';
-import axios from '@/api/axiosInstance.js';
-import Breadcrumb from '../../partials/AppBreadcrumb.vue';
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useNoticeApi } from '../../composables/useNoticeApi.js'
+import axios from '@/api/axiosInstance'
+import Breadcrumb from '../../partials/AppBreadcrumb.vue'
 
-export default {
-  name: 'NoticeDetail',
-  components: {
-    Breadcrumb
-  },
-  setup() {
-    const route = useRoute();
-    const router = useRouter();
-    const notice = ref(null);
-    const isLoading = ref(false);
-    const error = ref('');
+const route = useRoute()
+const router = useRouter()
 
-    const { getNoticeDetail, deleteNotice } = useNoticeApi();
+// BASE_URL을 computed로 선언
+const BASE_URL = computed(() => import.meta.env.VITE_BASE_URL)
 
-    // 이미지 파일인지 확인하는 함수
-    const isImageFile = (file) => {
-      if (!file || !file.fileType) return false;
-      return file.fileType.startsWith('image/');
-    };
+const notice = ref(null)
+const isLoading = ref(false)
+const error = ref('')
 
-    // 이미지 URL 생성
-    const getImageUrl = (file, index) => {
-      return `/api/admin/notices/${notice.value.id}/images/${index}`;
-    };
+const { getNoticeDetail, deleteNotice } = useNoticeApi()
 
-    const fetchNotice = async () => {
-      try {
-        isLoading.value = true;
-        error.value = '';
-        
-        console.log('Fetching notice detail for id:', route.params.id);
-        const response = await getNoticeDetail(route.params.id);
-        notice.value = response.data;
-        
-        console.log('Notice data:', notice.value);
-        
-        // 파일 정보 디버깅
-        const fileFields = {
-          fileUrl: notice.value.fileUrl,
-          files: notice.value.files,
-          fileName: notice.value.fileName,
-          fileUrls: notice.value.fileUrls,
-          attachments: notice.value.attachments,
-          filePath: notice.value.filePath,
-          fileId: notice.value.fileId
-        };
-        console.log('File related fields:', fileFields);
-        
-        if (notice.value.files) {
-          console.log('Files array detail:', notice.value.files);
-          if (notice.value.files.length > 0) {
-            console.log('First file:', notice.value.files[0]);
-          }
-        }
-        
-        // 모든 키 출력
-        console.log('All notice keys:', Object.keys(notice.value));
-        
-      } catch (err) {
-        console.error('공지사항 조회 실패:', err);
-        error.value = '공지사항을 불러오는데 실패했습니다.';
-      } finally {
-        isLoading.value = false;
-      }
-    };
+// 이미지 파일인지 확인하는 함수
+const isImageFile = (file) => {
+  if (!file || !file.fileType) return false
+  return file.fileType.startsWith('image/')
+}
 
-    const handleDelete = async () => {
-      if (confirm('정말 삭제하시겠습니까?')) {
-        try {
-          await deleteNotice(route.params.id);
-          alert('삭제되었습니다.');
-          router.push('/admin/notices');
-        } catch (err) {
-          console.error('삭제 실패:', err);
-          alert('삭제에 실패했습니다.');
-        }
-      }
-    };
+// 이미지 URL 생성
+const getImageUrl = (file, index) => {
+  return `${BASE_URL.value}/api/admin/notices/${notice.value.id}/images/${index}`
+}
 
-    const formatDate = (date) => {
-      if (!date) return '';
-      return new Date(date).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
-
-    const formatFileSize = (bytes) => {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
-    // 파일 다운로드 URL 생성
-    const getFileDownloadUrl = (file, index) => {
-      // NoticeFile 엔티티 구조에 맞게 처리
-      if (file && typeof file === 'object') {
-        // originalName이 있는 경우 (NoticeFile 엔티티)
-        if (file.originalName) {
-          return `https://localhost:8081/api/admin/notices/${notice.value.id}/files/${index}`;
-        }
-        
-        // file 객체에 직접 URL이 있는 경우
-        if (file.url || file.fileUrl || file.downloadUrl) {
-          const url = file.url || file.fileUrl || file.downloadUrl;
-          return url.startsWith('http') ? url : `https://localhost:8081${url}`;
-        }
-      }
-      
-      // file이 문자열인 경우 (파일명만 있는 경우)
-      if (typeof file === 'string') {
-        return `https://localhost:8081/api/admin/notices/${notice.value.id}/download?filename=${encodeURIComponent(file)}`;
-      }
-      
-      // 기본 다운로드 경로
-      return `https://localhost:8081/api/admin/notices/${notice.value.id}/download`;
-    };
-
-    // 파일명 추출
-    const getFileName = (file) => {
-      if (typeof file === 'string') return file;
-      // NoticeFile 엔티티 구조
-      return file.originalName || file.fileName || file.name || `파일 ${file.id || ''}`;
-    };
-
-    // 단일 파일 URL 가져오기
-    const getSingleFileUrl = () => {
-      const n = notice.value;
-      
-      // 다양한 가능한 필드명 확인
-      const url = n.fileUrl || n.fileDownloadUrl || n.filePath || n.downloadUrl;
-      
-      if (url) {
-        // 절대 경로인지 확인
-        return url.startsWith('http') ? url : `https://localhost:8081${url}`;
-      }
-      
-      // 기본 다운로드 경로 (첫 번째 파일)
-      return `https://localhost:8081/api/admin/notices/${n.id}/download`;
-    };
-
-    // 파일 다운로드 처리
-    const downloadFile = async (file, index) => {
-      try {
-        console.log('Downloading file:', file, 'index:', index);
-        
-        const url = `/api/admin/notices/${notice.value.id}/files/${index}`;
-        console.log('Download URL:', url);
-        
-        const response = await axios.get(url, {
-          responseType: 'blob'
-        });
-        
-        // 파일 다운로드 처리
-        const blob = new Blob([response.data]);
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = file.originalName || '첨부파일';
-        
-        // 링크 클릭
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // 리소스 해제
-        window.URL.revokeObjectURL(downloadUrl);
-        
-        console.log('File download successful');
-      } catch (error) {
-        console.error('파일 다운로드 실패:', error);
-        alert('파일 다운로드에 실패했습니다.');
-      }
-    };
+const fetchNotice = async () => {
+  try {
+    isLoading.value = true
+    error.value = ''
     
-    // 단일 파일 다운로드
-    const downloadSingleFile = async () => {
-      try {
-        const url = getSingleFileUrl();
-        
-        const response = await axios.get(url, {
-          responseType: 'blob'
-        });
-        
-        const blob = new Blob([response.data]);
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = notice.value.fileName || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
-      } catch (error) {
-        console.error('파일 다운로드 실패:', error);
-        
-        if (error.response?.status === 404) {
-          alert('파일을 찾을 수 없습니다.');
-        } else if (error.response?.status === 405) {
-          alert('파일 다운로드 기능이 백엔드에 구현되지 않았습니다.\n\n백엔드 개발자에게 다음 API 구현을 요청하세요:\nGET /api/admin/notices/{id}/download');
-        } else {
-          alert('파일 다운로드 중 오류가 발생했습니다.');
-        }
-      }
-    };
+    console.log('Fetching notice detail for id:', route.params.id)
+    const response = await getNoticeDetail(route.params.id)
+    notice.value = response.data
     
-    // 파일명으로 다운로드
-    const downloadByFileName = () => {
-      downloadSingleFile();
-    };
-
-    onMounted(() => {
-      fetchNotice();
-    });
-
-    return {
-      notice,
-      isLoading,
-      error,
-      formatDate,
-      formatFileSize,
-      handleDelete,
-      isImageFile,
-      getImageUrl
-    };
+    console.log('Notice data:', notice.value)
+    
+    // 파일 정보 디버깅
+    const fileFields = {
+      fileUrl: notice.value.fileUrl,
+      files: notice.value.files,
+      fileName: notice.value.fileName,
+      fileUrls: notice.value.fileUrls,
+      attachments: notice.value.attachments,
+      filePath: notice.value.filePath,
+      fileId: notice.value.fileId
+    }
+    console.log('File related fields:', fileFields)
+    
+    if (notice.value.files) {
+      console.log('Files array detail:', notice.value.files)
+      if (notice.value.files.length > 0) {
+        console.log('First file:', notice.value.files[0])
+      }
+    }
+    
+    // 모든 키 출력
+    console.log('All notice keys:', Object.keys(notice.value))
+    
+  } catch (err) {
+    console.error('공지사항 조회 실패:', err)
+    error.value = '공지사항을 불러오는데 실패했습니다.'
+  } finally {
+    isLoading.value = false
   }
-};
+}
+
+const handleDelete = async () => {
+  if (confirm('정말 삭제하시겠습니까?')) {
+    try {
+      await deleteNotice(route.params.id)
+      alert('삭제되었습니다.')
+      router.push('/admin/notices')
+    } catch (err) {
+      console.error('삭제 실패:', err)
+      alert('삭제에 실패했습니다.')
+    }
+  }
+}
+
+const formatDate = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// 파일 다운로드 URL 생성
+const getFileDownloadUrl = (file, index) => {
+  // NoticeFile 엔티티 구조에 맞게 처리
+  if (file && typeof file === 'object') {
+    // originalName이 있는 경우 (NoticeFile 엔티티)
+    if (file.originalName) {
+      return `${BASE_URL.value}/api/admin/notices/${notice.value.id}/files/${index}`
+    }
+    
+    // file 객체에 직접 URL이 있는 경우
+    if (file.url || file.fileUrl || file.downloadUrl) {
+      const url = file.url || file.fileUrl || file.downloadUrl
+      return url.startsWith('http') ? url : `${BASE_URL.value}${url}`
+    }
+  }
+  
+  // file이 문자열인 경우 (파일명만 있는 경우)
+  if (typeof file === 'string') {
+    return `${BASE_URL.value}/api/admin/notices/${notice.value.id}/download?filename=${encodeURIComponent(file)}`
+  }
+  
+  // 기본 다운로드 경로
+  return `${BASE_URL.value}/api/admin/notices/${notice.value.id}/download`
+}
+
+// 파일명 추출
+const getFileName = (file) => {
+  if (typeof file === 'string') return file
+  // NoticeFile 엔티티 구조
+  return file.originalName || file.fileName || file.name || `파일 ${file.id || ''}`
+}
+
+// 단일 파일 URL 가져오기
+const getSingleFileUrl = () => {
+  const n = notice.value
+  
+  // 다양한 가능한 필드명 확인
+  const url = n.fileUrl || n.fileDownloadUrl || n.filePath || n.downloadUrl
+  
+  if (url) {
+    // 절대 경로인지 확인
+    return url.startsWith('http') ? url : `${BASE_URL.value}${url}`
+  }
+  
+  // 기본 다운로드 경로 (첫 번째 파일)
+  return `${BASE_URL.value}/api/admin/notices/${n.id}/download`
+}
+
+// 파일 다운로드 처리
+const downloadFile = async (file, index) => {
+  try {
+    console.log('Downloading file:', file, 'index:', index)
+    
+    const url = `${BASE_URL.value}/api/admin/notices/${notice.value.id}/files/${index}`
+    console.log('Download URL:', url)
+    
+    const response = await axios.get(url, {
+      responseType: 'blob'
+    })
+    
+    // 파일 다운로드 처리
+    const blob = new Blob([response.data])
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = file.originalName || '첨부파일'
+    
+    // 링크 클릭
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    // 리소스 해제
+    window.URL.revokeObjectURL(downloadUrl)
+    
+    console.log('File download successful')
+  } catch (error) {
+    console.error('파일 다운로드 실패:', error)
+    alert('파일 다운로드에 실패했습니다.')
+  }
+}
+
+// 단일 파일 다운로드
+const downloadSingleFile = async () => {
+  try {
+    const url = getSingleFileUrl()
+    
+    const response = await axios.get(url, {
+      responseType: 'blob'
+    })
+    
+    const blob = new Blob([response.data])
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = notice.value.fileName || 'download'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('파일 다운로드 실패:', error)
+    alert('파일 다운로드에 실패했습니다.')
+  }
+}
+
+// 파일명으로 다운로드
+const downloadByFileName = async () => {
+  try {
+    const url = `${BASE_URL.value}/api/admin/notices/${notice.value.id}/download?filename=${encodeURIComponent(notice.value.fileName)}`
+    
+    const response = await axios.get(url, {
+      responseType: 'blob'
+    })
+    
+    const blob = new Blob([response.data])
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = notice.value.fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('파일 다운로드 실패:', error)
+    alert('파일 다운로드에 실패했습니다.')
+  }
+}
+
+onMounted(fetchNotice)
 </script>
