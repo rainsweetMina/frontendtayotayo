@@ -537,14 +537,10 @@ const getActivityTypeClass = (type) => {
 // 활동 타입에 따른 이모티콘 반환
 const getActivityEmoji = (type) => {
   switch (type) {
-    case '등록':
-      return '✨'
-    case '수정':
-      return '✏️'
-    case '삭제':
-      return '🗑️'
-    default:
-      return '⚡'
+    case '등록': return '✨'
+    case '수정': return '✏️'
+    case '삭제': return '🗑️'
+    default: return '⚡'
   }
 }
 
@@ -595,7 +591,7 @@ const loadInitialLogs = async () => {
     if (error.message === 'Authentication required') {
       isAuthenticated.value = false
       authError.value = '인증이 필요합니다. 다시 로그인해주세요.'
-
+      
       // 더미 데이터 표시
       recentActivities.value = [
         {
