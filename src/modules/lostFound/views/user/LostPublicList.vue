@@ -203,7 +203,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/api/axiosInstance.js'
 import { getAllLostItems, getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js';
 
 const router = useRouter();

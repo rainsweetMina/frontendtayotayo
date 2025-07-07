@@ -70,7 +70,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import axios from '@/api/axiosInstance'
+import api from '@/api/axiosInstance'
 import { formatDate, formatDateOnly } from '@/utils/dateUtils'
 import BaseModal from '@/modules/mypage/components/BaseModal.vue'   // ❶
 

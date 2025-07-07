@@ -49,7 +49,7 @@ import arrivalIcon from '@/assets/icons/arrival_icon.png'
 import {ref, watch, onMounted, computed} from 'vue'
 import { debounce } from 'lodash'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
 import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'

@@ -125,7 +125,7 @@
 
 <script setup>
 import {ref, reactive, computed, onMounted} from 'vue'
-import axios from '@/api/axiosInstance'
+import api from '@/api/axiosInstance'
 import BaseModal from '@/modules/mypage/components/BaseModal.vue'   /* ❶ */
 
 // ───────────────────────────────────────

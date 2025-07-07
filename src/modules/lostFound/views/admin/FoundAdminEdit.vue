@@ -70,7 +70,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 import FoundItemForm from '@/modules/lostFound/components/FoundItemForm.vue'
 import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.vue'
 import CommonModal from '@/components/CommonModal.vue'

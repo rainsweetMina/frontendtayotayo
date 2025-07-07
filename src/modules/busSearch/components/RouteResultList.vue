@@ -58,7 +58,7 @@
 <script setup>
 import {useSearchStore} from '@/stores/searchStore'
 import {ref, computed} from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 
 const store = useSearchStore()
 const props = defineProps({

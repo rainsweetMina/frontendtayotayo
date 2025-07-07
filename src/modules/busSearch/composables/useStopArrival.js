@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 
 export function useStopArrival(arrivalDataMap, openedStopId) {
     const handleStopClick = async (stop) => {

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router' // 추가
 

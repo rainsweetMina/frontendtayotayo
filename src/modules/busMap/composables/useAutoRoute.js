@@ -1,4 +1,4 @@
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 import { nextTick } from 'vue'
 
 export function useAutoRoute(store) {

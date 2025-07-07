@@ -1,4 +1,4 @@
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 
 export async function getSortedArrivalsFromApi(bsId) {
     const res = await api.get('/api/bus/bus-arrival', { params: { bsId } })

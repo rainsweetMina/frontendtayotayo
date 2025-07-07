@@ -62,7 +62,7 @@ import swapIcon from '@/assets/icons/swap_icon.png'
 import { debounce } from 'lodash'
 import { useSearchStore } from '@/stores/searchStore'
 import { ref, watch } from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 
 const store = useSearchStore()
 

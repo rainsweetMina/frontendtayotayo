@@ -131,7 +131,7 @@
 <script setup>
 import { ref, onMounted, watchEffect } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 import { useAuthStore } from '@/stores/auth'
 import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.vue'
 import CommonModal from '@/components/CommonModal.vue'

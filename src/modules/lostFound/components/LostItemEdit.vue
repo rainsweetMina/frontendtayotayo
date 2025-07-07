@@ -39,7 +39,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '@/api/axiosInstance.js';
 import LostItemForm from './LostItemForm.vue';
 import { updateLostItem } from '@/modules/lostFound/api/lostPublic.js';
 import CommonModal from '@/components/CommonModal.vue';

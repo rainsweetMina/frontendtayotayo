@@ -12,35 +12,35 @@
           <div>
             <label for="startDistance" class="block text-sm font-medium text-gray-700">출발지 반경 (미터)</label>
             <input
-              type="number"
-              id="startDistance"
-              v-model="settings.startDistance"
-              min="100"
-              max="2000"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="startDistance"
+                v-model="settings.startDistance"
+                min="100"
+                max="2000"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           <div>
             <label for="endDistance" class="block text-sm font-medium text-gray-700">도착지 반경 (미터)</label>
             <input
-              type="number"
-              id="endDistance"
-              v-model="settings.endDistance"
-              min="100"
-              max="2000"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="endDistance"
+                v-model="settings.endDistance"
+                min="100"
+                max="2000"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           <div>
             <label for="timeFactor" class="block text-sm font-medium text-gray-700">정류장당 예상 시간 (분)</label>
             <input
-              type="number"
-              id="timeFactor"
-              v-model="settings.timeFactor"
-              min="1"
-              max="10"
-              step="0.1"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="timeFactor"
+                v-model="settings.timeFactor"
+                min="1"
+                max="10"
+                step="0.1"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -54,9 +54,9 @@
           <div>
             <label for="algorithm" class="block text-sm font-medium text-gray-700">경로 탐색 알고리즘</label>
             <select
-              id="algorithm"
-              v-model="settings.algorithm"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                id="algorithm"
+                v-model="settings.algorithm"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="shortest">최단 거리 우선</option>
               <option value="fastest">최소 시간 우선</option>
@@ -67,12 +67,12 @@
           <div>
             <label for="maxTransfers" class="block text-sm font-medium text-gray-700">최대 환승 횟수</label>
             <input
-              type="number"
-              id="maxTransfers"
-              v-model="settings.maxTransfers"
-              min="0"
-              max="5"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="maxTransfers"
+                v-model="settings.maxTransfers"
+                min="0"
+                max="5"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -88,13 +88,13 @@
               <span class="text-sm text-gray-500">(현재: {{ settings.weights.walking }})</span>
             </label>
             <input
-              type="range"
-              id="walkingWeight"
-              v-model="settings.weights.walking"
-              min="0"
-              max="100"
-              step="5"
-              class="mt-2 w-full"
+                type="range"
+                id="walkingWeight"
+                v-model="settings.weights.walking"
+                min="0"
+                max="100"
+                step="5"
+                class="mt-2 w-full"
             />
           </div>
           <div>
@@ -103,13 +103,13 @@
               <span class="text-sm text-gray-500">(현재: {{ settings.weights.transfer }})</span>
             </label>
             <input
-              type="range"
-              id="transferWeight"
-              v-model="settings.weights.transfer"
-              min="0"
-              max="100"
-              step="5"
-              class="mt-2 w-full"
+                type="range"
+                id="transferWeight"
+                v-model="settings.weights.transfer"
+                min="0"
+                max="100"
+                step="5"
+                class="mt-2 w-full"
             />
           </div>
           <div>
@@ -118,13 +118,13 @@
               <span class="text-sm text-gray-500">(현재: {{ settings.weights.waiting }})</span>
             </label>
             <input
-              type="range"
-              id="waitingWeight"
-              v-model="settings.weights.waiting"
-              min="0"
-              max="100"
-              step="5"
-              class="mt-2 w-full"
+                type="range"
+                id="waitingWeight"
+                v-model="settings.weights.waiting"
+                min="0"
+                max="100"
+                step="5"
+                class="mt-2 w-full"
             />
           </div>
         </div>
@@ -137,25 +137,25 @@
           <div>
             <label for="maxWalkingDistance" class="block text-sm font-medium text-gray-700">최대 도보 거리 (m)</label>
             <input
-              type="number"
-              id="maxWalkingDistance"
-              v-model="settings.walking.maxDistance"
-              min="100"
-              max="2000"
-              step="100"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="maxWalkingDistance"
+                v-model="settings.walking.maxDistance"
+                min="100"
+                max="2000"
+                step="100"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           <div>
             <label for="walkingSpeed" class="block text-sm font-medium text-gray-700">평균 도보 속도 (m/분)</label>
             <input
-              type="number"
-              id="walkingSpeed"
-              v-model="settings.walking.speed"
-              min="50"
-              max="100"
-              step="5"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="walkingSpeed"
+                v-model="settings.walking.speed"
+                min="50"
+                max="100"
+                step="5"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -168,23 +168,23 @@
           <div>
             <label for="transferTime" class="block text-sm font-medium text-gray-700">기본 환승 소요 시간 (분)</label>
             <input
-              type="number"
-              id="transferTime"
-              v-model="settings.transfer.defaultTime"
-              min="1"
-              max="15"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="transferTime"
+                v-model="settings.transfer.defaultTime"
+                min="1"
+                max="15"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           <div>
             <label for="transferBuffer" class="block text-sm font-medium text-gray-700">환승 여유 시간 (분)</label>
             <input
-              type="number"
-              id="transferBuffer"
-              v-model="settings.transfer.bufferTime"
-              min="0"
-              max="10"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="transferBuffer"
+                v-model="settings.transfer.bufferTime"
+                min="0"
+                max="10"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -197,9 +197,9 @@
           <div>
             <label class="flex items-center">
               <input
-                type="checkbox"
-                v-model="settings.display.showAlternativeRoutes"
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  type="checkbox"
+                  v-model="settings.display.showAlternativeRoutes"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <span class="ml-2 text-sm text-gray-700">대체 경로 표시</span>
             </label>
@@ -207,9 +207,9 @@
           <div>
             <label class="flex items-center">
               <input
-                type="checkbox"
-                v-model="settings.display.showRealtime"
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  type="checkbox"
+                  v-model="settings.display.showRealtime"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <span class="ml-2 text-sm text-gray-700">실시간 도착 정보 표시</span>
             </label>
@@ -217,12 +217,12 @@
           <div>
             <label for="maxAlternatives" class="block text-sm font-medium text-gray-700">최대 대체 경로 수</label>
             <input
-              type="number"
-              id="maxAlternatives"
-              v-model="settings.display.maxAlternatives"
-              min="1"
-              max="5"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                type="number"
+                id="maxAlternatives"
+                v-model="settings.display.maxAlternatives"
+                min="1"
+                max="5"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -231,16 +231,16 @@
       <!-- 저장 버튼 -->
       <div class="flex justify-end space-x-4">
         <button
-          type="button"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          @click="resetSettings"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            @click="resetSettings"
         >
           초기화
         </button>
         <button
-          type="button"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          @click="saveSettings"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            @click="saveSettings"
         >
           저장
         </button>
@@ -250,7 +250,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted} from 'vue'
+import api from '@/api/axiosInstance'
 
 const settings = ref({
   algorithm: 'balanced',
@@ -281,8 +282,8 @@ const settings = ref({
 // 설정 불러오기
 const loadSettings = async () => {
   try {
-    const response = await fetch('/api/bus/path-settings')
-    const data = await response.json()
+    const response = await api.get('/api/bus/path-settings')
+    const data = response.data
 
     settings.value.startDistance = data.startDistance
     settings.value.endDistance = data.endDistance
@@ -304,21 +305,17 @@ const saveSettings = async () => {
       timeFactor: settings.value.timeFactor
     }
 
-    const response = await fetch('/api/bus/path-settings', {
-      method: 'POST',
+    console.log('전송할 데이터:', backendData)
+
+    const response = await api.post('/api/bus/path-settings', backendData, {
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(backendData)
+        'Accept': 'application/json'
+      }
     })
 
-    if (response.ok) {
-      console.log('설정 저장 성공')
-      alert('설정이 성공적으로 저장되었습니다.')
-    } else {
-      const error = await response.json()
-      throw new Error(error.message)
-    }
+    console.log('설정 저장 성공:', response.data)
+    alert('설정이 성공적으로 저장되었습니다.')
   } catch (error) {
     console.error('설정 저장 실패:', error)
     alert('설정 저장 중 오류가 발생했습니다.')

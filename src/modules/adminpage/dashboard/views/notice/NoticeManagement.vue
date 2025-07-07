@@ -181,7 +181,8 @@ import { useNoticeApi } from '../../composables/useNoticeApi.js';
 import Breadcrumb from '../../partials/AppBreadcrumb.vue';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal.vue';
 import AlertMessage from '../../components/AlertMessage.vue';
-import axios from 'axios';
+import api from '@/api/axiosInstance.js'
+
 
 export default {
   name: 'NoticeManagement',

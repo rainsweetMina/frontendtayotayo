@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from '@/api/axiosInstance.js'
 import { renderPopupComponent } from '@/utils/popup-mount';
 import { getSortedArrivalsFromApi } from '@/composables/arrival-utils.js';
 
