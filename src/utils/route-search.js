@@ -1,4 +1,4 @@
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useSearchStore } from '@/stores/searchStore'
 
 export async function tryFindRoute() {

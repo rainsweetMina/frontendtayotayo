@@ -29,7 +29,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from '@/api/axiosInstance'
+import api from '@/api/axiosInstance'
 
 const props = defineProps({
   district: String,

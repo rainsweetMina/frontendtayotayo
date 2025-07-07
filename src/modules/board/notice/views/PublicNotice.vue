@@ -126,7 +126,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useRoute, useRouter } from 'vue-router'
 import NoticeDetail from '../components/NoticeDetail.vue'
 

@@ -1,5 +1,5 @@
 // 공개 QnA용 API
-import axios from '@/api/axiosInstance';
+import api from '@/api/axiosInstance';
 
 // 전체 QnA 목록 (공개, 페이징/검색 지원)
 export function fetchAllQna(page = 0, keyword = '', field = 'title') {

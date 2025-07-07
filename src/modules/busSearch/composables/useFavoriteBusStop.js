@@ -12,7 +12,7 @@ export function useFavoriteBusStop() {
 
     const fetchFavorites = async () => {
         try {
-            const res = await axios.get('/api/mypage/favorite/bus-stop', {
+            const res = await api.get('/api/mypage/favorite/bus-stop', {
                 withCredentials: true
             })
             favoriteStops.value = res.data
@@ -33,7 +33,7 @@ export function useFavoriteBusStop() {
         }
 
         try {
-            await axios.post('/api/mypage/favorite/bus-stop', { bsId: stop.bsId }, {
+            await api.post('/api/mypage/favorite/bus-stop', { bsId: stop.bsId }, {
                 withCredentials: true
             })
             await fetchFavorites()
@@ -44,7 +44,7 @@ export function useFavoriteBusStop() {
 
     const deleteFavoriteStop = async (bsId) => {
         try {
-            await axios.delete(`/api/mypage/favorite/bus-stop/${bsId}`, {
+            await api.delete(`/api/mypage/favorite/bus-stop/${bsId}`, {
                 withCredentials: true
             })
             favoriteStops.value = favoriteStops.value.filter(s => s.bsId !== bsId)

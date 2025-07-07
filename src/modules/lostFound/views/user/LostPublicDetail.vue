@@ -124,7 +124,7 @@ const fetchItem = async () => {
   try {
     loading.value = true;
     error.value = false;
-    const { data } = await axios.get(`/api/lost/${route.params.id}`);
+    const { data } = await api.get(`/api/lost/${route.params.id}`);
     item.value = data;
   } catch (err) {
     console.error('분실물 상세 정보 조회 실패:', err);

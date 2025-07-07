@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import axios from '@/api/axiosInstance'
+import api from '@/api/axiosInstance'
 
 const props = defineProps({
   routeType: String,

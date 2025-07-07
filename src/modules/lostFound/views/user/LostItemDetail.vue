@@ -98,7 +98,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '@/api/axiosInstance'
 
 const router = useRouter();
 const route = useRoute();
@@ -116,7 +116,7 @@ const goToEditPage = () => {
 const fetchItem = async () => {
   try {
     loading.value = true;
-    const { data } = await axios.get(`/api/lost/${route.params.id}`);
+    const { data } = await api.get(`/api/lost/${route.params.id}`);
     item.value = data;
   } catch (error) {
     console.error('분실물 상세 정보 조회 실패:', error);

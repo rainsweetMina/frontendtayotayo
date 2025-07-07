@@ -110,7 +110,7 @@ const columns = [
 
 const fetchUsers = async () => {
   try {
-    const res = await axios.get('/api/admin/user')
+    const res = await api.get('/api/admin/user')
     users.value = res.data
     selectedRoles.value = {}
     res.data.forEach(u => (selectedRoles.value[u.userId] = u.role))
@@ -167,7 +167,7 @@ const toggleSort = key => {
 
 const changeRole = async (userId, newRole) => {
   try {
-    await axios.post(`/api/admin/user/${userId}/role`, null, { params: { role: newRole } })
+    await api.post(`/api/admin/user/${userId}/role`, null, { params: { role: newRole } })
     openModal(`${userId}님의 권한이 ${newRole}으로 변경되었습니다.`)           // ❸
     fetchUsers()
   } catch (err) {
@@ -182,7 +182,7 @@ const withdrawUser = async userId => {
   const second = confirm(`정말로 ${userId}님을 탈퇴 처리할까요? 이 작업은 되돌릴 수 없습니다.`)
   if (!second) return
   try {
-    await axios.post(`/admin/users/${userId}/withdraw`)
+    await api.post(`/admin/users/${userId}/withdraw`)
     openModal(`${userId}님이 탈퇴 처리되었습니다.`)                         // ❸
     fetchUsers()
   } catch (err) {

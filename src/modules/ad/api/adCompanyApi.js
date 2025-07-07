@@ -1,5 +1,4 @@
-import axios from 'axios'
-
+import api from '@/api/axiosInstance.js'
 // 광고회사 목록 (전체)
 export async function fetchAdCompanies() {
     const res = await api.get('/api/ad-company')

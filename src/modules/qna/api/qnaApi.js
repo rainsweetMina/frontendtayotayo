@@ -1,4 +1,4 @@
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 
 export const fetchQnaList = () => api.get('/api/qna/admin')
 export const fetchQnaDetail = (id) => api.get(`/api/qna/${id}`)

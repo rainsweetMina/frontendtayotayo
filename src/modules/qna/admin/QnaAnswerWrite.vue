@@ -43,7 +43,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.vue'
 import CommonModal from '@/components/CommonModal.vue'
 

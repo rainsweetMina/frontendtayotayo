@@ -13,7 +13,7 @@
 <script setup>
 import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import L from 'leaflet'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import ContextMenu from './ContextMenu.vue'
 import {useSearchStore} from '@/stores/searchStore'
 import {drawBusRouteMapORS} from '@/composables/map-utils'

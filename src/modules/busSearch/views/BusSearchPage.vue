@@ -274,11 +274,11 @@ function selectRoute(route) {
   clearMapElements(map)
 
   api.all([
-    axios.get('/api/bus/bus-route', {params: {routeId}}),
-    axios.get('/api/bus/bus-route-link', {params: {routeId}}),
-    axios.get('/api/bus/bus-route-Bus', {params: {routeId}})
+    api.get('/api/bus/bus-route', {params: {routeId}}),
+    api.get('/api/bus/bus-route-link', {params: {routeId}}),
+    api.get('/api/bus/bus-route-Bus', {params: {routeId}})
   ])
-      .then(axios.spread((stopRes, linkRes, busRes) => {
+      .then(api.spread((stopRes, linkRes, busRes) => {
         const stops = stopRes.data
         const forward = linkRes.data.forward || []
         const reverse = linkRes.data.reverse || []
@@ -348,7 +348,7 @@ watch(() => store.lastSearchedKeyword, debounce(async (keyword) => {
     const map = window.leafletMap
     if (map) clearMapElements(map)
 
-    const {data} = await axios.get('/api/bus/searchBSorBN', {
+    const {data} = await api.get('/api/bus/searchBSorBN', {
       params: {keyword}
     })
     store.busStops = data.busStops || []

@@ -1,5 +1,4 @@
 // adApi.js (수정본)
-import axios from 'axios'
 import api from "@/api/axiosInstance.js";
 
 // 광고 목록 조회

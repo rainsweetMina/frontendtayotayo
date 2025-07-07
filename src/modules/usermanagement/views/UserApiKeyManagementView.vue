@@ -158,7 +158,7 @@ const maxButtons = 5
 
 const fetchApiKeys = async () => {
   try {
-    const res = await axios.get('/api/admin/apikey')
+    const res = await api.get('/api/admin/apikey')
     apiKeys.value = res.data
     statusChanges.value = {}
     visibleKeys.value = {}
@@ -185,7 +185,7 @@ const toggleActive = async (id, isActive) => {
   const action = isActive ? '비활성화' : '활성화'
   if (!confirm(`API 키를 ${action} 하시겠습니까?`)) return
   try {
-    await axios.put(`/api/admin/apikey/${id}/active`, {active: !isActive})
+    await api.put(`/api/admin/apikey/${id}/active`, {active: !isActive})
     openModal(`API 키 ID ${id}가 ${action}되었습니다.`)        /* ❸ */
     fetchApiKeys()
   } catch (err) {
@@ -197,7 +197,7 @@ const toggleActive = async (id, isActive) => {
 const updateStatus = async (id) => {
   const newStatus = statusChanges.value[id]
   try {
-    await axios.post(`/api/admin/apikey/${id}/status`, null, {
+    await api.post(`/api/admin/apikey/${id}/status`, null, {
       params: {status: newStatus}
     })
     openModal(`API 키 ID ${id}의 상태가 ${newStatus}로 변경되었습니다.`)  /* ❸ */
@@ -211,7 +211,7 @@ const updateStatus = async (id) => {
 const deleteKey = async (id) => {
   if (!confirm(`API 키 ID ${id}를 삭제하시겠습니까?`)) return
   try {
-    await axios.delete(`/api/admin/apikey/${id}`)
+    await api.delete(`/api/admin/apikey/${id}`)
     openModal(`✅ API 키 ID ${id}가 삭제되었습니다.`)          /* ❸ */
     fetchApiKeys()
   } catch (err) {

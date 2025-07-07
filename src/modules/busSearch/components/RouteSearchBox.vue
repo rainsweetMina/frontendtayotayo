@@ -177,7 +177,7 @@ async function searchRoutes() {
   try {
     // 🟦 출발지가 좌표일 경우 → 주변 정류장 먼저 찾기
     if (startCoord) {
-      const res = await axios.get('/api/bus/nearby-stops', {
+      const res = await api.get('/api/bus/nearby-stops', {
         params: {
           startX: startCoord.x,
           startY: startCoord.y,
@@ -199,7 +199,7 @@ async function searchRoutes() {
 
     // 🟥 도착지가 좌표일 경우 → 주변 정류장 먼저 찾기
     if (endCoord) {
-      const res = await axios.get('/api/bus/nearby-stops', {
+      const res = await api.get('/api/bus/nearby-stops', {
         params: {
           startX: endCoord.x,
           startY: endCoord.y,
@@ -225,7 +225,7 @@ async function searchRoutes() {
       return
     }
 
-    const { data } = await axios.get('/api/bus/findRoutes', {
+    const { data } = await api.get('/api/bus/findRoutes', {
       params: {
         startBsId: store.startStop.bsId,
         endBsId: store.endStop.bsId

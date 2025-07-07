@@ -263,7 +263,7 @@ const handleSearch = async () => {
     endDate: endDate.value
   };
 
-  const res = await axios.get(`/api/lost/search?` +
+  const res = await api.get(`/api/lost/search?` +
       `itemName=${encodeURIComponent(itemName.value)}&` +
       `busCompany=${encodeURIComponent(companyName)}&` +
       `busNumber=${encodeURIComponent(selectedBusNumber.value)}&` +
@@ -284,7 +284,7 @@ const resetFilters = () => {
 
 const fetchItems = async () => {
   calculateDateRange();
-  const res = await axios.get(`/api/lost/search?` +
+  const res = await api.get(`/api/lost/search?` +
       `startDate=${startDate.value}&endDate=${endDate.value}`);
   lostItems.value = res.data;
 };

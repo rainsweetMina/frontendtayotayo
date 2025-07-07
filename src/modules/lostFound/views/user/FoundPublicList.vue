@@ -176,7 +176,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '@/api/axiosInstance'
 import { getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/foundPublic';
 
 const router = useRouter();
@@ -223,7 +223,7 @@ const fetchFoundItems = async (isSearch = false) => {
       Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
       console.log("✅ [검색 파라미터]", params);
 
-      const { data } = await axios.get('/api/found/search', { params });
+      const { data } = await api.get('/api/found/search', { params });
       items.value = data.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt) : (a.foundTime ? new Date(a.foundTime) : 0);
         const dateB = b.createdAt ? new Date(b.createdAt) : (b.foundTime ? new Date(b.foundTime) : 0);
@@ -235,7 +235,7 @@ const fetchFoundItems = async (isSearch = false) => {
         startDate,
         endDate
       };
-      const { data } = await axios.get('/api/found/search', { params });
+      const { data } = await api.get('/api/found/search', { params });
       items.value = data.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt) : (a.foundTime ? new Date(a.foundTime) : 0);
         const dateB = b.createdAt ? new Date(b.createdAt) : (b.foundTime ? new Date(b.foundTime) : 0);

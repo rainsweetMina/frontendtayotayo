@@ -245,7 +245,7 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/api/axiosInstance.js'
 import SearchBar from '@/modules/ad/components/SearchBar.vue'
 import AlertMessage from '@/modules/adminpage/dashboard/components/AlertMessage.vue'
 import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.vue'

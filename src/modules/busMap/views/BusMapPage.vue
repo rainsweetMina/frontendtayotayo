@@ -26,7 +26,7 @@
 
 <script setup>
 import {ref, watch, onMounted, onBeforeUnmount} from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import {useSearchStore} from '@/stores/searchStore'
 import {clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
 import {useRoute} from 'vue-router'

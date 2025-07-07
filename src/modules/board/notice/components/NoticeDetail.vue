@@ -84,7 +84,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/api/axiosInstance'
 import { useRouter } from 'vue-router'
 // Quill 스타일 가져오기
 import '@vueup/vue-quill/dist/vue-quill.snow.css'

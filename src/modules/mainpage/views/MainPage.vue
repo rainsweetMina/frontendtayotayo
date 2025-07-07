@@ -200,7 +200,7 @@
 <script setup>
 import { ref, onMounted, nextTick, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from '@/api/axiosInstance';
+import api from '@/api/axiosInstance.js'
 import SearchBar from '../components/SearchBar.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay.vue';

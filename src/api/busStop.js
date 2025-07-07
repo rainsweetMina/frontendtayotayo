@@ -1,7 +1,5 @@
 import api from './axiosInstance'
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://localhost:8094'
-
 // 페이징과 검색이 적용된 전체 정류장 리스트 조회
 export const getAllBusStops = async (keyword = '', page = 0, size = 10) => {
   try {

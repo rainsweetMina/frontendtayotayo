@@ -160,7 +160,7 @@ const goBack = () => {
 const fetchItem = async () => {
   try {
     loading.value = true
-    const { data } = await axios.get(`/api/admin/found/${route.params.id}`)
+    const { data } = await api.get(`/api/admin/found/${route.params.id}`)
     item.value = data
   } catch (error) {
     console.error('습득물 상세 정보 조회 실패:', error)

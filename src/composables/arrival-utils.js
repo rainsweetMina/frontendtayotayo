@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export async function getSortedArrivalsFromApi(bsId) {
-    const res = await axios.get('/api/bus/bus-arrival', { params: { bsId } })
+    const res = await api.get('/api/bus/bus-arrival', { params: { bsId } })
     const body = res.data.body
 
     const items = Array.isArray(body?.items) ? body.items : body?.items ? [body.items] : []
