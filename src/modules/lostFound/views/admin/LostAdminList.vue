@@ -258,13 +258,15 @@ const fetchLostItems = async () => {
 // ✅ 검색 함수 (검색어 없으면 전체목록)
 const handleSearch = async (keyword) => {
   if (!keyword) {
-    fetchLostItems();
+    await fetchLostItems();
     return;
   }
   try {
     // 검색 API (params로 넘기기)
     const res = await getLostItemsForAdmin({ keyword });
     lostItems.value = Array.isArray(res) ? res : res.data;
+    filterLostItems(); // 검색 후 필터 적용
+    page.value = 1;    // 검색 시 1페이지로 이동
   } catch (error) {
     showAlert.value = true
     alertMessage.value = '검색 중 오류가 발생했습니다: ' + (error.response?.data?.message || error.message)
