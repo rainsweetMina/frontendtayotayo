@@ -3,9 +3,9 @@
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">저상버스 대체 안내</h1>
       <router-link
-        v-if="isAdmin"
-        to="/admin/lowfloorbus/new"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+          v-if="isAdmin"
+          to="/admin/lowfloorbus/new"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
       >
         글쓰기
       </router-link>
@@ -45,17 +45,17 @@
           <div v-if="isImageFile(file)" class="mb-3">
             <div class="flex justify-center bg-gray-100 rounded-md p-3 mb-2">
               <img
-                :src="getImageUrl(file, index)"
-                :alt="file.originalName"
-                class="max-h-64 rounded-md"
+                  :src="getImageUrl(file, index)"
+                  :alt="file.originalName"
+                  class="max-h-64 rounded-md"
               />
             </div>
             <div class="flex items-center">
               <span class="mr-2">{{ file.originalName }}</span>
               <span class="text-sm text-gray-500 mr-2">({{ formatFileSize(file.fileSize) }})</span>
               <button
-                @click="downloadFile(file, index)"
-                class="flex items-center text-blue-600 hover:text-blue-800"
+                  @click="downloadFile(file, index)"
+                  class="flex items-center text-blue-600 hover:text-blue-800"
               >
                 <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
@@ -68,8 +68,8 @@
           <!-- 이미지 파일이 아닌 경우 다운로드 버튼만 표시 -->
           <div v-else class="flex items-center mb-2">
             <button
-              @click="downloadFile(file, index)"
-              class="flex items-center text-blue-600 hover:text-blue-800"
+                @click="downloadFile(file, index)"
+                class="flex items-center text-blue-600 hover:text-blue-800"
             >
               <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -83,8 +83,8 @@
 
       <div class="mt-6 flex justify-between">
         <button
-          @click="goBack"
-          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md"
+            @click="goBack"
+            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md"
         >
           목록으로
         </button>
@@ -95,48 +95,48 @@
     <div v-else-if="pagedLowFloorBuses.length > 0" class="bg-white rounded-md shadow">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-              번호
-            </th>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              제목
-            </th>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-              등록일
-            </th>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-              조회수
-            </th>
-          </tr>
+        <tr>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+            번호
+          </th>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            제목
+          </th>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+            등록일
+          </th>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+            조회수
+          </th>
+        </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="(lowFloorBus, index) in pagedLowFloorBuses" :key="lowFloorBus.id"
+        <tr v-for="(lowFloorBus, index) in pagedLowFloorBuses" :key="lowFloorBus.id"
             :class="[lowFloorBus.topNotice ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-50']">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-bold">
-              <span v-if="lowFloorBus.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
-              <span v-else>{{ lowFloorBuses.length - ((currentPage - 1) * pageSize + index) }}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-              <router-link
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-bold">
+            <span v-if="lowFloorBus.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
+            <span v-else>{{ lowFloorBuses.length - ((currentPage - 1) * pageSize + index) }}</span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+            <router-link
                 :to="'/lowfloorbus/' + lowFloorBus.id"
                 :class="{'text-gray-900 hover:text-blue-600': !lowFloorBus.topNotice, 'font-bold text-black': lowFloorBus.topNotice}"
-              >
-                {{ lowFloorBus.title }}
-                <span v-if="lowFloorBus.hasAttachment" class="ml-2 inline-block">
+            >
+              {{ lowFloorBus.title }}
+              <span v-if="lowFloorBus.hasAttachment" class="ml-2 inline-block">
                   <svg class="h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
                 </span>
-              </router-link>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ formatDate(lowFloorBus.createdAt) }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ lowFloorBus.viewCount || 0 }}
-            </td>
-          </tr>
+            </router-link>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+            {{ formatDate(lowFloorBus.createdAt) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+            {{ lowFloorBus.viewCount || 0 }}
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -150,29 +150,29 @@
     <div v-if="!selectedLowFloorBus && totalPages > 1" class="mt-6 flex justify-center">
       <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
         <button
-          @click.prevent="changePage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          :class="{ 'text-gray-300 cursor-not-allowed': currentPage === 1 }"
+            @click.prevent="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            :class="{ 'text-gray-300 cursor-not-allowed': currentPage === 1 }"
         >
           이전
         </button>
 
         <button
-          v-for="page in totalPages"
-          :key="page"
-          @click.prevent="changePage(page)"
-          class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-          :class="{ 'z-10 bg-blue-50 border-blue-500 text-blue-600': currentPage === page }"
+            v-for="page in totalPages"
+            :key="page"
+            @click.prevent="changePage(page)"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            :class="{ 'z-10 bg-blue-50 border-blue-500 text-blue-600': currentPage === page }"
         >
           {{ page }}
         </button>
 
         <button
-          @click.prevent="changePage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          :class="{ 'text-gray-300 cursor-not-allowed': currentPage === totalPages }"
+            @click.prevent="changePage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            :class="{ 'text-gray-300 cursor-not-allowed': currentPage === totalPages }"
         >
           다음
         </button>
@@ -214,10 +214,10 @@ const fetchLowFloorBuses = async () => {
   try {
     isLoading.value = true
     error.value = ''
-    
+
     const response = await publicApi.get('/api/public/lowfloorbuses')
     console.log('저상버스 대체안내 API 응답:', response.data)
-    
+
     if (response.data && Array.isArray(response.data)) {
       lowFloorBuses.value = response.data
     } else if (response.data && Array.isArray(response.data.content)) {

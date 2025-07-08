@@ -23,8 +23,8 @@
     <section class="search-section">
       <div class="search-container">
         <search-bar
-          placeholder="정류소, 노선을 입력하세요."
-          @search="handleSearch"
+            placeholder="정류소, 노선을 입력하세요."
+            @search="handleSearch"
         />
         <div class="search-history" v-if="searchStore.recentSearches.length > 0">
           <div class="history-label">
@@ -345,7 +345,7 @@ const fetchPopupAd = async () => {
     const res = await publicApi.get('/api/ad/popup')
     const ad = res.data
     const today = new Date().toISOString().split('T')[0]
-    
+
     if (ad && ad.startDate <= today && ad.endDate >= today) {
       popupAd.value = ad
     }

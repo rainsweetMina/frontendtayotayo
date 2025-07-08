@@ -3,9 +3,9 @@
     <div class="flex justify-between items-center mb-6">
       <h1 class="title">공지사항</h1>
       <router-link
-        v-if="isAdmin"
-        to="/notice/write"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+          v-if="isAdmin"
+          to="/notice/write"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
       >
         글쓰기
       </router-link>
@@ -26,60 +26,60 @@
 
     <!-- 공지사항 상세 페이지 -->
     <NoticeDetail
-      v-if="selectedNotice"
-      :noticeId="selectedNotice.id"
-      @back-to-list="handleBackToList"
+        v-if="selectedNotice"
+        :noticeId="selectedNotice.id"
+        @back-to-list="handleBackToList"
     />
 
     <!-- 공지사항 목록 테이블 -->
     <div v-else-if="pagedNotices.length > 0" class="content-card">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-              번호
-            </th>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              제목
-            </th>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-              등록일
-            </th>
-            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-              조회수
-            </th>
-          </tr>
+        <tr>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+            번호
+          </th>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            제목
+          </th>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+            등록일
+          </th>
+          <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+            조회수
+          </th>
+        </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="(notice, index) in pagedNotices" 
-              :key="notice.id" 
-              :class="[
+        <tr v-for="(notice, index) in pagedNotices"
+            :key="notice.id"
+            :class="[
                 notice.topNotice ? 'bg-blue-100 hover:bg-blue-200' : 'hover:bg-gray-50'
               ]">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              <span v-if="notice.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
-              <span v-else>{{ notices.length - ((currentPage - 1) * pageSize + index) }}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-              <router-link
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+            <span v-if="notice.topNotice" class="font-bold bg-blue-500 text-white px-2 py-1 rounded">공지</span>
+            <span v-else>{{ notices.length - ((currentPage - 1) * pageSize + index) }}</span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+            <router-link
                 :to="'/notice/' + notice.id"
                 :class="{'font-bold text-black': notice.topNotice, 'text-gray-900 hover:text-blue-600': !notice.topNotice}"
-              >
-                {{ notice.title }}
-                <span v-if="notice.hasAttachment" class="ml-2 inline-block">
+            >
+              {{ notice.title }}
+              <span v-if="notice.hasAttachment" class="ml-2 inline-block">
                   <svg class="h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
                 </span>
-              </router-link>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ formatDate(notice.createdAt) }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-              {{ notice.viewCount || 0 }}
-            </td>
-          </tr>
+            </router-link>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+            {{ formatDate(notice.createdAt) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+            {{ notice.viewCount || 0 }}
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -93,29 +93,29 @@
     <div v-if="!selectedNotice && totalPages > 1" class="mt-6 flex justify-center">
       <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
         <button
-          @click.prevent="changePage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          :class="{ 'text-gray-300 cursor-not-allowed': currentPage === 1 }"
+            @click.prevent="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            :class="{ 'text-gray-300 cursor-not-allowed': currentPage === 1 }"
         >
           이전
         </button>
 
         <button
-          v-for="page in totalPages"
-          :key="page"
-          @click.prevent="changePage(page)"
-          class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-          :class="{ 'z-10 bg-blue-50 border-blue-500 text-blue-600': currentPage === page }"
+            v-for="page in totalPages"
+            :key="page"
+            @click.prevent="changePage(page)"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            :class="{ 'z-10 bg-blue-50 border-blue-500 text-blue-600': currentPage === page }"
         >
           {{ page }}
         </button>
 
         <button
-          @click.prevent="changePage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-          :class="{ 'text-gray-300 cursor-not-allowed': currentPage === totalPages }"
+            @click.prevent="changePage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            :class="{ 'text-gray-300 cursor-not-allowed': currentPage === totalPages }"
         >
           다음
         </button>
@@ -156,10 +156,10 @@ const fetchNotices = async () => {
   try {
     isLoading.value = true
     error.value = ''
-    
+
     const response = await publicApi.get('/api/public/notices')
     console.log('공지사항 API 응답:', response.data)
-    
+
     if (response.data && Array.isArray(response.data)) {
       notices.value = response.data
     } else if (response.data && Array.isArray(response.data.content)) {

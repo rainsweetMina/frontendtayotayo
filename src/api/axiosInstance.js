@@ -49,6 +49,62 @@ const publicApi = axios.create({
     httpsAgent: HTTPS_AGENT
 });
 
+// publicApi용 인터셉터 (토큰이 있으면 추가, 없어도 에러 없음)
+publicApi.interceptors.request.use(
+    config => {
+        // JWT 토큰이 있으면 헤더에 추가 (선택적)
+        const accessToken = getJwtToken();
+        if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
+            config.headers.Authorization = `Bearer ${accessToken}`;
+            console.log('[publicApi] 토큰이 있어서 헤더에 추가:', config.url);
+        } else {
+            console.log('[publicApi] 토큰 없이 호출:', config.url);
+        }
+
+        // SSL 인증서 검증 비활성화 설정
+        if (!config.httpsAgent) {
+            config.httpsAgent = HTTPS_AGENT;
+        }
+
+        return config;
+    },
+    error => {
+        console.error('publicApi 요청 인터셉터 오류:', error);
+        return Promise.reject(error);
+    }
+);
+
+// publicApi 응답 인터셉터 (에러 처리만, 리다이렉트 없음)
+publicApi.interceptors.response.use(
+    response => {
+        // JWT 토큰이 응답 헤더에 있으면 저장
+        const newAccessToken = response.headers['x-access-token'] || response.headers['X-Access-Token'];
+        const newRefreshToken = response.headers['x-refresh-token'] || response.headers['X-Refresh-Token'];
+
+        if (newAccessToken || newRefreshToken) {
+            saveTokens(newAccessToken, newRefreshToken);
+            console.log('[publicApi] ✅ 새로운 토큰이 저장되었습니다.');
+        }
+
+        return response;
+    },
+    error => {
+        // 에러 로깅만 하고 리다이렉트는 하지 않음
+        const errorStatus = error.response?.status;
+        const requestUrl = error.config?.url;
+
+        if (errorStatus !== 404) {
+            console.error('[publicApi] API 호출 실패:', {
+                url: requestUrl,
+                status: errorStatus,
+                message: error.message
+            });
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 
 api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
     const formData = new FormData();
@@ -209,7 +265,7 @@ api.interceptors.response.use(
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
             const path = window.location.pathname
             const isPublicPage = path === '/' || path === '/main' || path.startsWith('/bus/map') || path.startsWith('/bus/search')
-            
+
             if (path.startsWith('/admin')) {
                 if (window.location.pathname !== '/admin/login') {
                     window.location.href = '/admin/login'
