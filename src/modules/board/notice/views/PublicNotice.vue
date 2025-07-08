@@ -126,7 +126,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import { useRoute, useRouter } from 'vue-router'
 import NoticeDetail from '../components/NoticeDetail.vue'
 
@@ -157,7 +157,7 @@ const fetchNotices = async () => {
     isLoading.value = true
     error.value = ''
     
-    const response = await api.get('/api/public/notices')
+    const response = await publicApi.get('/api/public/notices')
     console.log('공지사항 API 응답:', response.data)
     
     if (response.data && Array.isArray(response.data)) {

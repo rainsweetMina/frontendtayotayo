@@ -42,6 +42,13 @@ const api = axios.create({
     httpsAgent: HTTPS_AGENT
 });
 
+// 공개 API용 인스턴스 (토큰 없이 호출 가능)
+const publicApi = axios.create({
+    baseURL: "https://docs.yi.or.kr:8096",
+    withCredentials: true,
+    httpsAgent: HTTPS_AGENT
+});
+
 
 api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
     const formData = new FormData();
@@ -137,7 +144,7 @@ api.interceptors.response.use(
             const path = window.location.pathname;
             const isLoginRequest = url?.includes('/login');
             const isAdminPage = path.startsWith('/admin');
-            const isPublicPage = path.startsWith('/bus/map') || path.startsWith('/bus/search');
+            const isPublicPage = path === '/' || path === '/main' || path.startsWith('/bus/map') || path.startsWith('/bus/search');
 
             if (isLoginRequest) {
                 console.log('[api] [SKIP] 로그인 요청에 대한 HTML 응답 → 무시');
@@ -201,14 +208,18 @@ api.interceptors.response.use(
         if (errorStatus === 401) {
             console.log('인증 실패, 토큰 삭제 및 로그인 페이지로 이동')
             const path = window.location.pathname
+            const isPublicPage = path === '/' || path === '/main' || path.startsWith('/bus/map') || path.startsWith('/bus/search')
+            
             if (path.startsWith('/admin')) {
                 if (window.location.pathname !== '/admin/login') {
                     window.location.href = '/admin/login'
                 }
-            } else {
+            } else if (!isPublicPage) {
                 if (window.location.pathname !== '/login') {
                     window.location.href = '/login'
                 }
+            } else {
+                console.log('[api] 공개 페이지에서 401 에러 발생 - 리다이렉트 없이 에러만 처리')
             }
         }
 
@@ -216,7 +227,7 @@ api.interceptors.response.use(
         const originalRequest = error.config;
         const path = window.location.pathname;
         const isAdminPage = path.startsWith('/admin');
-        const isPublicPage = path.startsWith('/bus/map') || path.startsWith('/bus/search');
+        const isPublicPage = path === '/' || path === '/main' || path.startsWith('/bus/map') || path.startsWith('/bus/search');
 
         // 401 Unauthorized 오류 처리 (토큰 만료)
         if (status === 401 && !originalRequest._retry) {
@@ -277,7 +288,7 @@ api.interceptors.response.use(
 );
 
 // api 객체 export
-export { api };
+export { api, publicApi };
 
 // 날씨 API 키 가져오기
 export const getWeatherApiKey = async () => {

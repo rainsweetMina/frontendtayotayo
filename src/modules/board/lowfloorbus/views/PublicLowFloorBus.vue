@@ -183,7 +183,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import { useRoute, useRouter } from 'vue-router'
 // Quill 스타일 가져오기
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -215,7 +215,7 @@ const fetchLowFloorBuses = async () => {
     isLoading.value = true
     error.value = ''
     
-    const response = await api.get('/api/public/lowfloorbuses')
+    const response = await publicApi.get('/api/public/lowfloorbuses')
     console.log('저상버스 대체안내 API 응답:', response.data)
     
     if (response.data && Array.isArray(response.data)) {

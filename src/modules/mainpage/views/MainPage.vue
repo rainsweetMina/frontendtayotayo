@@ -200,7 +200,7 @@
 <script setup>
 import { ref, onMounted, nextTick, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '@/api/axiosInstance.js'
+import { api, publicApi } from '@/api/axiosInstance.js'
 import SearchBar from '../components/SearchBar.vue';
 import { useSearchStore } from '@/stores/searchStore';
 import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay.vue';
@@ -342,7 +342,7 @@ const onPopupMouseUp = () => {
 
 const fetchPopupAd = async () => {
   try {
-    const res = await api.get('/api/ad/popup')
+    const res = await publicApi.get('/api/ad/popup')
     const ad = res.data
     const today = new Date().toISOString().split('T')[0]
     
@@ -369,8 +369,8 @@ const closePopup = () => {
 
 const fetchNotices = async () => {
   try {
-    // 일반 사용자용 공지사항 API로 변경
-    const response = await api.get('/api/public/notices');
+    // 공개 API 사용
+    const response = await publicApi.get('/api/public/notices');
     console.log('공지사항 API 응답:', response.data);
 
     if (response.data && Array.isArray(response.data)) {
@@ -388,8 +388,8 @@ const fetchNotices = async () => {
 
 const fetchLowFloorBuses = async () => {
   try {
-    // 일반 사용자용 저상버스 대체안내 API 호출
-    const response = await api.get('/api/public/lowfloorbuses');
+    // 공개 API 사용
+    const response = await publicApi.get('/api/public/lowfloorbuses');
     console.log('저상버스 대체안내 API 응답:', response.data);
 
     if (response.data && Array.isArray(response.data)) {
@@ -407,8 +407,8 @@ const fetchLowFloorBuses = async () => {
 
 const fetchBanners = async () => {
   try {
-    // 진행중 광고만(공개용 API가 있다면 /api/ad/active, 없다면 /api/ad)
-    const response = await api.get('/api/ad/active')
+    // 공개 API 사용
+    const response = await publicApi.get('/api/ad/active')
     banners.value = response.data
   } catch (e) {
     console.error('배너 로드 실패:', e)
