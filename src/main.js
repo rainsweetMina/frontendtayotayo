@@ -37,7 +37,7 @@ async function bootstrap() {
     /* 3️⃣ 세션 동기화 (토큰 → 서버 확인) */
     const auth = useAuthStore()
     
-    // URL 파라미터에서 토큰 확인 (백엔드 로그인 후 리다이렉트 시)
+    // URL 파라미터에서 토큰 확인 (백엔드 로그인 후 프론트엔드로 리다이렉트 시)
     const urlParams = new URLSearchParams(window.location.search)
     const urlAccessToken = urlParams.get('accessToken')
     const urlRefreshToken = urlParams.get('refreshToken')
@@ -51,6 +51,8 @@ async function bootstrap() {
         cleanUrl.searchParams.delete('accessToken')
         cleanUrl.searchParams.delete('refreshToken')
         window.history.replaceState({}, document.title, cleanUrl.toString())
+        
+        console.log('[main.js] 토큰 파라미터 제거 완료')
     }
     
     await auth.syncSession()          // ← 여기서 로그인 상태/토큰 검증
