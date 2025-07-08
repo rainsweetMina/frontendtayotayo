@@ -102,6 +102,8 @@
             :src="`${IMAGE_BASE_URL}/ad/${popupAd.imageUrl}`"
             alt="광고 이미지"
             class="w-full h-auto rounded"
+            @error="handleImageError"
+
         />
       </a>
       <div class="text-right mt-2 flex justify-end gap-4">
@@ -342,17 +344,33 @@ const onPopupMouseUp = () => {
 
 const fetchPopupAd = async () => {
   try {
+    console.log('팝업 광고 데이터 요청 시작')
     const res = await publicApi.get('/api/ad/popup')
+    console.log('팝업 광고 API 응답:', res.data)
+
     const ad = res.data
     const today = new Date().toISOString().split('T')[0]
+    console.log('오늘 날짜:', today)
 
-    if (ad && ad.startDate <= today && ad.endDate >= today) {
+    // 팝업 표시 여부 확인
+    const dismissed = JSON.parse(localStorage.getItem('dismissedPopups') || '{}')
+    const isDismissedToday = dismissed[`${today}_${ad?.id}`]
+    console.log('팝업 닫기 상태:', isDismissedToday)
+
+    // 유효한 광고이고 오늘 닫지 않았다면 표시
+    if (ad && ad.startDate <= today && ad.endDate >= today && !isDismissedToday) {
+      console.log('유효한 팝업 광고 발견:', ad)
       popupAd.value = ad
+      showPopup.value = true // 팝업 표시 상태 활성화
+      console.log('팝업 표시 활성화됨')
+    } else {
+      console.log('표시할 팝업 광고가 없음')
     }
   } catch (e) {
     console.error('팝업 광고 로드 실패:', e)
   }
 }
+
 
 const dismissToday = () => {
   const today = new Date().toISOString().split('T')[0]

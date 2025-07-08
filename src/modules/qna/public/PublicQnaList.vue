@@ -188,6 +188,7 @@ function maskWriterName(name) {
 
 async function loadQna(page = 0) {
   const { data } = await fetchAllQna(page, keyword.value, field.value);
+  console.log("loadQna --->", data)
   qnaList.value = data.content || [];
   currentPage.value = data.number || 0;
   totalPages.value = data.totalPages || 1;
