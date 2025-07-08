@@ -36,6 +36,23 @@ async function bootstrap() {
 
     /* 3️⃣ 세션 동기화 (토큰 → 서버 확인) */
     const auth = useAuthStore()
+
+    // URL 파라미터에서 토큰 확인 (백엔드 로그인 후 리다이렉트 시)
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlAccessToken = urlParams.get('accessToken')
+    const urlRefreshToken = urlParams.get('refreshToken')
+
+    if (urlAccessToken && urlAccessToken !== 'null') {
+        console.log('[main.js] URL에서 토큰 발견, 저장 중...')
+        auth.setTokens(urlAccessToken, urlRefreshToken, 3600)
+
+        // URL에서 토큰 파라미터 제거
+        const cleanUrl = new URL(window.location.href)
+        cleanUrl.searchParams.delete('accessToken')
+        cleanUrl.searchParams.delete('refreshToken')
+        window.history.replaceState({}, document.title, cleanUrl.toString())
+    }
+
     await auth.syncSession()          // ← 여기서 로그인 상태/토큰 검증
 
     /* 4️⃣ 라우터 준비 후 마운트 */

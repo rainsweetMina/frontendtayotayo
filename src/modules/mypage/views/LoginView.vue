@@ -106,9 +106,8 @@ const handleLogin = async () => {
       expiresIn = 3600
     } = tokenRes
 
+    // auth.setTokens()에서 이미 localStorage에 저장하므로 중복 제거
     auth.setTokens(accessToken, refreshToken, expiresIn)
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
 
     /* 3) 아이디 저장 ------------------------------ */
     if (rememberId.value) {

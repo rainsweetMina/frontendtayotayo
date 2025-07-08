@@ -9,15 +9,30 @@ const HTTPS_AGENT = {
 };
 
 // JWT 토큰 관련 함수
-const getJwtToken = () => localStorage.getItem('accessToken');
-const getRefreshToken = () => localStorage.getItem('refreshToken');
+const getJwtToken = () => {
+    const token = localStorage.getItem('accessToken');
+    console.log('[JWT] getJwtToken called, token:', token ? 'exists' : 'null');
+    return token;
+};
+const getRefreshToken = () => {
+    const token = localStorage.getItem('refreshToken');
+    console.log('[JWT] getRefreshToken called, token:', token ? 'exists' : 'null');
+    return token;
+};
 const saveTokens = (accessToken, refreshToken) => {
-    if (accessToken) localStorage.setItem('accessToken', accessToken);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        console.log('[JWT] accessToken saved');
+    }
+    if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+        console.log('[JWT] refreshToken saved');
+    }
 };
 const removeTokens = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    console.log('[JWT] tokens removed');
 };
 
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
@@ -39,7 +54,8 @@ api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 
     } else if (files) {
         formData.append(fileKey, files);
     }
-    const token = localStorage.getItem('token');
+    // accessToken 사용으로 통일
+    const token = getJwtToken();
     return api.post(url, formData, {
         headers: {
             Authorization: `Bearer ${token}`
@@ -64,7 +80,8 @@ api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = '
     }
     console.log('🟡 formData----->:', formData);
 
-    const token = localStorage.getItem('token');
+    // accessToken 사용으로 통일
+    const token = getJwtToken();
     return api.put(url, formData, {
         headers: {
             Authorization: `Bearer ${token}`
@@ -80,6 +97,9 @@ api.interceptors.request.use(
         const accessToken = getJwtToken();
         if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
             config.headers.Authorization = `Bearer ${accessToken}`;
+            console.log('[JWT] Authorization header added to request:', config.url);
+        } else {
+            console.log('[JWT] No valid token found for request:', config.url);
         }
 
         // SSL 인증서 검증 비활성화 설정 재확인
