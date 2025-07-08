@@ -41,17 +41,17 @@ async function bootstrap() {
     const urlParams = new URLSearchParams(window.location.search)
     const urlAccessToken = urlParams.get('accessToken')
     const urlRefreshToken = urlParams.get('refreshToken')
-    
+
     if (urlAccessToken && urlAccessToken !== 'null') {
         console.log('[main.js] URL에서 토큰 발견, 저장 중...')
         auth.setTokens(urlAccessToken, urlRefreshToken, 3600)
-        
+
         // URL에서 토큰 파라미터 제거
         const cleanUrl = new URL(window.location.href)
         cleanUrl.searchParams.delete('accessToken')
         cleanUrl.searchParams.delete('refreshToken')
         window.history.replaceState({}, document.title, cleanUrl.toString())
-        
+
         console.log('[main.js] 토큰 파라미터 제거 완료')
     }
     

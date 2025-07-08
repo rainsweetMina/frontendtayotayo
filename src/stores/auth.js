@@ -71,7 +71,7 @@ export const useAuthStore = defineStore('auth', {
             this.accessToken  = localStorage.getItem('accessToken')
             this.refreshToken = localStorage.getItem('refreshToken')
             this.tokenExpiry  = Number(localStorage.getItem('tokenExpiry')) || null
-            
+
             // 기존 'token' 키가 있으면 'accessToken'으로 마이그레이션 (호환성)
             const oldToken = localStorage.getItem('token')
             if (oldToken && !this.accessToken) {
