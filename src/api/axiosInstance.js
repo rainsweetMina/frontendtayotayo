@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 // 기본 설정 상수
-const BASE_URL = import.meta.env.VITE_BASE_URL || "https://docs.yi.or.kr:8094";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "https://docs.yi.or.kr:8096";
 console.log("BASE_URL---->", BASE_URL)
 const HTTPS_AGENT = {
     rejectUnauthorized: false
@@ -37,7 +37,7 @@ const removeTokens = () => {
 
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
-    baseURL: "https://docs.yi.or.kr:8094",
+    baseURL: "https://docs.yi.or.kr:8096",
     withCredentials: true,
     httpsAgent: HTTPS_AGENT
 });
