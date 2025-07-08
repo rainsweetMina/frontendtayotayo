@@ -71,6 +71,15 @@ export const useAuthStore = defineStore('auth', {
             this.accessToken  = localStorage.getItem('accessToken')
             this.refreshToken = localStorage.getItem('refreshToken')
             this.tokenExpiry  = Number(localStorage.getItem('tokenExpiry')) || null
+            
+            // 기존 'token' 키가 있으면 'accessToken'으로 마이그레이션 (호환성)
+            const oldToken = localStorage.getItem('token')
+            if (oldToken && !this.accessToken) {
+                this.accessToken = oldToken
+                localStorage.setItem('accessToken', oldToken)
+                localStorage.removeItem('token')
+                console.log('[auth] 기존 token을 accessToken으로 마이그레이션 완료')
+            }
         },
 
         /* ───────── 로그아웃 ───────── */
@@ -80,6 +89,8 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('accessToken')
             localStorage.removeItem('refreshToken')
             localStorage.removeItem('tokenExpiry')
+            // 기존 'token' 키도 제거 (호환성)
+            localStorage.removeItem('token')
         },
     },
 
