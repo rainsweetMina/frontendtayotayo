@@ -440,8 +440,9 @@ const initMap = async () => {
       navigator.geolocation.getCurrentPosition(
         // 성공 시
         (position) => {
-          const { latitude, longitude } = position.coords;
+          const { latitude, longitude, accuracy } = position.coords;
           console.log('현재 위치:', latitude, longitude);
+          console.log('위치 정확도:', accuracy, 'meters');
           
           // 지도 중심 변경 (자동 이동임을 표시)
           map._isAutomaticMove = true;
@@ -450,11 +451,12 @@ const initMap = async () => {
           // 현재 위치 마커 추가
           const currentLocationIcon = L.divIcon({
             className: 'current-location-icon',
-    html: `
+            html: `
               <div class="current-location-marker">
                 <div class="pulse"></div>
-      </div>
-    `,
+                <div class="accuracy-circle" style="width:${accuracy}px;height:${accuracy}px"></div>
+              </div>
+            `,
             iconSize: [20, 20],
             iconAnchor: [10, 10]
           });
@@ -464,8 +466,18 @@ const initMap = async () => {
             zIndexOffset: 1000
           }).addTo(map);
 
-          // 현재 위치 기반으로 주변 정류장 검색
-          searchNearbyBusStops(latitude, longitude, 500);
+          // 정확도 원 추가
+          L.circle([latitude, longitude], {
+            radius: accuracy,
+            color: '#4A90E2',
+            fillColor: '#4A90E2',
+            fillOpacity: 0.15
+          }).addTo(map);
+
+          // 현재 위치 기반으로 주변 정류장 검색 
+          // 정확도가 100m 이상이면 더 넓은 반경으로 검색
+          const searchRadius = accuracy > 100 ? accuracy * 2 : 500;
+          searchNearbyBusStops(latitude, longitude, searchRadius);
         },
         // 실패 시
         (error) => {
@@ -476,9 +488,9 @@ const initMap = async () => {
         },
         // 옵션
         {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
+          enableHighAccuracy: true, // 높은 정확도 요청
+          timeout: 10000, // 10초로 늘림
+          maximumAge: 30000 // 30초 이내 캐시된 위치 허용
         }
       );
     } else {
@@ -486,7 +498,6 @@ const initMap = async () => {
       // 기본 검색 수행
       handleSearch();
     }
-    
     console.log('Leaflet 지도 초기화 완료')
   } catch (error) {
     console.error('지도 초기화 오류:', error)

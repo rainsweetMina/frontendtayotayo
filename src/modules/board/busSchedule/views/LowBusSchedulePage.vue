@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import ScheduleSection from '../components/ScheduleSection.vue'
 
 const routeNo = ref('')
@@ -44,7 +44,7 @@ const activeIndex = ref(null)
 
 onMounted(async () => {
   try {
-    const res = await api.get('/api/route-nos-low')
+    const res = await publicApi.get('/api/route-nos-low')
     routeNos.value = res.data
   } catch (e) {
     console.error('❌ 저상버스 노선 번호 불러오기 실패:', e)
@@ -58,7 +58,7 @@ const fetchSchedules = async () => {
   activeIndex.value = null
 
   try {
-    const notesRes = await api.get(`/api/route-notes`, { params: { routeNo: routeNo.value } })
+    const notesRes = await publicApi.get(`/api/route-notes`, { params: { routeNo: routeNo.value } })
     const routeNotes = notesRes.data.filter(n => n && n.trim() !== '')
 
     if (routeNotes.length) {
@@ -77,18 +77,18 @@ const fetchSchedules = async () => {
 
 const loadSchedule = async (routeNo, routeNote = '', moveDir = null) => {
   const routeIdRes = moveDir !== null
-      ? await api.get('/api/route-id/by-movedir', { params: { routeNo, moveDir } })
-      : await api.get('/api/route-id', { params: { routeNo, routeNote } })
+      ? await publicApi.get('/api/route-id/by-movedir', { params: { routeNo, moveDir } })
+      : await publicApi.get('/api/route-id', { params: { routeNo, routeNote } })
   const routeId = routeIdRes.data
   if (!routeId) return
 
-  const headerRes = await api.get('/api/schedule-header', {
+  const headerRes = await publicApi.get('/api/schedule-header', {
     params: { routeId, ...(moveDir !== null && { moveDir }) }
   })
   const header = headerRes.data
   if (!Array.isArray(header) || !header.length) return
 
-  const mapRes = await api.get('/api/route-map', {
+  const mapRes = await publicApi.get('/api/route-map', {
     params: { routeId, ...(moveDir !== null && { moveDir }) }
   })
   const map = mapRes.data
@@ -96,7 +96,7 @@ const loadSchedule = async (routeNo, routeNote = '', moveDir = null) => {
   const lowBusParams = { routeId }
   if (moveDir !== null && moveDir !== undefined) lowBusParams.moveDir = moveDir
 
-  const scheduleRes = await api.get('/api/lowbus-scheduls', { params: lowBusParams })
+  const scheduleRes = await publicApi.get('/api/lowbus-scheduls', { params: lowBusParams })
   const schedules = scheduleRes.data
   if (!schedules.length) return
 

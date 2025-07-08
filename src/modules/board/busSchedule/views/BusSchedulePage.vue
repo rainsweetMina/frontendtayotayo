@@ -42,7 +42,7 @@
 
 
 <script setup>
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import {computed, ref, watch} from 'vue'
 import ScheduleSelector from '@/modules/board/busSchedule/components/ScheduleSelector.vue'
 import RouteMap from '@/modules/board/busSchedule/components/RouteMap.vue'
@@ -75,7 +75,7 @@ async function handleRouteIdUpdated(data) {
 
   // ✅ 선택된 이후에만 호출
   try {
-    const res = await api.get('/api/schedule-header', {
+    const res = await publicApi.get('/api/schedule-header', {
       params: {
         routeId: data.routeId,
         ...(data.moveDir !== null && {moveDir: data.moveDir})

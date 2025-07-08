@@ -32,7 +32,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 
 const props = defineProps({
   routeType: String,
@@ -53,7 +53,7 @@ function onTypeChange(type) {
   routeNos.value = []
 
   if (!type) return
-  api.get('/api/bus-info/route-nos', { params: { type } }).then(res => {
+  publicApi.get('/api/bus-info/route-nos', { params: { type } }).then(res => {
     routeNos.value = res.data
   })
 }
@@ -63,7 +63,7 @@ function onRouteChange(routeNo) {
   emit('update:routeNo', routeNo)
   if (!routeNo) return
 
-  api.get('/api/bus-info/search-by-route', {
+  publicApi.get('/api/bus-info/search-by-route', {
     params: { routeNo }
   }).then(res => {
     emit('update-stops', res.data)

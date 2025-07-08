@@ -389,8 +389,8 @@ const searchCoordinatesByNominatim = async (address) => {
 const reverseGeocode = async (lat, lng) => {
   try {
     // 백엔드 프록시 API 사용
-    const { reverseGeocode } = await import('@/api/axiosInstance')
-    const data = await reverseGeocode(lat, lng)
+    const { reverseGeocode: reverseGeocodeApi } = await import('@/api/axiosInstance') // 이름 충돌 방지를 위해 별칭 사용
+    const data = await reverseGeocodeApi(lat, lng) // API 함수 호출
 
     if (data && data.display_name) {
       // 주소 정보 저장

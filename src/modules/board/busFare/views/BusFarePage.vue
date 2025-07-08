@@ -18,7 +18,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import FareTable from '../components/FareTable.vue'
 import TransferInfo from '../components/TransferInfo.vue'
 import OtherInfo from '../components/OtherInfo.vue'
@@ -26,7 +26,7 @@ import OtherInfo from '../components/OtherInfo.vue'
 const fares = ref([])
 
 onMounted(async () => {
-  const res = await api.get('/api/fares')
+  const res = await publicApi.get('/api/fares')
   fares.value = res.data
 })
 </script>

@@ -243,7 +243,7 @@ const changePage = (newPage) => {
 
 const checkUserRole = async () => {
   try {
-    const response = await api.get('/api/auth/check-role')
+    const response = await publicApi.get('/api/auth/check-role')
     userRole.value = response.data.role
     isAdmin.value = response.data.role === 'ADMIN'
   } catch (err) {
@@ -255,7 +255,7 @@ const checkUserRole = async () => {
 
 const fetchLowFloorBusDetail = async (id) => {
   try {
-    const response = await api.get(`/api/public/lowfloorbuses/${id}`)
+    const response = await publicApi.get(`/api/public/lowfloorbuses/${id}`)
     return response.data
   } catch (err) {
     console.error('저상버스 대체안내 상세 조회 실패:', err)

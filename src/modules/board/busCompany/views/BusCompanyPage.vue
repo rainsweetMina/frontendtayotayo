@@ -10,13 +10,13 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import CompanyTable from '../components/CompanyTable.vue'
 
 const companies = ref([])
 
 onMounted(async () => {
-  const res = await api.get('/api/companies')
+  const res = await publicApi.get('/api/companies')
   companies.value = res.data
 })
 </script>

@@ -29,7 +29,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 
 const props = defineProps({
   district: String,
@@ -51,7 +51,7 @@ const neighborhoods = ref([])
 onMounted(fetchDistricts)
 
 function fetchDistricts() {
-  api.get('/api/bus-info/districts').then(res => {
+  publicApi.get('/api/bus-info/districts').then(res => {
     districts.value = res.data
   })
 }
@@ -72,7 +72,7 @@ function onNeighborhoodChange(newNeighborhood) {
 
 function fetchNeighborhoods(district) {
   if (!district) return
-  api.get('/api/bus-info/neighborhoods', {
+  publicApi.get('/api/bus-info/neighborhoods', {
     params: { district },
   }).then(res => {
     neighborhoods.value = res.data
@@ -85,7 +85,7 @@ function fetchBusStops(district, neighborhood) {
   const params = { district }
   if (neighborhood) params.neighborhood = neighborhood
 
-  api.get('/api/bus-info/search', { params }).then(res => {
+  publicApi.get('/api/bus-info/search', { params }).then(res => {
     emit('update-stops', res.data)
   })
 }

@@ -273,12 +273,12 @@ function selectRoute(route) {
   const map = window.leafletMap
   clearMapElements(map)
 
-  api.all([
+  Promise.all([
     api.get('/api/bus/bus-route', {params: {routeId}}),
     api.get('/api/bus/bus-route-link', {params: {routeId}}),
     api.get('/api/bus/bus-route-Bus', {params: {routeId}})
   ])
-      .then(api.spread((stopRes, linkRes, busRes) => {
+      .then(([stopRes, linkRes, busRes]) => {
         const stops = stopRes.data
         const forward = linkRes.data.forward || []
         const reverse = linkRes.data.reverse || []
@@ -323,7 +323,7 @@ function selectRoute(route) {
             map.flyTo([lat, lng], 16)
           }
         }
-      }))
+      })
       .catch((err) => {
         console.error('🛑 노선 데이터 조회 실패:', err)
         alert('노선 정보를 불러오는 데 실패했습니다.')

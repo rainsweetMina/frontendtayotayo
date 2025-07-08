@@ -203,7 +203,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '@/api/axiosInstance.js'
+import { publicApi } from '@/api/axiosInstance.js'
 import { getAllLostItems, getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js';
 
 const router = useRouter();
@@ -263,7 +263,7 @@ const handleSearch = async () => {
     endDate: endDate.value
   };
 
-  const res = await api.get(`/api/lost/search?` +
+  const res = await publicApi.get(`/api/lost/search?` +
       `itemName=${encodeURIComponent(itemName.value)}&` +
       `busCompany=${encodeURIComponent(companyName)}&` +
       `busNumber=${encodeURIComponent(selectedBusNumber.value)}&` +
@@ -284,7 +284,7 @@ const resetFilters = () => {
 
 const fetchItems = async () => {
   calculateDateRange();
-  const res = await api.get(`/api/lost/search?` +
+  const res = await publicApi.get(`/api/lost/search?` +
       `startDate=${startDate.value}&endDate=${endDate.value}`);
   lostItems.value = res.data;
 };
