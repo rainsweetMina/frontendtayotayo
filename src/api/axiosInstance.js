@@ -388,7 +388,35 @@ export const reverseGeocode = async (lat, lon) => {
                     params: { lat: roundedLat, lon: roundedLon },
                     timeout: 3000 // 3초 타임아웃 설정
                 });
+                
                 console.log('역지오코딩 성공:', response.data);
+                console.log('응답 데이터 타입:', typeof response.data);
+                console.log('응답 데이터 키들:', Object.keys(response.data || {}));
+                console.log('응답 데이터 전체 내용:', JSON.stringify(response.data, null, 2));
+                
+                // 응답 데이터 구조 확인
+                if (response.data) {
+                    if (response.data.address) {
+                        console.log('✅ 주소 정보 발견:', response.data.address);
+                    } else {
+                        console.log('❌ 주소 정보 없음 - address 필드가 없습니다');
+                    }
+                    
+                    if (response.data.roadAddress) {
+                        console.log('✅ 도로명 주소 발견:', response.data.roadAddress);
+                    } else {
+                        console.log('❌ 도로명 주소 없음 - roadAddress 필드가 없습니다');
+                    }
+                    
+                    if (response.data.region1) {
+                        console.log('✅ 지역1 발견:', response.data.region1);
+                    } else {
+                        console.log('❌ 지역1 없음 - region1 필드가 없습니다');
+                    }
+                } else {
+                    console.log('❌ 응답 데이터가 null 또는 undefined입니다');
+                }
+                
                 return response.data;
             } catch (error) {
                 lastError = error;

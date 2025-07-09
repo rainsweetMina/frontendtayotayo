@@ -86,9 +86,13 @@ async function selectAsStart(coords) {
   try {
     const addressInfo = await reverseGeocode(coords.lat, coords.lng)
     console.log('출발지 주소 정보:', addressInfo)
+    console.log('출발지 주소 정보 타입:', typeof addressInfo)
+    console.log('출발지 주소 정보 키들:', Object.keys(addressInfo || {}))
     
     if (store.setStartCoordText) {
-      store.setStartCoordText(addressInfo.address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+      const displayText = addressInfo.address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+      console.log('출발지 표시 텍스트:', displayText)
+      store.setStartCoordText(displayText)
       store.startCoord = coords
     }
   } catch (error) {
@@ -116,9 +120,13 @@ async function selectAsEnd(coords) {
   try {
     const addressInfo = await reverseGeocode(coords.lat, coords.lng)
     console.log('도착지 주소 정보:', addressInfo)
+    console.log('도착지 주소 정보 타입:', typeof addressInfo)
+    console.log('도착지 주소 정보 키들:', Object.keys(addressInfo || {}))
     
     if (store.setEndCoordText) {
-      store.setEndCoordText(addressInfo.address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+      const displayText = addressInfo.address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+      console.log('도착지 표시 텍스트:', displayText)
+      store.setEndCoordText(displayText)
       store.endCoord = coords
     }
   } catch (error) {
