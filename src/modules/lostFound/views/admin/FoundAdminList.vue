@@ -332,7 +332,8 @@ const fetchFoundItems = async () => {
     filterFoundItems();
   } catch (error) {
     console.error('습득물 목록 조회 실패:', error)
-    showAlert('error', '조회 실패', '습득물 목록을 불러오는 중 오류가 발생했습니다.');
+    alertMessage.value = '습득물 목록을 불러오는 중 오류가 발생했습니다.'
+    showAlert.value = true
   } finally {
     loading.value = false
   }
@@ -396,7 +397,8 @@ const handleModalConfirm = async () => {
     }
   } catch (e) {
     showAlert.value = false
-    showAlert('error', '처리 실패', '처리 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message))
+    alertMessage.value = '처리 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message)
+    showAlert.value = true
   }
   
   // 임시 저장된 item 제거
