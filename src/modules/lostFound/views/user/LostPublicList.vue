@@ -227,8 +227,20 @@ const busCompanies = ref([]);
 const buses = ref([]);
 
 const fetchBusCompanies = async () => {
-  const { data } = await getBusCompanies();
-  busCompanies.value = data;
+  try {
+    const { data } = await getBusCompanies();
+    busCompanies.value = data;
+  } catch (e) {
+    // 로그인 필요 에러가 발생해도 빈 배열로 처리
+    busCompanies.value = [];
+    if (e.message === '로그인 필요') {
+      console.warn('⚠️ 로그인 없이 접근 - 버스회사 목록을 불러올 수 없습니다');
+    } else if (e.message === 'Network Error') {
+      console.warn('⚠️ 서버 연결 실패 - 버스회사 목록을 불러올 수 없습니다');
+    } else {
+      console.error('❌ 버스회사 목록 조회 실패:', e);
+    }
+  }
 };
 
 const handleCompanyChange = async () => {
@@ -251,26 +263,38 @@ const calculateDateRange = () => {
 };
 
 const handleSearch = async () => {
-  calculateDateRange();
-  const company = busCompanies.value.find(c => c.id === selectedBusCompanyId.value);
-  const companyName = company ? company.companyName : '';
+  try {
+    calculateDateRange();
+    const company = busCompanies.value.find(c => c.id === selectedBusCompanyId.value);
+    const companyName = company ? company.companyName : '';
 
-  const params = {
-    itemName: itemName.value,
-    busCompany: companyName,
-    busNumber: selectedBusNumber.value,
-    startDate: startDate.value,
-    endDate: endDate.value
-  };
+    const params = {
+      itemName: itemName.value,
+      busCompany: companyName,
+      busNumber: selectedBusNumber.value,
+      startDate: startDate.value,
+      endDate: endDate.value
+    };
 
-  const res = await publicApi.get(`/api/lost/search?` +
-      `itemName=${encodeURIComponent(itemName.value)}&` +
-      `busCompany=${encodeURIComponent(companyName)}&` +
-      `busNumber=${encodeURIComponent(selectedBusNumber.value)}&` +
-      `startDate=${startDate.value}&endDate=${endDate.value}`);
+    const res = await publicApi.get(`/api/lost/search?` +
+        `itemName=${encodeURIComponent(itemName.value)}&` +
+        `busCompany=${encodeURIComponent(companyName)}&` +
+        `busNumber=${encodeURIComponent(selectedBusNumber.value)}&` +
+        `startDate=${startDate.value}&endDate=${endDate.value}`);
 
-  lostItems.value = res.data;
-  page.value = 1;
+    lostItems.value = res.data;
+    page.value = 1;
+  } catch (e) {
+    // 로그인 필요 에러가 발생해도 빈 배열로 처리
+    lostItems.value = [];
+    if (e.message === '로그인 필요') {
+      console.warn('⚠️ 로그인 없이 접근 - 분실물 검색을 할 수 없습니다');
+    } else if (e.message === 'Network Error') {
+      console.warn('⚠️ 서버 연결 실패 - 분실물 검색을 할 수 없습니다');
+    } else {
+      console.error('❌ 분실물 검색 실패:', e);
+    }
+  }
 };
 
 const resetFilters = () => {
@@ -283,10 +307,22 @@ const resetFilters = () => {
 };
 
 const fetchItems = async () => {
-  calculateDateRange();
-  const res = await publicApi.get(`/api/lost/search?` +
-      `startDate=${startDate.value}&endDate=${endDate.value}`);
-  lostItems.value = res.data;
+  try {
+    calculateDateRange();
+    const res = await publicApi.get(`/api/lost/search?` +
+        `startDate=${startDate.value}&endDate=${endDate.value}`);
+    lostItems.value = res.data;
+  } catch (e) {
+    // 로그인 필요 에러가 발생해도 빈 배열로 처리
+    lostItems.value = [];
+    if (e.message === '로그인 필요') {
+      console.warn('⚠️ 로그인 없이 접근 - 분실물 목록을 불러올 수 없습니다');
+    } else if (e.message === 'Network Error') {
+      console.warn('⚠️ 서버 연결 실패 - 분실물 목록을 불러올 수 없습니다');
+    } else {
+      console.error('❌ 분실물 목록 조회 실패:', e);
+    }
+  }
 };
 
 const pagedItems = computed(() => {
