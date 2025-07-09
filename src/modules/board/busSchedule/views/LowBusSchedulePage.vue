@@ -47,8 +47,15 @@ onMounted(async () => {
     const res = await publicApi.get('/api/route-nos-low')
     routeNos.value = res.data
   } catch (e) {
-    console.error('❌ 저상버스 노선 번호 불러오기 실패:', e)
-    alert('노선 목록을 불러오는 데 실패했습니다.')
+    // 로그인 필요 에러가 발생해도 빈 배열로 처리
+    routeNos.value = []
+    if (e.message === '로그인 필요') {
+      console.warn('⚠️ 로그인 없이 접근 - 저상버스 노선 목록을 불러올 수 없습니다')
+    } else if (e.message === 'Network Error') {
+      console.warn('⚠️ 서버 연결 실패 - 저상버스 노선 목록을 불러올 수 없습니다')
+    } else {
+      console.error('❌ 저상버스 노선 번호 불러오기 실패:', e)
+    }
   }
 })
 

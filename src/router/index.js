@@ -64,8 +64,12 @@ router.beforeEach(async (to, from, next) => {
     const auth = useAuthStore()
     const { fetchUserInfo, isUserInfoFetched } = useUserInfo()
 
-    // �� /schedule, /notice, /found로 시작하는 경로는 토큰 체크 건너뛰기
-    if (to.path.startsWith('/schedule') || to.path.startsWith('/notice') || to.path.startsWith('/found')) {
+    // 🔑 /schedule, /notice, /found, /bus/company, /bus/schedule로 시작하는 경로는 토큰 체크 건너뛰기
+    if (to.path.startsWith('/schedule') || 
+        to.path.startsWith('/notice') || 
+        to.path.startsWith('/found') ||
+        to.path.startsWith('/bus/company') ||
+        to.path.startsWith('/bus/schedule')) {
         console.log('[Router] 공개 페이지 - 토큰 체크 건너뛰기:', to.path);
         return next();
     }

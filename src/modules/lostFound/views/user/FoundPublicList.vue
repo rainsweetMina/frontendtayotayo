@@ -255,6 +255,10 @@ const fetchFoundItems = async (isSearch = false) => {
     items.value = [];
     if (e.message === '로그인 필요') {
       console.warn('⚠️ 로그인 없이 접근 - 빈 목록으로 표시');
+    } else if (e.message === 'Network Error') {
+      console.warn('⚠️ 서버 연결 실패 - 백엔드 서버가 실행되지 않았을 수 있습니다');
+      // 사용자에게 알림 표시 (선택사항)
+      // alert('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
     } else {
       console.error('❌ 목록 조회 실패:', e);
       console.error('❌ 에러 상세 정보:', {
@@ -276,6 +280,8 @@ const fetchBusCompanies = async () => {
     busCompanies.value = [];
     if (e.message === '로그인 필요') {
       console.warn('⚠️ 로그인 없이 접근 - 버스회사 목록을 불러올 수 없습니다');
+    } else if (e.message === 'Network Error') {
+      console.warn('⚠️ 서버 연결 실패 - 버스회사 목록을 불러올 수 없습니다');
     } else {
       console.error('❌ 버스회사 목록 조회 실패:', e);
     }
