@@ -34,8 +34,8 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
-    "@vitejs/plugin-basic-ssl": "^2.0.0",
-    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
+    "@vitejs/plugin-vue": "^4.5.2",
     "autoprefixer": "^10.4.17",
     "connect-history-api-fallback": "^2.0.0",
     "http-proxy-middleware": "^3.0.5",
@@ -47,6 +47,6 @@
     "tailwindcss": "^3.4.1",
     "terser": "^5.28.1",
     "vite": "^4.5.2",
-    "vite-plugin-vue-devtools": "^7.7.6"
+    "vite-plugin-vue-devtools": "^1.0.0"
   }
 }
