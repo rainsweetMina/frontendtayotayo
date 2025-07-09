@@ -14,6 +14,7 @@
 import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
 import L from 'leaflet'
 import api from '@/api/axiosInstance'
+import { reverseGeocode } from '@/api/axiosInstance'
 import ContextMenu from './ContextMenu.vue'
 import {useSearchStore} from '@/stores/searchStore'
 import {drawBusRouteMapORS} from '@/composables/map-utils'
@@ -72,7 +73,7 @@ const {
   hideContextMenu
 } = useContextMenu(mapRef, map)
 
-function selectAsStart(coords) {
+async function selectAsStart(coords) {
   clearAutoMarkers()
   clearRoutePolylines()
   removeAllMarkersAtCoord(coords)
@@ -81,16 +82,29 @@ function selectAsStart(coords) {
   startCoord.value = coords
   drawManualStartMarker(coords)
 
-  if (store.setStartCoordText) {
-    store.setStartCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
-    store.startCoord = coords
+  // 역지오코딩으로 주소 정보 가져오기
+  try {
+    const addressInfo = await reverseGeocode(coords.lat, coords.lng)
+    console.log('출발지 주소 정보:', addressInfo)
+    
+    if (store.setStartCoordText) {
+      store.setStartCoordText(addressInfo.address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+      store.startCoord = coords
+    }
+  } catch (error) {
+    console.error('출발지 주소 정보 가져오기 실패:', error)
+    // 실패 시 좌표로 표시
+    if (store.setStartCoordText) {
+      store.setStartCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+      store.startCoord = coords
+    }
   }
 
   contextMenu.value.visible = false
   tryAutoRouteFromCoords(coords, endCoord.value)
 }
 
-function selectAsEnd(coords) {
+async function selectAsEnd(coords) {
   clearAutoMarkers()
   clearRoutePolylines()
   store.routeResults = []
@@ -98,9 +112,22 @@ function selectAsEnd(coords) {
   endCoord.value = coords
   drawManualEndMarker(coords)
 
-  if (store.setEndCoordText) {
-    store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
-    store.endCoord = coords
+  // 역지오코딩으로 주소 정보 가져오기
+  try {
+    const addressInfo = await reverseGeocode(coords.lat, coords.lng)
+    console.log('도착지 주소 정보:', addressInfo)
+    
+    if (store.setEndCoordText) {
+      store.setEndCoordText(addressInfo.address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+      store.endCoord = coords
+    }
+  } catch (error) {
+    console.error('도착지 주소 정보 가져오기 실패:', error)
+    // 실패 시 좌표로 표시
+    if (store.setEndCoordText) {
+      store.setEndCoordText(`${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`)
+      store.endCoord = coords
+    }
   }
 
   contextMenu.value.visible = false
