@@ -8,8 +8,31 @@
       <!-- 지도 영역 추가 -->
       <div class="mb-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">지도에서 위치 선택</h2>
-        <div id="map" class="w-full h-96 rounded-lg border border-gray-300"></div>
-        <p class="mt-2 text-sm text-gray-500">지도를 클릭하여 정류장 위치를 지정하거나 주소 검색을 이용하세요.</p>
+        <div class="relative">
+          <div id="map" class="w-full h-96 rounded-lg border border-gray-300"></div>
+
+          <!-- 로딩 오버레이 -->
+          <div v-if="isMapLoading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+            <div class="text-center">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p class="text-sm text-gray-600">지도를 불러오는 중...</p>
+            </div>
+          </div>
+
+          <!-- 에러 오버레이 -->
+          <div v-if="mapError" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+            <div class="text-center">
+              <p class="text-sm text-red-600 mb-2">지도 로딩 실패</p>
+              <button
+                  @click="initMap"
+                  class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                다시 시도
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="mt-2 text-sm text-gray-500">지도를 더블클릭하여 정류장 위치를 지정하거나 주소 검색을 이용하세요.</p>
       </div>
 
       <form @submit.prevent="handleSubmit">
@@ -21,30 +44,30 @@
               <div>
                 <label for="code" class="block text-sm font-medium text-gray-700">정류장 번호</label>
                 <input
-                  type="text"
-                  id="code"
-                  v-model="form.bsId"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
+                    type="text"
+                    id="code"
+                    v-model="form.bsId"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
                 />
               </div>
               <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">정류장명</label>
                 <input
-                  type="text"
-                  id="name"
-                  v-model="form.bsNm"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
+                    type="text"
+                    id="name"
+                    v-model="form.bsNm"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
                 />
               </div>
               <div>
                 <label for="type" class="block text-sm font-medium text-gray-700">정류장 유형</label>
                 <select
-                  id="type"
-                  v-model="form.type"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
+                    id="type"
+                    v-model="form.type"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
                 >
                   <option value="">선택하세요</option>
                   <option value="일반">일반</option>
@@ -55,10 +78,10 @@
               <div>
                 <label for="direction" class="block text-sm font-medium text-gray-700">진행 방향</label>
                 <select
-                  id="direction"
-                  v-model="form.direction"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
+                    id="direction"
+                    v-model="form.direction"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
                 >
                   <option value="">선택하세요</option>
                   <option value="상행">상행</option>
@@ -77,17 +100,17 @@
                 <label for="address" class="block text-sm font-medium text-gray-700">주소</label>
                 <div class="mt-1 flex rounded-md shadow-sm">
                   <input
-                    type="text"
-                    id="address"
-                    v-model="form.address"
-                    class="flex-1 min-w-0 block w-full rounded-none rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    readonly
-                    required
+                      type="text"
+                      id="address"
+                      v-model="form.address"
+                      class="flex-1 min-w-0 block w-full rounded-none rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      readonly
+                      required
                   />
                   <button
-                    type="button"
-                    class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 sm:text-sm"
-                    @click="openAddressSearch"
+                      type="button"
+                      class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 sm:text-sm"
+                      @click="openAddressSearch"
                   >
                     주소 검색
                   </button>
@@ -99,28 +122,28 @@
                 <div>
                   <label for="city" class="block text-sm font-medium text-gray-700">시/도</label>
                   <input
-                    type="text"
-                    id="city"
-                    v-model="form.city"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      type="text"
+                      id="city"
+                      v-model="form.city"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div>
                   <label for="district" class="block text-sm font-medium text-gray-700">구/군</label>
                   <input
-                    type="text"
-                    id="district"
-                    v-model="form.district"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      type="text"
+                      id="district"
+                      v-model="form.district"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div>
                   <label for="neighborhood" class="block text-sm font-medium text-gray-700">동</label>
                   <input
-                    type="text"
-                    id="neighborhood"
-                    v-model="form.neighborhood"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      type="text"
+                      id="neighborhood"
+                      v-model="form.neighborhood"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -129,23 +152,23 @@
                 <div>
                   <label for="latitude" class="block text-sm font-medium text-gray-700">위도 (Y)</label>
                   <input
-                    type="number"
-                    id="latitude"
-                    v-model="form.ypos"
-                    step="0.000001"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
+                      type="number"
+                      id="latitude"
+                      v-model="form.ypos"
+                      step="0.000001"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      required
                   />
                 </div>
                 <div>
                   <label for="longitude" class="block text-sm font-medium text-gray-700">경도 (X)</label>
                   <input
-                    type="number"
-                    id="longitude"
-                    v-model="form.xpos"
-                    step="0.000001"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
+                      type="number"
+                      id="longitude"
+                      v-model="form.xpos"
+                      step="0.000001"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      required
                   />
                 </div>
               </div>
@@ -161,28 +184,28 @@
                 <div class="mt-2 space-y-2">
                   <div class="flex items-center">
                     <input
-                      type="checkbox"
-                      id="shelter"
-                      v-model="form.facilities.shelter"
-                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        type="checkbox"
+                        id="shelter"
+                        v-model="form.facilities.shelter"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label for="shelter" class="ml-2 text-sm text-gray-700">승객 대기 쉘터</label>
                   </div>
                   <div class="flex items-center">
                     <input
-                      type="checkbox"
-                      id="bench"
-                      v-model="form.facilities.bench"
-                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        type="checkbox"
+                        id="bench"
+                        v-model="form.facilities.bench"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label for="bench" class="ml-2 text-sm text-gray-700">벤치</label>
                   </div>
                   <div class="flex items-center">
                     <input
-                      type="checkbox"
-                      id="lcd"
-                      v-model="form.facilities.lcd"
-                      class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        type="checkbox"
+                        id="lcd"
+                        v-model="form.facilities.lcd"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label for="lcd" class="ml-2 text-sm text-gray-700">도착 정보 안내 단말기</label>
                   </div>
@@ -191,10 +214,10 @@
               <div>
                 <label for="notes" class="block text-sm font-medium text-gray-700">비고</label>
                 <textarea
-                  id="notes"
-                  v-model="form.notes"
-                  rows="3"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    id="notes"
+                    v-model="form.notes"
+                    rows="3"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 ></textarea>
               </div>
             </div>
@@ -204,15 +227,15 @@
         <!-- 버튼 -->
         <div class="mt-6 flex items-center justify-end space-x-4">
           <button
-            type="button"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            @click="$router.back()"
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              @click="$router.back()"
           >
             취소
           </button>
           <button
-            type="submit"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              type="submit"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             정류장 추가
           </button>
@@ -236,6 +259,8 @@ let map = null
 let selectedMarker = null
 const markers = [] // 모든 마커를 저장할 배열
 const defaultCenter = [35.8714, 128.6014] // 대구 중심 좌표
+const isMapLoading = ref(true) // 지도 로딩 상태
+const mapError = ref(null) // 지도 에러 상태
 
 const form = ref({
   bsId: '',
@@ -259,34 +284,64 @@ const form = ref({
 
 // 지도 초기화 함수
 const initMap = async () => {
-  // DOM이 렌더링된 후 지도 초기화
-  await nextTick()
+  try {
+    isMapLoading.value = true
+    mapError.value = null
 
-  // 지도 요소가 있는지 확인
-  const mapElement = document.getElementById('map')
-  if (!mapElement) {
-    console.error('Map container not found')
-    return
+    // DOM이 렌더링된 후 지도 초기화
+    await nextTick()
+
+    // 추가 지연으로 DOM 완전 렌더링 보장
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // 지도 요소가 있는지 확인
+    const mapElement = document.getElementById('map')
+    if (!mapElement) {
+      throw new Error('Map container not found')
+    }
+
+    // 이미 지도가 초기화되어 있다면 제거
+    if (map) {
+      map.remove()
+      map = null
+    }
+
+    // 지도 생성
+    map = L.map('map').setView(defaultCenter, 16)
+
+    // 타일 레이어 설정
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map)
+
+    // 지도 로딩 완료 이벤트
+    map.whenReady(() => {
+      console.log('지도 초기화 완료')
+      isMapLoading.value = false
+    })
+
+    // 지도 더블클릭 이벤트 처리
+    map.on('dblclick', (e) => {
+      const { lat, lng } = e.latlng
+
+      // 마커 생성 및 좌표 설정
+      createMarkerAndSetCoordinates(lat, lng)
+
+      // 기본 더블클릭 동작(줌인) 방지
+      L.DomEvent.preventDefault(e)
+    })
+
+    // 지도 에러 처리
+    map.on('tileerror', (e) => {
+      console.warn('타일 로딩 에러:', e)
+    })
+
+  } catch (error) {
+    console.error('지도 초기화 실패:', error)
+    mapError.value = error.message
+    isMapLoading.value = false
   }
-
-  // 지도 생성
-  map = L.map('map').setView(defaultCenter, 16)
-
-  // 타일 레이어 설정
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-  }).addTo(map)
-
-  // 지도 더블클릭 이벤트 처리
-  map.on('dblclick', (e) => {
-    const { lat, lng } = e.latlng
-
-    // 마커 생성 및 좌표 설정
-    createMarkerAndSetCoordinates(lat, lng)
-
-    // 기본 더블클릭 동작(줌인) 방지
-    L.DomEvent.preventDefault(e)
-  })
 }
 
 // 마커 생성 및 좌표 설정 함수
@@ -388,79 +443,174 @@ const searchCoordinatesByNominatim = async (address) => {
 // 역방향 지오코딩 (좌표 → 주소)
 const reverseGeocode = async (lat, lng) => {
   try {
-    // 백엔드 프록시 API 사용
-    const { reverseGeocode: reverseGeocodeApi } = await import('@/api/axiosInstance') // 이름 충돌 방지를 위해 별칭 사용
-    const data = await reverseGeocodeApi(lat, lng) // API 함수 호출
+    console.log('역방향 지오코딩 시작:', { lat, lng })
 
-    if (data && data.display_name) {
-      // 주소 정보 저장
-      form.value.address = data.display_name
+    // 백엔드 프록시 API 사용 시도
+    try {
+      const { reverseGeocode: reverseGeocodeApi } = await import('@/api/axiosInstance') // 이름 충돌 방지를 위해 별칭 사용
+      const data = await reverseGeocodeApi(lat, lng) // API 함수 호출
 
-      // 주소 상세 정보 분리 (한국 주소 체계에 맞게 개선)
-      if (data.address) {
-        console.log('OpenStreetMap 원본 주소 데이터:', data.address)
+      console.log('역방향 지오코딩 API 응답:', data)
 
-        // 한국 주소 체계에 맞게 시/도 정보 추출
-        if (data.address.country === 'South Korea' || data.address.country === '대한민국') {
-          // 시/도 정보 (province, state, city_district 등)
-          form.value.city = data.address.province ||
-                           data.address.state ||
-                           (data.address.city && data.address.city.includes('광역시') ? data.address.city : '') ||
-                           (data.address.city && data.address.city.includes('특별시') ? data.address.city : '') ||
-                           ''
+      if (data && data.display_name && data.display_name !== '주소 정보 없음') {
+        // 주소 정보 저장
+        form.value.address = data.display_name
 
-          // 구/군 정보 (city, county, district 등)
-          form.value.district = data.address.city_district ||
-                               data.address.county ||
-                               (data.address.city && !data.address.city.includes('광역시') && !data.address.city.includes('특별시') ? data.address.city : '') ||
-                               data.address.district ||
-                               ''
+        // 주소 상세 정보 분리 (한국 주소 체계에 맞게 개선)
+        if (data.address) {
+          console.log('OpenStreetMap 원본 주소 데이터:', data.address)
 
-          // 동 정보 (suburb, village, town, neighbourhood 등)
-          form.value.neighborhood = data.address.suburb ||
-                                   data.address.neighbourhood ||
-                                   data.address.village ||
-                                   data.address.town ||
-                                   data.address.quarter ||
-                                   ''
+          // 한국 주소 체계에 맞게 시/도 정보 추출
+          if (data.address.country === 'South Korea' || data.address.country === '대한민국') {
+            // 시/도 정보 (province, state, city_district 등)
+            form.value.city = data.address.province ||
+                data.address.state ||
+                (data.address.city && data.address.city.includes('광역시') ? data.address.city : '') ||
+                (data.address.city && data.address.city.includes('특별시') ? data.address.city : '') ||
+                ''
 
-          // 대구광역시 특별 처리
-          if (data.address.city === '대구광역시' || data.address.city === 'Daegu' || form.value.city.includes('대구')) {
-            form.value.city = '대구광역시'
+            // 구/군 정보 (city, county, district 등)
+            form.value.district = data.address.city_district ||
+                data.address.county ||
+                (data.address.city && !data.address.city.includes('광역시') && !data.address.city.includes('특별시') ? data.address.city : '') ||
+                data.address.district ||
+                ''
 
-            // 구/군 정보가 없는 경우 추가 처리
-            if (!form.value.district) {
-              // 주소에서 구 이름 추출 시도
-              const addressParts = data.display_name.split(',').map(part => part.trim())
-              for (const part of addressParts) {
-                if (part.includes('구') && !part.includes('대구광역시')) {
-                  form.value.district = part
-                  break
+            // 동 정보 (suburb, village, town, neighbourhood 등)
+            form.value.neighborhood = data.address.suburb ||
+                data.address.neighbourhood ||
+                data.address.village ||
+                data.address.town ||
+                data.address.quarter ||
+                ''
+
+            // 대구광역시 특별 처리
+            if (data.address.city === '대구광역시' || data.address.city === 'Daegu' || form.value.city.includes('대구')) {
+              form.value.city = '대구광역시'
+
+              // 구/군 정보가 없는 경우 추가 처리
+              if (!form.value.district) {
+                // 주소에서 구 이름 추출 시도
+                const addressParts = data.display_name.split(',').map(part => part.trim())
+                for (const part of addressParts) {
+                  if (part.includes('구') && !part.includes('대구광역시')) {
+                    form.value.district = part
+                    break
+                  }
                 }
               }
             }
+
+            // 빈 값 처리
+            form.value.city = form.value.city || '정보 없음'
+            form.value.district = form.value.district || '정보 없음'
+            form.value.neighborhood = form.value.neighborhood || '정보 없음'
           }
 
-          // 빈 값 처리
-          form.value.city = form.value.city || '정보 없음'
-          form.value.district = form.value.district || '정보 없음'
-          form.value.neighborhood = form.value.neighborhood || '정보 없음'
+          console.log('처리된 주소 상세 정보:', {
+            city: form.value.city,
+            district: form.value.district,
+            neighborhood: form.value.neighborhood,
+            raw: data.address
+          })
         }
 
-        console.log('처리된 주소 상세 정보:', {
-          city: form.value.city,
-          district: form.value.district,
-          neighborhood: form.value.neighborhood,
-          raw: data.address
-        })
+        return data.display_name
       }
-
-      return data.display_name
+    } catch (apiError) {
+      console.warn('백엔드 API 호출 실패, 직접 API 시도:', apiError)
     }
+
+    // 백엔드 API 실패 시 직접 OpenStreetMap API 호출
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      headers: {
+        'User-Agent': 'TayoTayo/1.0 (contact@tayotayo.com)'
+      }
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      console.log('직접 OpenStreetMap API 응답:', data)
+
+      if (data && data.display_name) {
+        // 주소 정보 저장
+        form.value.address = data.display_name
+
+        // 주소 상세 정보 분리 (한국 주소 체계에 맞게 개선)
+        if (data.address) {
+          console.log('OpenStreetMap 원본 주소 데이터:', data.address)
+
+          // 한국 주소 체계에 맞게 시/도 정보 추출
+          if (data.address.country === 'South Korea' || data.address.country === '대한민국') {
+            // 시/도 정보 (province, state, city_district 등)
+            form.value.city = data.address.province ||
+                data.address.state ||
+                (data.address.city && data.address.city.includes('광역시') ? data.address.city : '') ||
+                (data.address.city && data.address.city.includes('특별시') ? data.address.city : '') ||
+                ''
+
+            // 구/군 정보 (city, county, district 등)
+            form.value.district = data.address.city_district ||
+                data.address.county ||
+                (data.address.city && !data.address.city.includes('광역시') && !data.address.city.includes('특별시') ? data.address.city : '') ||
+                data.address.district ||
+                ''
+
+            // 동 정보 (suburb, village, town, neighbourhood 등)
+            form.value.neighborhood = data.address.suburb ||
+                data.address.neighbourhood ||
+                data.address.village ||
+                data.address.town ||
+                data.address.quarter ||
+                ''
+
+            // 대구광역시 특별 처리
+            if (data.address.city === '대구광역시' || data.address.city === 'Daegu' || form.value.city.includes('대구')) {
+              form.value.city = '대구광역시'
+
+              // 구/군 정보가 없는 경우 추가 처리
+              if (!form.value.district) {
+                // 주소에서 구 이름 추출 시도
+                const addressParts = data.display_name.split(',').map(part => part.trim())
+                for (const part of addressParts) {
+                  if (part.includes('구') && !part.includes('대구광역시')) {
+                    form.value.district = part
+                    break
+                  }
+                }
+              }
+            }
+
+            // 빈 값 처리
+            form.value.city = form.value.city || '정보 없음'
+            form.value.district = form.value.district || '정보 없음'
+            form.value.neighborhood = form.value.neighborhood || '정보 없음'
+          }
+
+          console.log('처리된 주소 상세 정보:', {
+            city: form.value.city,
+            district: form.value.district,
+            neighborhood: form.value.neighborhood,
+            raw: data.address
+          })
+        }
+
+        return data.display_name
+      }
+    }
+
     return null
   } catch (error) {
     console.error('역방향 지오코딩 오류:', error)
-    return null
+
+    // 오류 발생 시 기본 주소 정보 설정
+    form.value.address = `위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)}`
+    form.value.city = '정보 없음'
+    form.value.district = '정보 없음'
+    form.value.neighborhood = '정보 없음'
+
+    console.log('기본 주소 정보 설정됨:', form.value.address)
+    return form.value.address
   }
 }
 
@@ -524,23 +674,48 @@ const openAddressSearch = () => {
 }
 
 // 컴포넌트가 마운트될 때 지도 초기화
-onMounted(() => {
-  initMap()
+onMounted(async () => {
+  try {
+    await initMap()
+  } catch (error) {
+    console.error('컴포넌트 마운트 시 지도 초기화 실패:', error)
+    mapError.value = error.message
+    isMapLoading.value = false
+  }
 })
 
 // 컴포넌트가 언마운트될 때 정리
 onBeforeUnmount(() => {
-  // 마커 정리
-  if (markers.length > 0) {
-    markers.forEach(marker => {
-      if (map) map.removeLayer(marker)
-    })
-  }
+  try {
+    // 마커 정리
+    if (markers.length > 0) {
+      markers.forEach(marker => {
+        if (map && marker) {
+          try {
+            map.removeLayer(marker)
+          } catch (e) {
+            console.warn('마커 제거 중 에러:', e)
+          }
+        }
+      })
+      markers.length = 0
+    }
 
-  // 지도 정리
-  if (map) {
-    map.remove()
-    map = null
+    // 지도 정리
+    if (map) {
+      try {
+        map.remove()
+      } catch (e) {
+        console.warn('지도 제거 중 에러:', e)
+      }
+      map = null
+    }
+
+    // 상태 초기화
+    isMapLoading.value = false
+    mapError.value = null
+  } catch (error) {
+    console.error('컴포넌트 언마운트 시 정리 실패:', error)
   }
 })
 </script>

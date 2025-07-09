@@ -34,9 +34,28 @@ async function bootstrap() {
     app.use(VueApexCharts)
     app.component('empty-layout', EmptyLayout)
 
+    /* 전역 에러 핸들러 추가 */
+    app.config.errorHandler = (err, vm, info) => {
+        console.error('전역 에러:', err)
+        console.error('에러 정보:', info)
+        console.error('컴포넌트:', vm)
+
+        // 라우터 주입 에러는 무시 (개발 중 발생하는 일반적인 경고)
+        if (err.message && err.message.includes('injection "Symbol(router)" not found')) {
+            console.warn('라우터 주입 에러 무시됨 (일반적인 경고)')
+            return
+        }
+
+        // withDirectives 에러는 무시 (컴포넌트 등록 관련 경고)
+        if (err.message && err.message.includes('withDirectives can only be used inside render functions')) {
+            console.warn('withDirectives 에러 무시됨 (컴포넌트 등록 관련 경고)')
+            return
+        }
+    }
+
     /* 3️⃣ 세션 동기화 (토큰 → 서버 확인) */
     const auth = useAuthStore()
-    
+
     // URL 파라미터에서 토큰 확인 (백엔드 로그인 후 프론트엔드로 리다이렉트 시)
     const urlParams = new URLSearchParams(window.location.search)
     const urlAccessToken = urlParams.get('accessToken')
@@ -54,7 +73,7 @@ async function bootstrap() {
 
         console.log('[main.js] 토큰 파라미터 제거 완료')
     }
-    
+
     await auth.syncSession()          // ← 여기서 로그인 상태/토큰 검증
 
     /* 4️⃣ 라우터 준비 후 마운트 */

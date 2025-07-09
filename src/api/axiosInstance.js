@@ -370,7 +370,28 @@ export const reverseGeocode = async (lat, lon) => {
                     params: { lat, lon },
                     timeout: 3000 // 3초 타임아웃 설정
                 });
-                return response.data;
+
+                // 백엔드에서 JSON 문자열을 반환하므로 파싱 필요
+                let data = response.data;
+                console.log('백엔드 응답 데이터:', data, '타입:', typeof data);
+
+                if (typeof data === 'string') {
+                    // 빈 문자열 체크
+                    if (!data.trim()) {
+                        console.error('빈 응답 데이터');
+                        throw new Error('빈 응답 데이터');
+                    }
+
+                    try {
+                        data = JSON.parse(data);
+                    } catch (parseError) {
+                        console.error('JSON 파싱 실패:', parseError);
+                        console.error('파싱 시도한 데이터:', data);
+                        throw new Error('응답 데이터 파싱 실패');
+                    }
+                }
+
+                return data;
             } catch (error) {
                 lastError = error;
                 console.warn(`역지오코딩 API 호출 실패 (남은 재시도: ${retries}):`, error);
@@ -402,7 +423,19 @@ export const geocode = async (address) => {
             params: { q: address }, // 'address' 대신 'q' 파라미터 사용
             timeout: 3000
         });
-        return response.data;
+
+        // 백엔드에서 JSON 문자열을 반환하므로 파싱 필요
+        let data = response.data;
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (parseError) {
+                console.error('JSON 파싱 실패:', parseError);
+                throw new Error('응답 데이터 파싱 실패');
+            }
+        }
+
+        return data;
     } catch (error) {
         console.error('지오코딩 API 호출 실패:', error);
         throw error;

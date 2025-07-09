@@ -25,13 +25,13 @@
 
         <!-- 성공 메시지(AlertMessage) -->
         <AlertMessage
-          v-if="showAlert"
-          type="success"
-          title="성공"
-          :message="alertMessage"
-          :dismissible="true"
-          :show="showAlert"
-          @close="showAlert = false"
+            v-if="showAlert"
+            type="success"
+            title="성공"
+            :message="alertMessage"
+            :dismissible="true"
+            :show="showAlert"
+            @close="showAlert = false"
         />
 
         <!-- 검색 및 필터 -->
@@ -44,10 +44,10 @@
               <option value="user">작성자</option>
             </select>
             <input
-              v-model="searchKeyword"
-              :placeholder="'검색어를 입력하세요'"
-              class="h-10 w-full sm:w-80 border border-gray-200 rounded-md bg-transparent px-2 py-1 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              @keyup.enter="handleSearch(searchKeyword)"
+                v-model="searchKeyword"
+                :placeholder="'검색어를 입력하세요'"
+                class="h-10 w-full sm:w-80 border border-gray-200 rounded-md bg-transparent px-2 py-1 text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                @keyup.enter="handleSearch(searchKeyword)"
             />
             <button class="h-10 px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm font-semibold" @click="handleSearch(searchKeyword)">검색</button>
             <button class="h-10 px-4 py-1 bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition text-sm font-semibold" @click="resetSearch">초기화</button>
@@ -56,9 +56,9 @@
 
         <!-- 필터 버튼들 -->
         <div class="mb-6 flex flex-wrap gap-3">
-          <button 
-            @click="setFilter('all')"
-            :class="[
+          <button
+              @click="setFilter('all')"
+              :class="[
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               currentFilter === 'all' 
                 ? 'bg-blue-600 text-white' 
@@ -67,9 +67,9 @@
           >
             전체 ({{ qnaList.length }})
           </button>
-          <button 
-            @click="setFilter('unanswered')"
-            :class="[
+          <button
+              @click="setFilter('unanswered')"
+              :class="[
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               currentFilter === 'unanswered' 
                 ? 'bg-red-600 text-white' 
@@ -78,9 +78,9 @@
           >
             미답변 ({{ unansweredCount }})
           </button>
-          <button 
-            @click="setFilter('answered')"
-            :class="[
+          <button
+              @click="setFilter('answered')"
+              :class="[
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               currentFilter === 'answered' 
                 ? 'bg-green-600 text-white' 
@@ -89,9 +89,9 @@
           >
             답변완료 ({{ answeredCount }})
           </button>
-          <button 
-            @click="setFilter('deleted')"
-            :class="[
+          <button
+              @click="setFilter('deleted')"
+              :class="[
               'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               currentFilter === 'deleted' 
                 ? 'bg-gray-600 text-white' 
@@ -113,83 +113,85 @@
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  번호
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  제목
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  작성자
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  작성일
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  상태
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
+            <tr>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                번호
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                제목
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                작성자
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                작성일
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                상태
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                관리
+              </th>
+            </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-if="!pagedQnaList || pagedQnaList.length === 0">
-                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">등록된 Q&A가 없습니다.</td>
-              </tr>
-              <tr v-for="qna in pagedQnaList" :key="qna.id" class="hover:bg-gray-50" @click="goDetail(qna.id)">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ qna.id }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <router-link :to="`/admin/qna/${qna.id}`" class="hover:underline text-blue-700">
-                    {{ qna.title }}
-                  </router-link>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ qna.username || qna.userName || qna.author || qna.memberName || '-' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ formatDate(qna.createdAt) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                  <span v-if="qna.deleted" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-500">삭제됨</span>
-                  <span v-else-if="!qna.visible" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-200 text-gray-500">숨김</span>
-                  <span v-else-if="!qna.answer" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-600">미답변</span>
-                  <span v-else class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-green-100 text-green-700">답변완료</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                  <div class="flex justify-center items-center gap-2" @click.stop>
-                    <router-link
+            <tr v-if="!pagedQnaList || pagedQnaList.length === 0">
+              <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">등록된 Q&A가 없습니다.</td>
+            </tr>
+            <tr v-for="qna in pagedQnaList" :key="qna.id" class="hover:bg-gray-50" @click="goDetail(qna.id)">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                {{ qna.id }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <a href="#" @click.prevent="goDetail(qna.id)" class="hover:underline text-blue-700">
+                  {{ qna.title }}
+                </a>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                {{ qna.username || qna.userName || qna.author || qna.memberName || '-' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                {{ formatDate(qna.createdAt) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                <span v-if="qna.deleted" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-500">삭제됨</span>
+                <span v-else-if="!qna.visible" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-200 text-gray-500">숨김</span>
+                <span v-else-if="!qna.answer" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-600">미답변</span>
+                <span v-else class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-green-100 text-green-700">답변완료</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                <div class="flex justify-center items-center gap-2" @click.stop>
+                  <a
                       v-if="!qna.answer"
-                      :to="`/admin/qna/${qna.id}/answer`"
+                      href="#"
+                      @click.prevent="router.push(`/admin/qna/${qna.id}/answer`)"
                       class="text-green-600 hover:text-green-900 mr-2"
-                    >
-                      답변
-                    </router-link>
-                    <router-link
+                  >
+                    답변
+                  </a>
+                  <a
                       v-if="qna.answer"
-                      :to="`/admin/qna/${qna.id}/edit`"
+                      href="#"
+                      @click.prevent="router.push(`/admin/qna/${qna.id}/edit`)"
                       class="text-blue-600 hover:text-blue-900 mr-2"
-                    >
-                      답변수정
-                    </router-link>
-                    <button
+                  >
+                    답변수정
+                  </a>
+                  <button
                       class="text-yellow-600 hover:text-yellow-900 mr-2"
                       @click.stop="handleHide(qna.id)"
-                    >
-                      숨김
-                    </button>
-                    <button
+                  >
+                    숨김
+                  </button>
+                  <button
                       class="text-red-600 hover:text-red-900"
                       @click.stop="handleDelete(qna.id)"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  >
+                    삭제
+                  </button>
+                </div>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -198,29 +200,29 @@
         <div class="flex justify-center mt-4">
           <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
             <button
-              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-              :disabled="page === 1"
-              :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
-              @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                :disabled="page === 1"
+                :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
+                @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
             >
               이전
             </button>
             <button
-              v-for="p in totalPages"
-              :key="p"
-              :class="[
+                v-for="p in totalPages"
+                :key="p"
+                :class="[
                 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50',
                 page === p ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : ''
               ]"
-              @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+                @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
             >
               {{ p }}
             </button>
             <button
-              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-              :disabled="page === totalPages"
-              :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
-              @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                :disabled="page === totalPages"
+                :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
+                @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
             >
               다음
             </button>
@@ -228,14 +230,14 @@
         </div>
 
         <CommonModal
-          :isOpen="modalOpen"
-          :title="modalTitle"
-          :message="modalMessage"
-          :confirmText="modalConfirmText"
-          :confirmType="modalConfirmType"
-          :showCancel="modalShowCancel"
-          @close="closeModal"
-          @confirm="modalConfirmAction"
+            :isOpen="modalOpen"
+            :title="modalTitle"
+            :message="modalMessage"
+            :confirmText="modalConfirmText"
+            :confirmType="modalConfirmType"
+            :showCancel="modalShowCancel"
+            @close="closeModal"
+            @confirm="modalConfirmAction"
         />
       </div>
     </div>
@@ -252,7 +254,19 @@ import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.
 import CommonModal from '@/components/CommonModal.vue'
 
 const qnaList = ref([])
-const router = useRouter()
+let router = null
+try {
+  router = useRouter()
+} catch (error) {
+  console.warn('라우터 주입 실패:', error)
+  // 라우터가 없을 때의 fallback
+  router = {
+    push: (path) => {
+      console.log('라우터 push 호출:', path)
+      window.location.href = path
+    }
+  }
+}
 const searchKeyword = ref('')
 const filteredQnaList = ref([])
 const page = ref(1)
@@ -274,18 +288,18 @@ let modalConfirmAction = () => { modalOpen.value = false }
 
 const totalPages = computed(() => Math.ceil(filteredQnaList.value.length / pageSize))
 const pagedQnaList = computed(() =>
-  filteredQnaList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+    filteredQnaList.value.slice((page.value - 1) * pageSize, page.value * pageSize)
 )
 
 // 필터별 개수 계산
-const unansweredCount = computed(() => 
-  qnaList.value.filter(qna => !qna.answer && !qna.deleted).length
+const unansweredCount = computed(() =>
+    qnaList.value.filter(qna => !qna.answer && !qna.deleted).length
 )
-const answeredCount = computed(() => 
-  qnaList.value.filter(qna => qna.answer && !qna.deleted).length
+const answeredCount = computed(() =>
+    qnaList.value.filter(qna => qna.answer && !qna.deleted).length
 )
-const deletedCount = computed(() => 
-  qnaList.value.filter(qna => qna.deleted).length
+const deletedCount = computed(() =>
+    qnaList.value.filter(qna => qna.deleted).length
 )
 
 const fetchQnaList = async () => {
@@ -339,10 +353,10 @@ const filterQna = () => {
     const keyword = searchKeyword.value.toLowerCase()
     filtered = filtered.filter(qna => {
       return (
-        (qna.title && qna.title.toLowerCase().includes(keyword)) ||
-        (qna.content && qna.content.toLowerCase().includes(keyword)) ||
-        (qna.username && qna.username.toLowerCase().includes(keyword)) ||
-        (qna.answer && qna.answer.toLowerCase().includes(keyword))
+          (qna.title && qna.title.toLowerCase().includes(keyword)) ||
+          (qna.content && qna.content.toLowerCase().includes(keyword)) ||
+          (qna.username && qna.username.toLowerCase().includes(keyword)) ||
+          (qna.answer && qna.answer.toLowerCase().includes(keyword))
       )
     })
   }

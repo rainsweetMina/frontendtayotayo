@@ -11,27 +11,27 @@
 
         <!-- 성공 메시지(AlertMessage) -->
         <AlertMessage
-          v-if="showAlert"
-          type="success"
-          title="성공"
-          :message="alertMessage"
-          :dismissible="true"
-          :show="showAlert"
-          @close="showAlert = false"
+            v-if="showAlert"
+            type="success"
+            title="성공"
+            :message="alertMessage"
+            :dismissible="true"
+            :show="showAlert"
+            @close="showAlert = false"
         />
 
         <!-- 검색바와 등록 버튼 -->
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <SearchBar
-            placeholder="물품명, 버스회사, 노선번호 검색"
-            @search="handleSearch"
-            @reset="fetchFoundItems"
+              placeholder="물품명, 버스회사, 노선번호 검색"
+              @search="handleSearch"
+              @reset="fetchFoundItems"
           />
           <button
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            @click="goToCreatePage"
-            :disabled="authStore.role !== 'BUS'"
-            :title="authStore.role !== 'BUS' ? 'ADMIN은 등록할 수 없습니다' : ''"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="goToCreatePage"
+              :disabled="authStore.role !== 'BUS'"
+              :title="authStore.role !== 'BUS' ? 'ADMIN은 등록할 수 없습니다' : ''"
           >
             습득물 등록
           </button>
@@ -67,120 +67,120 @@
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  사진
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  물품명
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  습득일
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  상태
-                </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  관리
-                </th>
-              </tr>
+            <tr>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ID
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                사진
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                물품명
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                습득일
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                상태
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                관리
+              </th>
+            </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-if="!pagedFoundItems || pagedFoundItems.length === 0">
-                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">등록된 습득물이 없습니다.</td>
-              </tr>
-              <tr
+            <tr v-if="!pagedFoundItems || pagedFoundItems.length === 0">
+              <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">등록된 습득물이 없습니다.</td>
+            </tr>
+            <tr
                 v-for="item in pagedFoundItems"
                 :key="item.id"
                 :class="['hover:bg-gray-50', rowClass(item)]"
                 @click="goToDetailPage(item.id)"
-              >
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ item.id }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  <img 
-                    v-if="item.photoUrl" 
-                    :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
-                    alt="사진" 
-                    class="w-28 h-20 object-cover rounded" 
-                  />
-                  <span v-else class="text-gray-400">-</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <router-link :to="`/admin/found/${item.id}`" class="hover:underline text-blue-700">
-                    {{ item.itemName }}
-                  </router-link>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                  {{ formatDate(item.foundTime) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                  <span v-if="item.isDeleted || item.deleted" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-500">삭제됨</span>
-                  <span v-else-if="item.visible === false" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-200 text-gray-500">숨김</span>
-                  <span v-else :class="getStatusBadgeClass(item)">{{ getStatusText(item.status) }}</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                  <div class="flex justify-center items-center gap-2" @click.stop>
-                    <router-link
+            >
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                {{ item.id }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                <img
+                    v-if="item.photoUrl"
+                    :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`"
+                    alt="사진"
+                    class="w-28 h-20 object-cover rounded"
+                />
+                <span v-else class="text-gray-400">-</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <router-link :to="`/admin/found/${item.id}`" class="hover:underline text-blue-700">
+                  {{ item.itemName }}
+                </router-link>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                {{ formatDate(item.foundTime) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                <span v-if="item.isDeleted || item.deleted" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-red-100 text-red-500">삭제됨</span>
+                <span v-else-if="item.visible === false" class="inline-block rounded-full px-3 py-1 text-sm font-bold bg-gray-200 text-gray-500">숨김</span>
+                <span v-else :class="getStatusBadgeClass(item)">{{ getStatusText(item.status) }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                <div class="flex justify-center items-center gap-2" @click.stop>
+                  <router-link
                       v-if="!item.isDeleted && !item.deleted && authStore.role === 'BUS'"
                       :to="`/admin/found/edit/${item.id}`"
                       class="text-blue-600 hover:text-blue-900 mr-2"
-                    >
-                      수정
-                    </router-link>
-                    <button
+                  >
+                    수정
+                  </router-link>
+                  <button
                       v-else-if="!item.isDeleted && !item.deleted && authStore.role === 'ADMIN'"
                       class="text-gray-400 cursor-not-allowed mr-2"
                       disabled
                       title="ADMIN은 수정할 수 없습니다"
-                    >
-                      수정
-                    </button>
-                    <button
+                  >
+                    수정
+                  </button>
+                  <button
                       v-else
                       class="text-gray-400 cursor-not-allowed mr-2"
                       disabled
                       title="삭제된 항목은 수정할 수 없습니다"
-                    >
-                      수정
-                    </button>
-                    <button
+                  >
+                    수정
+                  </button>
+                  <button
                       v-if="item.visible && !item.isDeleted && !item.deleted"
                       class="text-yellow-600 hover:text-yellow-900 mr-2"
                       @click="hideItem(item)"
-                    >
-                      숨김
-                    </button>
-                    <button
+                  >
+                    숨김
+                  </button>
+                  <button
                       v-else
                       class="text-gray-400 cursor-not-allowed mr-2"
                       disabled
                       :title="item.isDeleted || item.deleted ? '삭제된 항목은 숨김 처리할 수 없습니다' : '이미 숨김 처리된 항목입니다'"
-                    >
-                      숨김
-                    </button>
-                    <button
+                  >
+                    숨김
+                  </button>
+                  <button
                       v-if="!item.isDeleted && !item.deleted"
                       class="text-red-600 hover:text-red-900"
                       @click="deleteItem(item)"
-                    >
-                      삭제
-                    </button>
-                    <button
+                  >
+                    삭제
+                  </button>
+                  <button
                       v-else
                       class="text-gray-400 cursor-not-allowed"
                       disabled
                       title="이미 삭제된 항목입니다"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  >
+                    삭제
+                  </button>
+                </div>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -189,29 +189,29 @@
         <div class="flex justify-center mt-4">
           <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
             <button
-              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-              :disabled="page === 1"
-              :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
-              @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                :disabled="page === 1"
+                :class="{ 'opacity-50 cursor-not-allowed': page === 1 }"
+                @click="() => { if (page > 1) page--; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
             >
               이전
             </button>
             <button
-              v-for="p in totalPages"
-              :key="p"
-              :class="[
+                v-for="p in totalPages"
+                :key="p"
+                :class="[
                 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50',
                 page === p ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : ''
               ]"
-              @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+                @click="() => { page = p; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
             >
               {{ p }}
             </button>
             <button
-              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-              :disabled="page === totalPages"
-              :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
-              @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                :disabled="page === totalPages"
+                :class="{ 'opacity-50 cursor-not-allowed': page === totalPages }"
+                @click="() => { if (page < totalPages) page++; if (typeof window !== 'undefined') window.scrollTo({top:0,behavior:'smooth'}) }"
             >
               다음
             </button>
@@ -221,14 +221,14 @@
     </div>
 
     <CommonModal
-      :is-open="modalConfig.isOpen"
-      :title="modalConfig.title"
-      :message="modalConfig.message"
-      :confirm-text="modalConfig.confirmText"
-      :confirm-type="modalConfig.confirmType"
-      :show-cancel="modalConfig.showCancel"
-      @close="closeModal"
-      @confirm="handleModalConfirm"
+        :is-open="modalConfig.isOpen"
+        :title="modalConfig.title"
+        :message="modalConfig.message"
+        :confirm-text="modalConfig.confirmText"
+        :confirm-type="modalConfig.confirmType"
+        :show-cancel="modalConfig.showCancel"
+        @close="closeModal"
+        @confirm="handleModalConfirm"
     />
   </div>
 </template>
@@ -304,9 +304,9 @@ function filterFoundItems() {
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase();
     filtered = filtered.filter(item =>
-      (item.itemName && item.itemName.toLowerCase().includes(keyword)) ||
-      (item.busCompany && item.busCompany.toLowerCase().includes(keyword)) ||
-      (item.busNumber && item.busNumber.toLowerCase().includes(keyword))
+        (item.itemName && item.itemName.toLowerCase().includes(keyword)) ||
+        (item.busCompany && item.busCompany.toLowerCase().includes(keyword)) ||
+        (item.busNumber && item.busNumber.toLowerCase().includes(keyword))
     );
   }
 
@@ -328,11 +328,21 @@ const fetchFoundItems = async () => {
   try {
     loading.value = true
     const { data } = await getFoundItemsForAdmin()
-    foundItems.value = data.sort((a, b) => b.id - a.id)
+    console.log('관리자 습득물 목록 API 응답:', data)
+
+    // 데이터가 배열인지 확인하고 안전하게 처리
+    const dataArray = Array.isArray(data) ? data : []
+    foundItems.value = dataArray.sort((a, b) => b.id - a.id)
     filterFoundItems();
   } catch (error) {
     console.error('습득물 목록 조회 실패:', error)
-    showAlert('error', '조회 실패', '습득물 목록을 불러오는 중 오류가 발생했습니다.');
+    console.error('에러 상세 정보:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    })
+    alertMessage.value = '습득물 목록을 불러오는 중 오류가 발생했습니다.'
+    showAlert.value = true
   } finally {
     loading.value = false
   }
@@ -396,9 +406,10 @@ const handleModalConfirm = async () => {
     }
   } catch (e) {
     showAlert.value = false
-    showAlert('error', '처리 실패', '처리 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message))
+    alertMessage.value = '처리 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message)
+    showAlert.value = true
   }
-  
+
   // 임시 저장된 item 제거
   window.tempItem = null
   closeModal()
@@ -406,7 +417,9 @@ const handleModalConfirm = async () => {
 
 watch(showAlert, (val) => {
   if (val) {
-    setTimeout(() => { showAlert.value = false }, 2000)
+    setTimeout(() => {
+      showAlert.value = false
+    }, 2000)
   }
 })
 
@@ -442,7 +455,7 @@ const formatDate = (dateStr) => {
 
 const totalPages = computed(() => Math.ceil(filteredFoundItems.value.length / pageSize));
 const pagedFoundItems = computed(() =>
-  filteredFoundItems.value.slice((page.value - 1) * pageSize, page.value * pageSize)
+    filteredFoundItems.value.slice((page.value - 1) * pageSize, page.value * pageSize)
 )
 
 const allCount = computed(() => foundItems.value.filter(item => {
