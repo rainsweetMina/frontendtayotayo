@@ -372,6 +372,12 @@ export const getWeatherApiKey = async () => {
 // 역지오코딩 API 함수 (좌표 → 주소)
 export const reverseGeocode = async (lat, lon) => {
     try {
+        // 좌표값을 적절한 소수점 자릿수로 반올림 (6자리)
+        const roundedLat = Math.round(lat * 1000000) / 1000000;
+        const roundedLon = Math.round(lon * 1000000) / 1000000;
+        
+        console.log(`역지오코딩 호출: 위도=${roundedLat}, 경도=${roundedLon}`);
+        
         // 최대 2번까지 재시도
         let retries = 2;
         let lastError = null;
@@ -379,9 +385,10 @@ export const reverseGeocode = async (lat, lon) => {
         while (retries >= 0) {
             try {
                 const response = await api.get('/api/reverse-geocode', {
-                    params: { lat, lon },
+                    params: { lat: roundedLat, lon: roundedLon },
                     timeout: 3000 // 3초 타임아웃 설정
                 });
+                console.log('역지오코딩 성공:', response.data);
                 return response.data;
             } catch (error) {
                 lastError = error;
