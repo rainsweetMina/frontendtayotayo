@@ -10,15 +10,55 @@ const HTTPS_AGENT = {
 
 // JWT 토큰 관련 함수
 const getJwtToken = () => {
+    // 1. localStorage에서 먼저 확인
     const token = localStorage.getItem('accessToken');
-    console.log('[JWT] getJwtToken called, token:', token ? 'exists' : 'null');
-    return token;
+    if (token && token !== 'undefined' && token !== 'null') {
+        console.log('[JWT] getJwtToken from localStorage:', token ? 'exists' : 'null');
+        return token;
+    }
+
+    // 2. 쿠키에서 확인 (백엔드에서 설정한 Vue 쿠키)
+    const cookieToken = getCookie('vue_accessToken');
+    if (cookieToken && cookieToken !== 'undefined' && cookieToken !== 'null') {
+        console.log('[JWT] getJwtToken from cookie:', cookieToken ? 'exists' : 'null');
+        // 쿠키에서 찾은 토큰을 localStorage에도 저장
+        localStorage.setItem('accessToken', cookieToken);
+        return cookieToken;
+    }
+
+    console.log('[JWT] getJwtToken: no token found');
+    return null;
 };
+
 const getRefreshToken = () => {
+    // 1. localStorage에서 먼저 확인
     const token = localStorage.getItem('refreshToken');
-    console.log('[JWT] getRefreshToken called, token:', token ? 'exists' : 'null');
-    return token;
+    if (token && token !== 'undefined' && token !== 'null') {
+        console.log('[JWT] getRefreshToken from localStorage:', token ? 'exists' : 'null');
+        return token;
+    }
+
+    // 2. 쿠키에서 확인 (백엔드에서 설정한 Vue 쿠키)
+    const cookieToken = getCookie('vue_refreshToken');
+    if (cookieToken && cookieToken !== 'undefined' && cookieToken !== 'null') {
+        console.log('[JWT] getRefreshToken from cookie:', cookieToken ? 'exists' : 'null');
+        // 쿠키에서 찾은 토큰을 localStorage에도 저장
+        localStorage.setItem('refreshToken', cookieToken);
+        return cookieToken;
+    }
+
+    console.log('[JWT] getRefreshToken: no token found');
+    return null;
 };
+
+// 쿠키에서 값을 가져오는 헬퍼 함수
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+};
+
 const saveTokens = (accessToken, refreshToken) => {
     if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
