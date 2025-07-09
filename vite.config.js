@@ -28,6 +28,20 @@ export default defineConfig({
         emptyOutDir: true,
         rollupOptions: {
             plugins: [nodePolyfills()]
+        },
+        // Production 빌드 최적화
+        minify: 'terser',
+        sourcemap: false,
+        // 청크 분할 설정
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['vue', 'vue-router', 'pinia'],
+                    axios: ['axios'],
+                    chart: ['chart.js', 'vue3-apexcharts'],
+                    leaflet: ['leaflet']
+                }
+            }
         }
     },
     server: {
@@ -60,5 +74,10 @@ export default defineConfig({
                 })
             );
         }
+    },
+    // Production 환경 변수 설정
+    define: {
+        __VUE_PROD_DEVTOOLS__: false,
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
     }
 });
