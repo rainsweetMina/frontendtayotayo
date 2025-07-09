@@ -251,20 +251,35 @@ const fetchFoundItems = async (isSearch = false) => {
       });
     }
   } catch (e) {
+    // 로그인 필요 에러가 발생해도 빈 배열로 처리하여 페이지가 정상적으로 표시되도록 함
     items.value = [];
-    console.error('❌ 목록 조회 실패:', e);
-    console.error('❌ 에러 상세 정보:', {
-      message: e.message,
-      response: e.response?.data,
-      status: e.response?.status
-    });
+    if (e.message === '로그인 필요') {
+      console.warn('⚠️ 로그인 없이 접근 - 빈 목록으로 표시');
+    } else {
+      console.error('❌ 목록 조회 실패:', e);
+      console.error('❌ 에러 상세 정보:', {
+        message: e.message,
+        response: e.response?.data,
+        status: e.response?.status
+      });
+    }
   }
 };
 
 // 🏢 버스회사 목록
 const fetchBusCompanies = async () => {
-  const res = await getBusCompanies();
-  busCompanies.value = res.data;
+  try {
+    const res = await getBusCompanies();
+    busCompanies.value = res.data;
+  } catch (e) {
+    // 로그인 필요 에러가 발생해도 빈 배열로 처리
+    busCompanies.value = [];
+    if (e.message === '로그인 필요') {
+      console.warn('⚠️ 로그인 없이 접근 - 버스회사 목록을 불러올 수 없습니다');
+    } else {
+      console.error('❌ 버스회사 목록 조회 실패:', e);
+    }
+  }
 };
 
 // 🚌 노선 목록
