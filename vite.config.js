@@ -29,7 +29,7 @@ export default defineConfig({
         rollupOptions: {
             plugins: [nodePolyfills()]
         },
-        // Production 빌드 최적화
+        // Production 빌드 최적화 (terser 사용)
         minify: 'terser',
         sourcemap: false,
         // 청크 분할 설정
