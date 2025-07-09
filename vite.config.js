@@ -43,33 +43,6 @@ export default defineConfig({
         fs: {
             strict: false
         },
-        // HMR 설정 추가
-        hmr: {
-            host: 'docs.yi.or.kr',
-            port: 15173,
-            protocol: 'wss'
-        },
-        // 백엔드 API 프록시 설정 추가
-        proxy: {
-            '/api': {
-                target: 'https://docs.yi.or.kr:8096',
-                changeOrigin: true,
-                secure: false,
-                rewrite: (path) => path
-            },
-            '/auth': {
-                target: 'https://docs.yi.or.kr:8096',
-                changeOrigin: true,
-                secure: false,
-                rewrite: (path) => path
-            },
-            '/oauth2': {
-                target: 'https://docs.yi.or.kr:8096',
-                changeOrigin: true,
-                secure: false,
-                rewrite: (path) => path
-            }
-        },
         // ✅ 여기서 Vue Router fallback 적용!
         configureServer: ({ middlewares }) => {
             middlewares.use(
