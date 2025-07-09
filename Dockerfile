@@ -17,7 +17,7 @@ RUN npm ci
 COPY . .
 
 # 환경 변수 파일 복사
-COPY env.production .env.production
+COPY .env.production .env.production
 
 # 포트 노출
 EXPOSE 5173
