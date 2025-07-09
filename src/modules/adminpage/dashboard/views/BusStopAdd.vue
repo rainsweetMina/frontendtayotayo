@@ -392,70 +392,25 @@ const reverseGeocode = async (lat, lng) => {
     const { reverseGeocode: reverseGeocodeApi } = await import('@/api/axiosInstance') // 이름 충돌 방지를 위해 별칭 사용
     const data = await reverseGeocodeApi(lat, lng) // API 함수 호출
 
-    if (data && data.display_name) {
+    console.log('역지오코딩 응답 데이터:', data)
+
+    if (data && data.address && !data.error) {
       // 주소 정보 저장
-      form.value.address = data.display_name
+      form.value.address = data.address
 
-      // 주소 상세 정보 분리 (한국 주소 체계에 맞게 개선)
-      if (data.address) {
-        console.log('OpenStreetMap 원본 주소 데이터:', data.address)
+      // 주소 상세 정보 설정
+      form.value.city = data.region1 || ''
+      form.value.district = data.region2 || ''
+      form.value.neighborhood = data.region3 || ''
 
-        // 한국 주소 체계에 맞게 시/도 정보 추출
-        if (data.address.country === 'South Korea' || data.address.country === '대한민국') {
-          // 시/도 정보 (province, state, city_district 등)
-          form.value.city = data.address.province ||
-                           data.address.state ||
-                           (data.address.city && data.address.city.includes('광역시') ? data.address.city : '') ||
-                           (data.address.city && data.address.city.includes('특별시') ? data.address.city : '') ||
-                           ''
+      console.log('설정된 주소 정보:', {
+        address: form.value.address,
+        city: form.value.city,
+        district: form.value.district,
+        neighborhood: form.value.neighborhood
+      })
 
-          // 구/군 정보 (city, county, district 등)
-          form.value.district = data.address.city_district ||
-                               data.address.county ||
-                               (data.address.city && !data.address.city.includes('광역시') && !data.address.city.includes('특별시') ? data.address.city : '') ||
-                               data.address.district ||
-                               ''
-
-          // 동 정보 (suburb, village, town, neighbourhood 등)
-          form.value.neighborhood = data.address.suburb ||
-                                   data.address.neighbourhood ||
-                                   data.address.village ||
-                                   data.address.town ||
-                                   data.address.quarter ||
-                                   ''
-
-          // 대구광역시 특별 처리
-          if (data.address.city === '대구광역시' || data.address.city === 'Daegu' || form.value.city.includes('대구')) {
-            form.value.city = '대구광역시'
-
-            // 구/군 정보가 없는 경우 추가 처리
-            if (!form.value.district) {
-              // 주소에서 구 이름 추출 시도
-              const addressParts = data.display_name.split(',').map(part => part.trim())
-              for (const part of addressParts) {
-                if (part.includes('구') && !part.includes('대구광역시')) {
-                  form.value.district = part
-                  break
-                }
-              }
-            }
-          }
-
-          // 빈 값 처리
-          form.value.city = form.value.city || '정보 없음'
-          form.value.district = form.value.district || '정보 없음'
-          form.value.neighborhood = form.value.neighborhood || '정보 없음'
-        }
-
-        console.log('처리된 주소 상세 정보:', {
-          city: form.value.city,
-          district: form.value.district,
-          neighborhood: form.value.neighborhood,
-          raw: data.address
-        })
-      }
-
-      return data.display_name
+      return data.address
     }
     return null
   } catch (error) {
