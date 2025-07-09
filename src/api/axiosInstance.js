@@ -52,6 +52,11 @@ const publicApi = axios.create({
 // publicApi용 인터셉터 (토큰이 있으면 추가, 없어도 에러 없음)
 publicApi.interceptors.request.use(
     config => {
+        // 요청 URL이 /schedule로 시작하면 토큰 추가하지 않음
+        if (config.url && config.url.startsWith('/schedule')) {
+            console.log('[publicApi] /schedule 경로, 토큰 없이 호출:', config.url);
+            return config;
+        }
         // JWT 토큰이 있으면 헤더에 추가 (선택적)
         const accessToken = getJwtToken();
         if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
@@ -60,7 +65,6 @@ publicApi.interceptors.request.use(
         } else {
             console.log('[publicApi] 토큰 없이 호출:', config.url);
         }
-
         // SSL 인증서 검증 비활성화 설정
         if (!config.httpsAgent) {
             config.httpsAgent = HTTPS_AGENT;
@@ -84,6 +88,14 @@ publicApi.interceptors.response.use(
         if (newAccessToken || newRefreshToken) {
             saveTokens(newAccessToken, newRefreshToken);
             console.log('[publicApi] ✅ 새로운 토큰이 저장되었습니다.');
+        }
+
+        // 로그인 페이지 HTML이 응답된 경우 감지 (리다이렉트 없이 에러만 반환)
+        const isHtml = response.headers['content-type']?.includes('text/html');
+        const isLoginPage = typeof response.data === 'string' && response.data.includes('로그인');
+        if (isHtml && isLoginPage) {
+            console.warn('[publicApi] 로그인 페이지 HTML이 반환됨 (비로그인 허용 페이지, 리다이렉트 없음)');
+            return Promise.reject(new Error('로그인 필요'));
         }
 
         return response;
