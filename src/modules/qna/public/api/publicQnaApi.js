@@ -5,11 +5,17 @@ import { publicApi } from '@/api/axiosInstance';
 export function fetchAllQna(page = 0, keyword = '', field = 'title') {
   return publicApi.get('/api/qna/page', {
     params: { page, keyword, field }
+  }).catch(error => {
+    console.error('QnA 목록 조회 실패:', error);
+    throw error;
   });
 }
 
 export function fetchQnaDetail(id) {
-  return publicApi.get(`/api/qna/${id}`);
+  return publicApi.get(`/api/qna/${id}`).catch(error => {
+    console.error('QnA 상세 조회 실패:', error);
+    throw error;
+  });
 }
 
 export function createQna(dto) {

@@ -187,11 +187,18 @@ function maskWriterName(name) {
 }
 
 async function loadQna(page = 0) {
-  const { data } = await fetchAllQna(page, keyword.value, field.value);
-  console.log("loadQna --->", data)
-  qnaList.value = data.content || [];
-  currentPage.value = data.number || 0;
-  totalPages.value = data.totalPages || 1;
+  try {
+    const { data } = await fetchAllQna(page, keyword.value, field.value);
+    console.log("loadQna --->", data)
+    qnaList.value = data.content || [];
+    currentPage.value = data.number || 0;
+    totalPages.value = data.totalPages || 1;
+  } catch (error) {
+    console.error('QnA 목록 로딩 실패:', error);
+    qnaList.value = [];
+    currentPage.value = 0;
+    totalPages.value = 1;
+  }
 }
 
 function searchQna() {
