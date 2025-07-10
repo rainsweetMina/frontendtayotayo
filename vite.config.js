@@ -43,6 +43,11 @@ export default defineConfig({
         fs: {
             strict: false
         },
+        hmr: {
+            host: 'docs.yi.or.kr',
+            port: 15173,
+            protocol: 'wss'
+        },
         // ✅ 여기서 Vue Router fallback 적용!
         configureServer: ({ middlewares }) => {
             middlewares.use(

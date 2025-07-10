@@ -56,7 +56,7 @@ const removeTokens = () => {
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
     baseURL: "https://docs.yi.or.kr:8096",
-    withCredentials: false,
+    withCredentials: true,
     httpsAgent: HTTPS_AGENT,
     timeout: 30000, // 30초 타임아웃 추가
     headers: {
@@ -68,7 +68,7 @@ const api = axios.create({
 // 공개 API용 인스턴스 (토큰 없이 호출 가능)
 const publicApi = axios.create({
     baseURL: "https://docs.yi.or.kr:8096",
-    withCredentials: false,
+    withCredentials: true,
     httpsAgent: HTTPS_AGENT,
     timeout: 30000, // 30초 타임아웃 추가
     headers: {
