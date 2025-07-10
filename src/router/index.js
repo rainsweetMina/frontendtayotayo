@@ -92,8 +92,10 @@ router.beforeEach(async (to, from, next) => {
     // 2. 토큰만 있을 때 사용자 정보 복원
     const accessToken = localStorage.getItem('accessToken')
     if (!auth.isLoggedIn && accessToken && !isUserInfoFetched.value) {
+        console.log('[Router] 토큰은 있지만 로그인 상태가 아님, 사용자 정보 복원 시도')
         const ok = await fetchUserInfo(true)
         if (!ok && isProtected) {
+            console.log('[Router] 사용자 정보 복원 실패, 로그인 페이지로 리다이렉트')
             return next({ path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } })
         }
     }
