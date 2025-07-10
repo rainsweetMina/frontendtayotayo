@@ -43,7 +43,7 @@ export default defineConfig({
         fs: {
             strict: false
         },
-        hmr: false, // WebSocket 연결 문제로 인해 HMR 비활성화
+        hmr: false, // 프로덕션 환경에서는 HMR 불필요
         // ✅ 여기서 Vue Router fallback 적용!
         configureServer: ({ middlewares }) => {
             middlewares.use(
