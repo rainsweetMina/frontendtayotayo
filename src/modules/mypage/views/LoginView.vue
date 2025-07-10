@@ -109,14 +109,14 @@ const handleLogin = async () => {
   isLoggingIn.value = true
 
   try {
-    console.log('[LoginView] 로그인 시도 시작 - 모바일 환경 확인:', {
-      userAgent: navigator.userAgent,
-      isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-      localStorage: typeof localStorage !== 'undefined'
-    });
+    // console.log('[LoginView] 로그인 시도 시작 - 모바일 환경 확인:', {
+    //   userAgent: navigator.userAgent,
+    //   isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+    //   localStorage: typeof localStorage !== 'undefined'
+    // });
 
     /* 1) 기존 세션·스토어 초기화 */
-    auth.logout(true)
+    // auth.logout(true)
 
     /* 2) 로그인 요청 -------------------------------- */
     const loginBody = {                    // ✅ JSON 바디
