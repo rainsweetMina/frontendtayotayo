@@ -43,11 +43,7 @@ export default defineConfig({
         fs: {
             strict: false
         },
-        hmr: {
-            host: 'docs.yi.or.kr',
-            port: 15173,
-            protocol: 'wss'
-        },
+        hmr: false, // WebSocket 연결 문제로 인해 HMR 비활성화
         // ✅ 여기서 Vue Router fallback 적용!
         configureServer: ({ middlewares }) => {
             middlewares.use(
