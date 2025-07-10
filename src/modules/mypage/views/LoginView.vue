@@ -2,6 +2,8 @@
   <div class="login-wrapper">
     <div class="login-container">
       <h2>로그인</h2>
+      <h3>ID : admin</h3>
+      <h3>PW : 1!aaaaaa</h3>
 
       <!-- ─────────── 로그인 폼 ─────────── -->
       <form @submit.prevent="handleLogin">
@@ -46,7 +48,7 @@
 <script setup>
 import {ref, onMounted, watch, nextTick, computed} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import api from '@/api/axiosInstance'
+import api, {publicApi} from '@/api/axiosInstance'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -128,7 +130,7 @@ const handleLogin = async () => {
       withCredentials: true
     });
 
-    const { data: tokenRes } = await api.post(
+    const { data: tokenRes } = await publicApi.post(
         '/api/auth/login',                   // ✅ 실제 백엔드 경로
         loginBody,
         { withCredentials: true }            // JSON이면 헤더 지정 불필요
