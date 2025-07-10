@@ -170,17 +170,40 @@ const handleLogin = async () => {
     });
     
     /* 5) 토큰과 사용자 정보를 한 번에 저장 -------------------------- */
+    console.log('[LoginView] auth.login 호출 전:', {
+      accessToken: !!accessToken,
+      refreshToken: !!refreshToken,
+      expiresIn,
+      userInfo: { userId: userInfo.userId, role: userInfo.role }
+    })
+    
     auth.login({ ...userInfo, accessToken, refreshToken, expiresIn })
+    
+    console.log('[LoginView] auth.login 호출 후:', {
+      authAccessToken: !!auth.accessToken,
+      authRefreshToken: !!auth.refreshToken,
+      authIsLoggedIn: auth.isLoggedIn,
+      authRole: auth.role
+    })
 
     /* 6) 토큰 저장 완료 후 다음 렌더링 사이클까지 대기 -------------------------- */
     await nextTick()
     
     /* 7) 토큰이 제대로 저장되었는지 확인 -------------------------- */
     const savedToken = localStorage.getItem('accessToken')
+    const savedRefreshToken = localStorage.getItem('refreshToken')
     console.log('[LoginView] 토큰 저장 확인:', {
       hasToken: !!savedToken,
       tokenLength: savedToken?.length,
-      isLoggedIn: auth.isLoggedIn
+      hasRefreshToken: !!savedRefreshToken,
+      refreshTokenLength: savedRefreshToken?.length,
+      isLoggedIn: auth.isLoggedIn,
+      authState: {
+        accessToken: !!auth.accessToken,
+        refreshToken: !!auth.refreshToken,
+        role: auth.role,
+        isLoggedIn: auth.isLoggedIn
+      }
     })
 
     /* 5) 리다이렉트 경로 결정 ---------------------- */

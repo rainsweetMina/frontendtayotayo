@@ -45,19 +45,51 @@ export const useAuthStore = defineStore('auth', {
 
         /* ───────── 로그인 성공 시 ───────── */
         login(payload) {
+            console.log('[auth] login 호출됨:', {
+                hasAccessToken: !!payload.accessToken,
+                hasRefreshToken: !!payload.refreshToken,
+                expiresIn: payload.expiresIn,
+                userId: payload.userId,
+                role: payload.role
+            })
+            
             this.setTokens(payload.accessToken, payload.refreshToken, payload.expiresIn)
             Object.assign(this, payload, { isLoggedIn: true })
+            
+            console.log('[auth] login 완료:', {
+                accessToken: !!this.accessToken,
+                refreshToken: !!this.refreshToken,
+                isLoggedIn: this.isLoggedIn,
+                role: this.role
+            })
         },
 
         /* ───────── 토큰 저장 (만료 포함) ───────── */
         setTokens(accessToken, refreshToken, expiresIn = 3600) {
+            console.log('[auth] setTokens 호출됨:', {
+                accessToken: !!accessToken,
+                refreshToken: !!refreshToken,
+                expiresIn
+            })
+            
             this.accessToken  = accessToken
             this.refreshToken = refreshToken
             this.tokenExpiry  = Date.now() + expiresIn * 1000
 
-            localStorage.setItem('accessToken',  accessToken ?? '')
-            localStorage.setItem('refreshToken', refreshToken ?? '')
-            localStorage.setItem('tokenExpiry',  String(this.tokenExpiry))
+            try {
+                localStorage.setItem('accessToken',  accessToken ?? '')
+                localStorage.setItem('refreshToken', refreshToken ?? '')
+                localStorage.setItem('tokenExpiry',  String(this.tokenExpiry))
+                console.log('[auth] localStorage 저장 성공')
+            } catch (error) {
+                console.error('[auth] localStorage 저장 실패:', error)
+            }
+            
+            console.log('[auth] setTokens 완료:', {
+                accessToken: !!this.accessToken,
+                refreshToken: !!this.refreshToken,
+                tokenExpiry: this.tokenExpiry
+            })
         },
 
         /* ✅ LoginView 호환용 헬퍼 */
