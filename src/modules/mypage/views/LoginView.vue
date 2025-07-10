@@ -223,7 +223,7 @@ const handleLogin = async () => {
     }
 
     console.log('[LoginView] 리다이렉트 경로:', redirectPath);
-    router.push(redirectPath)
+    // router.push(redirectPath)
   } catch (err) {
     console.error('❌ 로그인 실패:', err)
     console.error('[LoginView] 상세 에러 정보:', {
@@ -251,7 +251,7 @@ const handleLogin = async () => {
       errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
     } else if (err.response?.data?.message) {
       errorMessage = err.response.data.message
-    }
+    } 
     
     error.value = errorMessage
   } finally {
