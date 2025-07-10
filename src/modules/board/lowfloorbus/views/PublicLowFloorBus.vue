@@ -192,6 +192,7 @@ const lowFloorBuses = ref([])
 const currentPage = ref(1)
 const pageSize = 10 // 한 페이지당 표시할 항목 수
 const isAdmin = ref(false)
+const userRole = ref('USER') // 사용자 역할 추가
 const selectedLowFloorBus = ref(null)
 const route = useRoute()
 const router = useRouter()
@@ -243,9 +244,17 @@ const changePage = (newPage) => {
 
 const checkUserRole = async () => {
   try {
-    const response = await publicApi.get('/api/auth/check-role')
-    userRole.value = response.data.role
-    isAdmin.value = response.data.role === 'ADMIN'
+    // 공개 페이지에서는 기본값으로 설정
+    userRole.value = 'USER'
+    isAdmin.value = false
+    
+    // 토큰이 있으면 관리자 여부만 확인 (선택적)
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      // 토큰이 있다면 관리자 페이지 접근 권한이 있는지 확인
+      // 실제로는 관리자 기능이 필요할 때만 API 호출
+      console.log('사용자 토큰 존재, 기본 역할로 설정')
+    }
   } catch (err) {
     console.error('사용자 역할 확인 실패:', err)
     userRole.value = 'USER'
@@ -311,7 +320,15 @@ watch(() => route.params.id, (newId) => {
 }, { immediate: true });
 
 onMounted(async () => {
-  await checkUserRole();
+  try {
+    await checkUserRole();
+  } catch (err) {
+    console.error('사용자 역할 확인 중 오류:', err)
+    // 기본값 설정
+    userRole.value = 'USER'
+    isAdmin.value = false
+  }
+  
   if (!route.params.id) {
     fetchLowFloorBuses();
   }

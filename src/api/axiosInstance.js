@@ -10,43 +10,71 @@ const HTTPS_AGENT = {
 
 // JWT 토큰 관련 함수
 const getJwtToken = () => {
-    const token = localStorage.getItem('accessToken');
-    console.log('[JWT] getJwtToken called, token:', token ? 'exists' : 'null');
-    return token;
+    try {
+        const token = localStorage.getItem('accessToken');
+        console.log('[JWT] getJwtToken called, token:', token ? 'exists' : 'null');
+        return token;
+    } catch (e) {
+        console.warn('[JWT] localStorage 접근 실패 (시크릿 모드일 수 있음):', e);
+        return null;
+    }
 };
 const getRefreshToken = () => {
-    const token = localStorage.getItem('refreshToken');
-    console.log('[JWT] getRefreshToken called, token:', token ? 'exists' : 'null');
-    return token;
+    try {
+        const token = localStorage.getItem('refreshToken');
+        console.log('[JWT] getRefreshToken called, token:', token ? 'exists' : 'null');
+        return token;
+    } catch (e) {
+        console.warn('[JWT] localStorage 접근 실패 (시크릿 모드일 수 있음):', e);
+        return null;
+    }
 };
 const saveTokens = (accessToken, refreshToken) => {
-    if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
-        console.log('[JWT] accessToken saved');
-    }
-    if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-        console.log('[JWT] refreshToken saved');
+    try {
+        if (accessToken) {
+            localStorage.setItem('accessToken', accessToken);
+            console.log('[JWT] accessToken saved');
+        }
+        if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+            console.log('[JWT] refreshToken saved');
+        }
+    } catch (e) {
+        console.warn('[JWT] localStorage 저장 실패 (시크릿 모드일 수 있음):', e);
     }
 };
 const removeTokens = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    console.log('[JWT] tokens removed');
+    try {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        console.log('[JWT] tokens removed');
+    } catch (e) {
+        console.warn('[JWT] localStorage 삭제 실패 (시크릿 모드일 수 있음):', e);
+    }
 };
 
 // 커스텀 인스턴스 생성 (axios 대신 이것만 사용)
 const api = axios.create({
     baseURL: "https://docs.yi.or.kr:8096",
-    withCredentials: true,
-    httpsAgent: HTTPS_AGENT
+    withCredentials: false,
+    httpsAgent: HTTPS_AGENT,
+    timeout: 30000, // 30초 타임아웃 추가
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
 });
 
 // 공개 API용 인스턴스 (토큰 없이 호출 가능)
 const publicApi = axios.create({
     baseURL: "https://docs.yi.or.kr:8096",
-    withCredentials: true,
-    httpsAgent: HTTPS_AGENT
+    withCredentials: false,
+    httpsAgent: HTTPS_AGENT,
+    timeout: 30000, // 30초 타임아웃 추가
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
 });
 
 // publicApi용 인터셉터 (토큰이 있으면 추가, 없어도 에러 없음)
@@ -93,7 +121,22 @@ publicApi.interceptors.response.use(
         // 로그인 페이지 HTML이 응답된 경우 감지 (리다이렉트 없이 에러만 반환)
         const isHtml = response.headers['content-type']?.includes('text/html');
         const isLoginPage = typeof response.data === 'string' && response.data.includes('로그인');
-        if (isHtml && isLoginPage) {
+        
+        // 공개 API 경로는 로그인 페이지 HTML 응답을 무시
+        const isPublicApi = response.config?.url?.includes('/api/companies') || 
+                           response.config?.url?.includes('/api/bus-info/') ||
+                           response.config?.url?.includes('/api/bus/fare') ||
+                           response.config?.url?.includes('/api/fares') ||
+                           response.config?.url?.includes('/api/schedule') ||
+                           response.config?.url?.includes('/api/notice') ||
+                           response.config?.url?.includes('/api/route-nos') ||
+                           response.config?.url?.includes('/api/route-notes') ||
+                           response.config?.url?.includes('/api/route-id') ||
+                           response.config?.url?.includes('/api/schedule-header') ||
+                           response.config?.url?.includes('/api/route-map') ||
+                           response.config?.url?.includes('/api/lowbus-scheduls');
+        
+        if (isHtml && isLoginPage && !isPublicApi) {
             console.warn('[publicApi] 로그인 페이지 HTML이 반환됨 (비로그인 허용 페이지, 리다이렉트 없음)');
             return Promise.reject(new Error('로그인 필요'));
         }
@@ -168,6 +211,15 @@ api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = '
 // 요청 인터셉터
 api.interceptors.request.use(
     config => {
+        // 모바일 환경 감지
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.log('[api] 요청 시작:', {
+            url: config.url,
+            method: config.method,
+            isMobile: isMobile,
+            userAgent: navigator.userAgent.substring(0, 100) + '...'
+        });
+
         // JWT 토큰을 헤더에 추가
         const accessToken = getJwtToken();
         if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
@@ -180,6 +232,12 @@ api.interceptors.request.use(
         // SSL 인증서 검증 비활성화 설정 재확인
         if (!config.httpsAgent) {
             config.httpsAgent = HTTPS_AGENT;
+        }
+
+        // 모바일 환경에서 추가 헤더 설정
+        if (isMobile) {
+            config.headers['User-Agent'] = navigator.userAgent;
+            console.log('[api] 모바일 환경 감지, 추가 헤더 설정');
         }
 
         return config;
@@ -240,36 +298,45 @@ api.interceptors.response.use(
         return response;
     },
     async error => {
-        // 에러 정보 추출
-        const errorStatus = error.response?.status
-        const errorData = error.response?.data
-        const errorMessage = error.message
-        const errorCode = error.code
-        const requestUrl = error.config?.url
-        const requestMethod = error.config?.method
+        const errorStatus = error.response?.status;
+        const requestUrl = error.config?.url;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        if (errorStatus !== 404) {
-            console.error('=== API 응답 에러 상세 정보 ===')
-            console.error('요청 URL:', requestMethod?.toUpperCase(), requestUrl)
-            console.error('에러 코드:', errorCode)
-            console.error('에러 메시지:', errorMessage)
-            console.error('HTTP 상태:', errorStatus)
-            console.error('응답 데이터:', errorData)
-            console.error('==============================')
-        }
-        // 타임아웃 에러 처리
-        if (errorCode === 'ECONNABORTED' || errorMessage.includes('timeout')) {
-            console.error('요청 타임아웃: 서버 응답이 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.')
-            console.error('요청 URL:', requestUrl)
-            console.error('타임아웃 설정:', error.config?.timeout, 'ms')
+        console.error('[api] API 호출 실패:', {
+            url: requestUrl,
+            status: errorStatus,
+            message: error.message,
+            isMobile: isMobile,
+            code: error.code
+        });
+
+        // 모바일 환경에서 특별한 에러 처리
+        if (isMobile) {
+            if (error.message === 'Network Error') {
+                console.error('[api] 모바일 네트워크 에러 - Wi-Fi 연결 확인 필요');
+            } else if (error.code === 'ECONNABORTED') {
+                console.error('[api] 모바일 타임아웃 에러 - 네트워크 상태 확인 필요');
+            } else if (error.response?.status === 0) {
+                console.error('[api] 모바일 연결 실패 - 서버에 연결할 수 없음');
+            }
         }
 
-        // 네트워크 에러 처리
-        if (!error.response) {
-            console.error('네트워크 에러: 서버에 연결할 수 없습니다.')
-            console.error('요청 URL:', requestUrl)
-            console.error('BASE_URL:', BASE_URL)
-            console.error('전체 URL:', error.config?.baseURL + requestUrl)
+        // 토큰 만료 시 갱신 시도
+        if (errorStatus === 401) {
+            const refreshToken = getRefreshToken();
+            if (refreshToken && !error.config._retry) {
+                error.config._retry = true;
+                try {
+                    const { data } = await api.post('/api/auth/refresh', { refreshToken });
+                    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data;
+                    saveTokens(newAccessToken, newRefreshToken);
+                    error.config.headers.Authorization = `Bearer ${newAccessToken}`;
+                    return api(error.config);
+                } catch (refreshError) {
+                    console.error('토큰 갱신 실패:', refreshError);
+                    removeTokens();
+                }
+            }
         }
 
         // 401 에러 시 토큰 삭제 및 로그인 페이지로 리다이렉트
@@ -648,6 +715,19 @@ export const callPublicApi = async (baseUrl, path, params, options = {}) => {
         }
     } catch (error) {
         console.error('공공 API 호출 실패:', error);
+        throw error;
+    }
+};
+
+// CORS 테스트 함수
+export const testCors = async () => {
+    try {
+        console.log('🔧 CORS 테스트 시작...');
+        const response = await publicApi.get('/api/cors-test');
+        console.log('🔧 CORS 테스트 성공:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('🔧 CORS 테스트 실패:', error);
         throw error;
     }
 };
