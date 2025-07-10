@@ -134,7 +134,10 @@ publicApi.interceptors.response.use(
                            response.config?.url?.includes('/api/route-id') ||
                            response.config?.url?.includes('/api/schedule-header') ||
                            response.config?.url?.includes('/api/route-map') ||
-                           response.config?.url?.includes('/api/lowbus-scheduls');
+                           response.config?.url?.includes('/api/lowbus-scheduls') ||
+                           response.config?.url?.includes('/api/auth/login') ||
+                           response.config?.url?.includes('/api/auth/refresh') ||
+                           response.config?.url?.includes('/api/auth/validate');
         
         if (isHtml && isLoginPage && !isPublicApi) {
             console.warn('[publicApi] 로그인 페이지 HTML이 반환됨 (비로그인 허용 페이지, 리다이렉트 없음)');
