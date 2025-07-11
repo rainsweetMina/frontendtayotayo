@@ -16,16 +16,22 @@ export async function fetchAd(id) {
 // 광고 등록
 export async function createAd(data) {
     console.log('🟡 data--post--->:', data);
-    const res = await api.multipartPost('https://docs.yi.or.kr:8096/api/ad', data.dto, data.files, 'dto', 'image')
+    const res = await api.multipartPost({
+        url: 'https://docs.yi.or.kr:8096/api/ad',
+        dto: data,
+        fileKey: 'image'
+    })
     return res.data
 }
 
- // ({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
-
-// 광고 수정
+// 광고 수정 
 export async function updateAd(id, data) {
     console.log('🟡 data- put---->:', data);
-    const res = await api.multipartPut(`https://docs.yi.or.kr:8096/api/ad/${id}`, data.dto, data.files, 'dto', 'image')
+    const res = await api.multipartPut({
+        url: `https://docs.yi.or.kr:8096/api/ad/${id}`,
+        dto: data,
+        fileKey: 'image'
+    })
     return res.data
 }
 
