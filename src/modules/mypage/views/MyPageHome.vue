@@ -7,7 +7,7 @@
     </section>
 
     <!-- 알림 요약 -->
-    <section class="notification-box">
+    <section class="notification-box" v-if="notificationCount !== null">
       <span>
         🔔 {{ notificationCount > 0 ? `새로운 알림 ${notificationCount}건이 있습니다.` : '새로운 알림이 없습니다.' }}
       </span>
@@ -18,7 +18,8 @@
     <section class="summary-grid">
       <div class="summary-card" @click="$router.push('/mypage/favorites')">
         <h3>⭐ 즐겨찾기</h3>
-        <p v-if="favorites">버스 {{ favorites.busCount }}개, 정류장 {{ favorites.stopCount }}개</p>
+        <p v-if="favorites !== null">버스 {{ favorites.busCount }}개, 정류장 {{ favorites.stopCount }}개</p>
+        <p v-else class="text-gray-500">로딩 중...</p>
       </div>
       <div class="summary-card" @click="$router.push('/mypage/lost')">
         <h3>📦 분실물</h3>
@@ -64,11 +65,11 @@ const router = useRouter()
 const { user, isLoading, fetchUserInfo } = useUserInfo()
 
 /* 상태 */
-const favorites         = ref({ busCount: 0, stopCount: 0 })
+const favorites         = ref(null)
 const lostItems         = ref(0)
 const qnaCount          = ref(0)
 const apiKeyStatusText  = ref('정보 없음')
-const notificationCount = ref(0)
+const notificationCount = ref(null)
 
 /* 날짜 포맷터 */
 const formatDate = (str) => str ? new Date(str).toLocaleString('ko-KR', {
@@ -76,36 +77,97 @@ const formatDate = (str) => str ? new Date(str).toLocaleString('ko-KR', {
 }) : ''
 const formattedLastLogin = computed(() => formatDate(user.value?.lastLoginAt))
 
-/* 요약 데이터 일괄 로딩 */
-const fetchAllSummaries = async () => {
+/* 개별 API 호출 함수들 */
+const fetchFavoritesSummary = async () => {
   try {
-    const [favRes, apiRes, notiRes, qnaRes, lostRes] = await Promise.all([
-      api.get('/api/mypage/favorites/summary'),
-      api.get('/api/user/apikey/summary'),
-      api.get('/api/mypage/notifications/count'),
-      api.get('/api/qna/count'),
-      api.get('/api/lost')
-    ])
+    const res = await api.get('/api/mypage/favorites/summary')
+    favorites.value = res.data
+  } catch (e) {
+    console.error('❌ 즐겨찾기 요약 실패:', e)
+    favorites.value = { busCount: 0, stopCount: 0 }
+  }
+}
 
-    favorites.value        = favRes.data
-    apiKeyStatusText.value = apiRes.data?.status === 'APPROVED'
-        ? '승인됨' : apiRes.data?.status === 'PENDING' ? '승인 대기 중' : '없음'
-    notificationCount.value = notiRes.data.count
-    qnaCount.value          = qnaRes.data.count
+const fetchApiKeySummary = async () => {
+  try {
+    const res = await api.get('/api/user/apikey/summary')
+    const status = res.data?.status
+    apiKeyStatusText.value = status === 'APPROVED' 
+      ? '승인됨' 
+      : status === 'PENDING' 
+        ? '승인 대기 중' 
+        : '없음'
+  } catch (e) {
+    console.error('❌ API 키 요약 실패:', e)
+    apiKeyStatusText.value = '정보 없음'
+  }
+}
 
-    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    lostItems.value = (lostRes.data || []).filter(i => {
+const fetchNotificationCount = async () => {
+  try {
+    const res = await api.get('/api/mypage/notifications/count')
+    notificationCount.value = res.data.count || 0
+  } catch (e) {
+    console.error('❌ 알림 개수 실패:', e)
+    notificationCount.value = 0
+  }
+}
+
+const fetchQnaCount = async () => {
+  try {
+    const res = await api.get('/api/qna/count')
+    qnaCount.value = res.data.count || 0
+  } catch (e) {
+    console.error('❌ Q&A 개수 실패:', e)
+    qnaCount.value = 0
+  }
+}
+
+const fetchLostItems = async () => {
+  try {
+    const res = await api.get('/api/lost')
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    lostItems.value = (res.data || []).filter(i => {
       const d = new Date(i.createdAt || i.lostTime)
       return !isNaN(d) && d >= sevenDaysAgo && i.visible
     }).length
-  } catch (e) { console.error('❌ 데이터 요약 실패:', e) }
+  } catch (e) {
+    console.error('❌ 분실물 개수 실패:', e)
+    lostItems.value = 0
+  }
+}
+
+/* 요약 데이터 일괄 로딩 */
+const fetchAllSummaries = async () => {
+  try {
+    // 개별적으로 호출하여 하나가 실패해도 다른 것들은 로드되도록 함
+    await Promise.allSettled([
+      fetchFavoritesSummary(),
+      fetchApiKeySummary(),
+      fetchNotificationCount(),
+      fetchQnaCount(),
+      fetchLostItems()
+    ])
+  } catch (e) {
+    console.error('❌ 데이터 요약 실패:', e)
+  }
 }
 
 /* 초기 로딩 (강제 새로고침) */
 onMounted(async () => {
-  const ok = await fetchUserInfo(true)   // ← 수정 후에도 즉시 최신 반영
-  if (!ok) return router.push('/login')
-  await fetchAllSummaries()
+  try {
+    const ok = await fetchUserInfo(true)   // ← 수정 후에도 즉시 최신 반영
+    if (!ok) {
+      console.error('❌ 사용자 정보 로드 실패')
+      return router.push('/login')
+    }
+    await fetchAllSummaries()
+  } catch (e) {
+    console.error('❌ 마이페이지 초기화 실패:', e)
+    router.push('/login')
+  }
 })
 </script>
 
@@ -130,7 +192,7 @@ onMounted(async () => {
   display: block;        /* ✅ 필요 시 명시적으로 block */
 }
 
-.welcome-box h2 {
+.welcome-box h3 {
   font-size: 1.75rem;
   margin-bottom: 0.5rem;
   color: #1a237e;
