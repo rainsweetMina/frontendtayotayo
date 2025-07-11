@@ -163,14 +163,28 @@ router.beforeEach(async (to, from, next) => {
 
     // 6. /mypage 권한 제어
     if (to.path.startsWith('/mypage')) {
-        if (!auth.userId) {
+        console.log('[Router] /mypage 접근 시도:', { 
+            isLoggedIn: auth.isLoggedIn, 
+            role: auth.role, 
+            userId: auth.userId 
+        })
+        
+        if (!auth.isLoggedIn) {
+            console.log('[Router] 로그인 상태가 아님, 사용자 정보 복원 시도')
             const ok = await fetchUserInfo(true)
-            if (!ok) return next('/login')
+            if (!ok) {
+                console.log('[Router] 사용자 정보 복원 실패, 로그인 페이지로 리다이렉트')
+                return next('/login')
+            }
         }
+        
         if (auth.role !== 'USER') {
+            console.log('[Router] USER 권한이 아님:', auth.role)
             alert('🚫 마이페이지는 일반 사용자만 접근 가능합니다.')
             return next('/')
         }
+        
+        console.log('[Router] /mypage 접근 허용')
     }
 
     next()
