@@ -15,13 +15,15 @@ export async function fetchAd(id) {
 
 // 광고 등록
 export async function createAd(data) {
-    const res = await api.post('/api/ad', data)
+    const res = await api.multipartPut('/api/ad', data.dto, data.files, 'dto', 'image')
     return res.data
 }
 
+ // ({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+
 // 광고 수정
 export async function updateAd(id, data) {
-    const res = await api.multipartPut(`/api/ad/${id}`, data)
+    const res = await api.multipartPut(`/api/ad/${id}`, data.dto, data.files, 'dto', 'image')
     return res.data
 }
 
