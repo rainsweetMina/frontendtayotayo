@@ -115,13 +115,37 @@ const requestApiKey = async () => {
 /** API 키 재발급 */
 const reissueApiKey = async () => {
   try {
-    await api.post('/api/user/apikey/reissue')
+    console.log('[ApiKeyView] API 키 재발급 요청 시작')
+    const response = await api.post('/api/user/apikey/reissue')
+    console.log('[ApiKeyView] API 키 재발급 성공:', response.data)
     await fetchApiKey()
     openModal('API 키가 재발급되었습니다.')
   } catch (e) {
-    const msg = e.response?.data
-        ? (typeof e.response.data === 'string' ? e.response.data : JSON.stringify(e.response.data))
-        : '재발급 중 오류가 발생했습니다.'
+    console.error('[ApiKeyView] API 키 재발급 실패:', {
+      status: e.response?.status,
+      statusText: e.response?.statusText,
+      data: e.response?.data,
+      message: e.message,
+      config: {
+        url: e.config?.url,
+        method: e.config?.method,
+        headers: e.config?.headers
+      }
+    })
+    
+    let msg = '재발급 중 오류가 발생했습니다.'
+    if (e.response?.data) {
+      if (typeof e.response.data === 'string') {
+        msg = e.response.data
+      } else if (e.response.data.error) {
+        msg = e.response.data.error
+      } else {
+        msg = JSON.stringify(e.response.data)
+      }
+    } else if (e.message) {
+      msg = e.message
+    }
+    
     openModal(msg, 2500)
   }
 }
