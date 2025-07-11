@@ -38,19 +38,24 @@ export default defineConfig({
             key: fs.readFileSync('./localhost+2-key.pem'),
             cert: fs.readFileSync('./localhost+2.pem')
         },
-
         cors: true,
         fs: {
             strict: false
         },
-        hmr: false, // 프로덕션 환경에서는 HMR 불필요
-        // ✅ 여기서 Vue Router fallback 적용!
+        hmr: false,
+        proxy: {
+            '/api': {
+                target: 'https://docs.yi.or.kr:8096',
+                changeOrigin: true,
+                secure: false,
+                rewrite: (path) => path.replace(/^\/api/, '')
+            }
+        },
         configureServer: ({ middlewares }) => {
             middlewares.use(
                 history({
                     disableDotRule: true,
                     htmlAcceptHeaders: ['text/html','application/xhtml+xml'],
-                    // ❌ rewrites 제거: /api 요청을 HTML로 넘기지 않도록!
                     rewrites: [
                         { from: /^\/login$/, to: '/index.html' },
                         { from: /^\/mypage.*$/, to: '/index.html' },
@@ -62,4 +67,5 @@ export default defineConfig({
             );
         }
     }
+
 });
