@@ -165,6 +165,9 @@ publicApi.interceptors.response.use(
 
 
 api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
+    console.log('🟡 url1----->:', url);
+    console.log('🟡 dto31----->:', dto);
+    console.log('🟡 files31----->:', files);
     const formData = new FormData();
     const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
     formData.append(dtoKey, blob);
@@ -187,6 +190,7 @@ api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 
 // PUT용 멀티파트 업로드 메서드 추가
 api.multipartPut = async function({ url, dto, files, dtoKey = 'dto', fileKey = 'images' }) {
 
+    console.log('🟡 url----->:', url);
     console.log('🟡 dto3----->:', dto);
     console.log('🟡 files3----->:', files);
     const formData = new FormData();

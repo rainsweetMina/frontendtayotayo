@@ -16,7 +16,7 @@ export async function fetchAd(id) {
 // 광고 등록
 export async function createAd(data) {
     console.log('🟡 data--post--->:', data);
-    const res = await api.multipartPut('https://docs.yi.or.kr:8096/api/ad', data.dto, data.files, 'dto', 'image')
+    const res = await api.multipartPost('https://docs.yi.or.kr:8096/api/ad', data.dto, data.files, 'dto', 'image')
     return res.data
 }
 
