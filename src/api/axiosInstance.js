@@ -168,6 +168,9 @@ api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 
     console.log('🟡 url1----->:', url);
     console.log('🟡 dto31----->:', dto);
     console.log('🟡 files31----->:', files);
+    console.log('🟡 dtoKey----->:', dtoKey);
+    console.log('🟡 fileKey----->:', fileKey);
+    
     const formData = new FormData();
     const blob = new Blob([JSON.stringify(dto)], { type: 'application/json' });
     formData.append(dtoKey, blob);
@@ -178,6 +181,13 @@ api.multipartPost = async function({ url, dto, files, dtoKey = 'dto', fileKey = 
     } else if (files) {
         formData.append(fileKey, files);
     }
+    
+    // FormData 내용 로깅
+    console.log('🟡 FormData 내용:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`🟡 ${key}:`, value);
+    }
+    
     // accessToken 사용으로 통일
     const token = getJwtToken();
     return api.post(url, formData, {
@@ -227,6 +237,10 @@ api.interceptors.request.use(
             userAgent: navigator.userAgent.substring(0, 100) + '...'
         });
 
+        // FormData 요청인지 확인
+        const isFormData = config.data instanceof FormData;
+        console.log('[api] FormData 요청 여부:', isFormData);
+
         // JWT 토큰을 헤더에 추가
         const accessToken = getJwtToken();
         if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
@@ -241,10 +255,15 @@ api.interceptors.request.use(
             config.httpsAgent = HTTPS_AGENT;
         }
 
-        // 모바일 환경에서 추가 헤더 설정
-        if (isMobile) {
+        // 모바일 환경에서 추가 헤더 설정 (FormData가 아닌 경우에만)
+        if (isMobile && !isFormData) {
             config.headers['User-Agent'] = navigator.userAgent;
             console.log('[api] 모바일 환경 감지, 추가 헤더 설정');
+        }
+
+        // FormData 요청일 때는 Content-Type을 설정하지 않음 (브라우저가 자동으로 설정)
+        if (isFormData) {
+            console.log('[api] FormData 요청 - Content-Type 자동 설정됨');
         }
 
         return config;
