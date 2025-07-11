@@ -17,7 +17,7 @@ RUN npm ci
 COPY . .
 
 # 환경 변수 파일 복사
-COPY .env .env
+# COPY .env .env
 COPY .env.development .env.development
 COPY .env.production .env.production
 
