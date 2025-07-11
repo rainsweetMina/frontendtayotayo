@@ -196,14 +196,6 @@ watch(
   color: #aaa;
 }
 
-.route-list {
-  max-height: 360px;
-  overflow-y: auto;
-  padding: 16px 20px;
-  width: 100%;
-  scrollbar-width: none; /* Firefox */
-}
-
 .route-list::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
 }

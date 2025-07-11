@@ -78,8 +78,8 @@ watch(
         console.error('🛑 시간표 로딩 실패:', err)
         schedules.value = []
       }
-
-
+    }
+)
 
 function getStopName(seq) {
   return stopMap.value[seq] || `정류장(${seq})`
