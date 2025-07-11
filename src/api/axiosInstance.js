@@ -255,15 +255,17 @@ api.interceptors.request.use(
             config.httpsAgent = HTTPS_AGENT;
         }
 
-        // 모바일 환경에서 추가 헤더 설정 (FormData가 아닌 경우에만)
-        if (isMobile && !isFormData) {
-            config.headers['User-Agent'] = navigator.userAgent;
-            console.log('[api] 모바일 환경 감지, 추가 헤더 설정');
-        }
-
-        // FormData 요청일 때는 Content-Type을 설정하지 않음 (브라우저가 자동으로 설정)
+        // FormData 요청일 때는 Content-Type을 완전히 제거 (브라우저가 자동으로 설정)
         if (isFormData) {
-            console.log('[api] FormData 요청 - Content-Type 자동 설정됨');
+            console.log('[api] FormData 요청 - Content-Type 헤더 제거');
+            delete config.headers['Content-Type'];
+            delete config.headers['content-type'];
+        } else {
+            // 모바일 환경에서 추가 헤더 설정 (FormData가 아닌 경우에만)
+            if (isMobile) {
+                config.headers['User-Agent'] = navigator.userAgent;
+                console.log('[api] 모바일 환경 감지, 추가 헤더 설정');
+            }
         }
 
         return config;
