@@ -14,22 +14,48 @@ export async function fetchAd(id) {
 }
 
 // 광고 등록
-export async function createAd(data) {
-    console.log('🟡 data--post--->:', data);
+export async function createAd(formData) {
+    console.log('🟡 formData--post--->:', formData);
+    
+    // FormData에서 dto와 image 파일 추출
+    const dtoBlob = formData.get('dto');
+    const imageFile = formData.get('image');
+    
+    // Blob에서 JSON 객체 추출
+    const dtoText = await dtoBlob.text();
+    const dto = JSON.parse(dtoText);
+    
+    console.log('🟡 extracted dto--->:', dto);
+    console.log('🟡 extracted imageFile--->:', imageFile);
+    
     const res = await api.multipartPost({
-        url: 'https://docs.yi.or.kr:8096/api/ad',
-        dto: data,
+        url: `${import.meta.env.VITE_BASE_URL}/api/ad`,
+        dto: dto,
+        files: imageFile,
         fileKey: 'image'
     })
     return res.data
 }
 
 // 광고 수정 
-export async function updateAd(id, data) {
-    console.log('🟡 data- put---->:', data);
+export async function updateAd(id, formData) {
+    console.log('🟡 formData- put---->:', formData);
+    
+    // FormData에서 dto와 image 파일 추출
+    const dtoBlob = formData.get('dto');
+    const imageFile = formData.get('image');
+    
+    // Blob에서 JSON 객체 추출
+    const dtoText = await dtoBlob.text();
+    const dto = JSON.parse(dtoText);
+    
+    console.log('🟡 extracted dto for update--->:', dto);
+    console.log('🟡 extracted imageFile for update--->:', imageFile);
+    
     const res = await api.multipartPut({
-        url: `https://docs.yi.or.kr:8096/api/ad/${id}`,
-        dto: data,
+        url: `${import.meta.env.VITE_BASE_URL}/api/ad/${id}`,
+        dto: dto,
+        files: imageFile,
         fileKey: 'image'
     })
     return res.data
