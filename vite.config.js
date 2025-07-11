@@ -27,7 +27,16 @@ export default defineConfig({
         outDir: 'dist',
         emptyOutDir: true,
         rollupOptions: {
-            plugins: [nodePolyfills()]
+            plugins: [nodePolyfills()],
+            output: {
+                manualChunks: {
+                    'vue-vendor': ['vue', 'vue-router'],
+                    'board-modules': [
+                        '@/modules/board/busSchedule/views/BusSchedulePage.vue',
+                        '@/modules/board/busSchedule/views/LowBusSchedulePage.vue'
+                    ]
+                }
+            }
         }
     },
     server: {
@@ -40,12 +49,15 @@ export default defineConfig({
         },
         cors: true,
         fs: {
-            strict: false
+            strict: false,
+            allow: ['..']
         },
-        hmr: false, // 프로덕션 환경에서는 HMR 불필요
+        hmr: {
+            port: 5173
+        },
         proxy: {
             // /api로 시작하는 모든 요청을 백엔드로 프록시
-            '/': {
+            '/api': {
                 target: 'https://docs.yi.or.kr:8096',
                 changeOrigin: true,
                 secure: false, // 자체 서명 인증서 허용(개발용)
