@@ -185,19 +185,12 @@ const handleSubmit = async () => {
         showPopup: form.value.isPopup
       }
 
-  // FormData에 'dto'라는 이름으로 JSON 붙이기
-  const fd = new FormData()
-  fd.append('dto', new Blob([JSON.stringify(adDTO)], { type: 'application/json' }))
-  if (form.value.imageFile) {
-    fd.append('image', form.value.imageFile)
-  }
-
   try {
     if (isEditMode.value) {
-      await updateAd(route.params.id, fd)
+      await updateAd(route.params.id, adDTO, form.value.imageFile)
       showSuccessModal('수정 완료!')
     } else {
-      await createAd(fd)
+      await createAd(adDTO, form.value.imageFile)
       showSuccessModal('등록 완료!')
     }
   } catch (e) {
