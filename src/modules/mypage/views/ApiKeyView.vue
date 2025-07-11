@@ -59,10 +59,12 @@ import api from '@/api/axiosInstance'
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserInfo } from '@/modules/mypage/composables/useUserInfo'
+import { useAuthStore } from '@/stores/auth'
 import BaseModal from '@/modules/mypage/components/BaseModal.vue'
 
 const router = useRouter()
 const { user, isLoggedIn, isLoading, fetchUserInfo } = useUserInfo()
+const auth = useAuthStore()
 
 const apiKey = ref(null)
 const isVisible = ref(false)
@@ -91,14 +93,14 @@ const fetchApiKey = async () => {
 
 /** API 키 신청 */
 const requestApiKey = async () => {
-  if (!user.value?.userId || !user.value?.username) {
+  if (!auth.userId || !auth.username) {
     openModal('사용자 정보가 없습니다.', 2000)
     return
   }
   try {
     const body = {
-      userId: user.value.userId,
-      user_name: user.value.username,
+      userId: auth.userId,
+      user_name: auth.username,
       allowedIp: '',
       callbackUrls: []
     }
@@ -162,10 +164,13 @@ watch(isLoggedIn, (v) => v && fetchApiKey())
 
 /** 초기 로딩 */
 onMounted(async () => {
-  const ok = await fetchUserInfo(true)
-  if (!ok) {
-    router.push('/login')
-    return
+  // 로그인 상태가 아니면 사용자 정보 로드 시도
+  if (!auth.isLoggedIn) {
+    const ok = await fetchUserInfo()
+    if (!ok) {
+      router.push('/login')
+      return
+    }
   }
   await fetchApiKey()
 })
