@@ -475,8 +475,8 @@ const initMap = async () => {
           }).addTo(map);
 
           // 현재 위치 기반으로 주변 정류장 검색 
-          // 정확도가 100m 이상이면 더 넓은 반경으로 검색
-          const searchRadius = accuracy > 100 ? accuracy * 2 : 500;
+          // 반경을 500m로 고정
+          const searchRadius = 500;
           searchNearbyBusStops(latitude, longitude, searchRadius);
         },
         // 실패 시
@@ -551,10 +551,8 @@ const searchNearbyBusStops = async (latitude, longitude, radius) => {
         }
       });
       
-      // 새 원 추가 (백엔드에서 확장된 반경을 사용했을 수 있으므로 최대 반경 표시)
-      // 첫 번째 정류장의 거리를 확인하여 반경 결정
-      const maxDistance = Math.max(...stopsFromApi.map(stop => stop.distance || 0));
-      const displayRadius = Math.max(radius, maxDistance, 500); // 최소 500m, 최대 검색된 정류장 거리
+      // 반경을 500m로 고정하여 표시
+      const displayRadius = 500;
       
       L.circle([latitude, longitude], {
         radius: displayRadius,
