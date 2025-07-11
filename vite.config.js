@@ -44,6 +44,21 @@ export default defineConfig({
             strict: false
         },
         hmr: false, // 프로덕션 환경에서는 HMR 불필요
+        proxy: {
+            // /api로 시작하는 모든 요청을 백엔드로 프록시
+            '/api': {
+                target: 'https://docs.yi.or.kr:8096',
+                changeOrigin: true,
+                secure: false, // 자체 서명 인증서 허용(개발용)
+                ws: false
+            },
+            '/auth': {
+                target: 'https://docs.yi.or.kr:8096',
+                changeOrigin: true,
+                secure: false,
+                ws: false
+            }
+        },
         // ✅ 여기서 Vue Router fallback 적용!
         configureServer: ({ middlewares }) => {
             middlewares.use(
