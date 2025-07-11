@@ -16,7 +16,7 @@ export async function fetchAd(id) {
 // 광고 등록
 export async function createAd(data) {
     console.log('🟡 data--post--->:', data);
-    const res = await api.multipartPut('/api/ad', data.dto, data.files, 'dto', 'image')
+    const res = await api.multipartPut('https://docs.yi.or.kr:8096/api/ad', data.dto, data.files, 'dto', 'image')
     return res.data
 }
 
@@ -25,7 +25,7 @@ export async function createAd(data) {
 // 광고 수정
 export async function updateAd(id, data) {
     console.log('🟡 data- put---->:', data);
-    const res = await api.multipartPut(`/api/ad/${id}`, data.dto, data.files, 'dto', 'image')
+    const res = await api.multipartPut(`https://docs.yi.or.kr:8096/api/ad/${id}`, data.dto, data.files, 'dto', 'image')
     return res.data
 }
 
