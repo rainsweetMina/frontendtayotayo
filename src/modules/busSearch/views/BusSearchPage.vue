@@ -12,24 +12,33 @@
 
     <!-- 길찾기 결과 없을 때만 정류장/노선 리스트 보여주기 -->
     <div v-else-if="!isLoadingRoutes">
+      <!-- 로딩 상태 표시 -->
+      <div v-if="isLoadingStops" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">정류장 정보를 불러오는 중...</p>
+      </div>
+
       <RecentFavorites
-          v-if="isLoggedIn && !store.routeResults.length && !store.isRouteSearchMode"
+          v-else-if="isLoggedIn && !store.routeResults.length && !store.isRouteSearchMode"
           :stops="recentStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
           :isFavorited="isFavorited"
           :toggleFavorite="handleToggleFavorite"
+          :isLoadingArrival="isLoadingArrival"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
       />
 
       <BusStopList
+          v-else
           :stops="store.busStops"
           :openedStopId="openedStopId"
           :arrivalDataMap="arrivalDataMap"
           :isFavorited="isFavorited"
           :toggleFavorite="toggleFavorite"
+          :isLoadingArrival="isLoadingArrival"
           @selectStop="handleStopClick"
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
@@ -70,9 +79,10 @@ const router = useRouter()
 const store = useSearchStore()
 
 const isLoadingRoutes = ref(false)
+const isLoadingStops = ref(false)
 const arrivalDataMap = ref({})
 const openedStopId = ref(null)
-const {handleStopClick} = useStopArrival(arrivalDataMap, openedStopId)
+const {handleStopClick, isLoadingArrival} = useStopArrival(arrivalDataMap, openedStopId)
 const {isLoggedIn, fetchUserInfo, isLoading} = useUserInfo()
 
 const map = ref(window.leafletMap)
@@ -273,6 +283,9 @@ function selectRoute(route) {
   const map = window.leafletMap
   clearMapElements(map)
 
+  // 노선 선택 시 로딩 상태 표시
+  isLoadingRoutes.value = true
+
   Promise.all([
     api.get('/api/bus/bus-route', {params: {routeId}}),
     api.get('/api/bus/bus-route-link', {params: {routeId}}),
@@ -328,6 +341,9 @@ function selectRoute(route) {
         console.error('🛑 노선 데이터 조회 실패:', err)
         alert('노선 정보를 불러오는 데 실패했습니다.')
       })
+      .finally(() => {
+        isLoadingRoutes.value = false
+      })
 }
 
 async function bindArrivalPopup(marker, bsId, bsNm) {
@@ -345,6 +361,7 @@ async function bindArrivalPopup(marker, bsId, bsNm) {
 watch(() => store.lastSearchedKeyword, debounce(async (keyword) => {
   if (!keyword.trim()) return
   try {
+    isLoadingStops.value = true
     const map = window.leafletMap
     if (map) clearMapElements(map)
 
@@ -360,6 +377,40 @@ watch(() => store.lastSearchedKeyword, debounce(async (keyword) => {
     drawBusStopMarkersWithArrival(map, store.busStops)
   } catch (err) {
     console.error('❌ 자동 검색 실패:', err)
+  } finally {
+    isLoadingStops.value = false
   }
 }, 300), { immediate: true })
 </script>
+
+<style scoped>
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 200px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-text {
+  color: #666;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>

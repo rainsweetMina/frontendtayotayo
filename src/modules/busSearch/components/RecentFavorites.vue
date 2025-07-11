@@ -8,6 +8,7 @@
         :arrivalDataMap="arrivalDataMap"
         :isFavorited="isFavorited"
         :toggleFavorite="toggleFavorite"
+        :isLoadingArrival="isLoadingArrival"
         @selectStop="$emit('selectStop', $event)"
         @selectAsStart="$emit('selectAsStart', $event)"
         @selectAsEnd="$emit('selectAsEnd', $event)"
@@ -27,7 +28,8 @@ defineProps({
   openedStopId: String,
   arrivalDataMap: Object,
   isFavorited: Function,
-  toggleFavorite: Function
+  toggleFavorite: Function,
+  isLoadingArrival: Boolean
 })
 
 defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])

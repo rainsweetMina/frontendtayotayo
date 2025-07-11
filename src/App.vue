@@ -2,11 +2,18 @@
   <component :is="layout">
     <router-view />
   </component>
+  
+  <!-- 전역 로딩 오버레이 -->
+  <LoadingOverlay 
+    :show="globalLoading.show" 
+    :message="globalLoading.message" 
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
 import { useRoute } from 'vue-router'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 
 // 레이아웃 컴포넌트 불러오기
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
@@ -18,6 +25,23 @@ const route = useRoute()
 const layout = computed(() => {
   return route.meta?.layout === 'none' ? EmptyLayout : DefaultLayout
 })
+
+// 전역 로딩 상태 관리
+const globalLoading = reactive({
+  show: false,
+  message: ''
+})
+
+// 전역에서 사용할 수 있도록 window 객체에 등록
+window.showGlobalLoading = (message = '데이터를 불러오는 중...') => {
+  globalLoading.message = message
+  globalLoading.show = true
+}
+
+window.hideGlobalLoading = () => {
+  globalLoading.show = false
+  globalLoading.message = ''
+}
 </script>
 
 <style>

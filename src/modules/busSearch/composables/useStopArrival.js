@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import api from '@/api/axiosInstance.js'
 
 export function useStopArrival(arrivalDataMap, openedStopId) {
+    const isLoadingArrival = ref(false)
+
     const handleStopClick = async (stop) => {
         const bsId = stop.bsId
         openedStopId.value = bsId
@@ -21,6 +23,7 @@ export function useStopArrival(arrivalDataMap, openedStopId) {
 
         if (!arrivalDataMap.value[bsId]) {
             try {
+                isLoadingArrival.value = true
                 const { data } = await api.get('/api/bus/bus-arrival', {
                     params: { bsId }
                 })
@@ -28,9 +31,11 @@ export function useStopArrival(arrivalDataMap, openedStopId) {
             } catch (err) {
                 console.error('도착 정보 조회 실패:', err)
                 arrivalDataMap.value[bsId] = []
+            } finally {
+                isLoadingArrival.value = false
             }
         }
     }
 
-    return { handleStopClick }
+    return { handleStopClick, isLoadingArrival }
 }
