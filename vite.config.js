@@ -38,7 +38,6 @@ export default defineConfig({
             key: fs.readFileSync('./localhost+2-key.pem'),
             cert: fs.readFileSync('./localhost+2.pem')
         },
-
         cors: true,
         fs: {
             strict: false
@@ -65,7 +64,6 @@ export default defineConfig({
                 history({
                     disableDotRule: true,
                     htmlAcceptHeaders: ['text/html','application/xhtml+xml'],
-                    // ❌ rewrites 제거: /api 요청을 HTML로 넘기지 않도록!
                     rewrites: [
                         { from: /^\/login$/, to: '/index.html' },
                         { from: /^\/mypage.*$/, to: '/index.html' },
@@ -77,4 +75,5 @@ export default defineConfig({
             );
         }
     }
+
 });
