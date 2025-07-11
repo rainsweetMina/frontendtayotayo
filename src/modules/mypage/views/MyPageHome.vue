@@ -63,6 +63,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const { user, isLoading, fetchUserInfo } = useUserInfo()
+const auth = useAuthStore()
 
 /* 상태 */
 const favorites         = ref(null)
@@ -158,14 +159,22 @@ const fetchAllSummaries = async () => {
 /* 초기 로딩 */
 onMounted(async () => {
   try {
-    // 사용자 정보가 이미 있으면 그대로 사용, 없으면 로드
-    if (!user.value) {
+    // 로그인 상태가 아니면 사용자 정보 로드 시도
+    if (!auth.isLoggedIn) {
+      console.log('[MyPageHome] 로그인 상태가 아님, 사용자 정보 로드 시도')
       const ok = await fetchUserInfo()
       if (!ok) {
         console.error('❌ 사용자 정보 로드 실패')
         return router.push('/login')
       }
     }
+    
+    console.log('[MyPageHome] 사용자 정보 확인:', {
+      isLoggedIn: auth.isLoggedIn,
+      userId: auth.userId,
+      role: auth.role
+    })
+    
     await fetchAllSummaries()
   } catch (e) {
     console.error('❌ 마이페이지 초기화 실패:', e)

@@ -9,12 +9,25 @@ export function useUserInfo() {
     const userStore  = useUserStore()
 
     /* ───────── 상태 ───────── */
-    const user               = ref(null)
     const isLoading          = ref(false)
     const isUserInfoFetched  = ref(false)
 
     /** auth 스토어에 이미 isLoggedIn(또는 userId 존재 여부) 로직이 있으므로 그대로 사용 */
     const isLoggedIn = computed(() => auth.isLoggedIn)
+    
+    /** user 상태를 auth 스토어와 동기화 */
+    const user = computed(() => auth.isLoggedIn ? {
+        id: auth.id,
+        userId: auth.userId,
+        username: auth.username,
+        email: auth.email,
+        role: auth.role,
+        lastLoginAt: auth.lastLoginAt,
+        name: auth.name,
+        phoneNumber: auth.phoneNumber,
+        signupDate: auth.signupDate,
+        signupType: auth.signupType
+    } : null)
 
     /* ───────── 메인 함수 ───────── */
     async function fetchUserInfo(force = false) {
@@ -46,7 +59,6 @@ export function useUserInfo() {
                 signupDate,  signupType
             }
 
-            user.value = userData
             userStore.setUser(userData)
             
             // 토큰이 있으면 토큰과 함께 로그인, 없으면 사용자 정보만 설정
@@ -73,7 +85,6 @@ export function useUserInfo() {
 
     /* ───────── 상태 초기화 ───────── */
     function resetUserInfo() {
-        user.value              = null
         isUserInfoFetched.value = false
         userStore.setUser(null)
     }
