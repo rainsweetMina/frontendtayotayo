@@ -31,14 +31,7 @@
 
       <!-- 도착 정보 -->
       <div v-if="openedStopId === stop.bsId" class="mt-3 pt-2.5 border-t border-dashed border-gray-300">
-        <!-- 로딩 상태 표시 -->
-        <div v-if="isLoadingArrival && openedStopId === stop.bsId" class="loading-arrival">
-          <div class="loading-spinner-small"></div>
-          <span class="loading-text-small">도착 정보를 불러오는 중...</span>
-        </div>
-        
-        <!-- 도착 정보 목록 -->
-        <ul v-else class="list-none p-0 m-0">
+        <ul class="list-none p-0 m-0">
           <li
               v-for="bus in arrivalDataMap[stop.bsId]"
               :key="bus.routeNo"
@@ -67,8 +60,7 @@ defineProps({
   openedStopId: String,
   arrivalDataMap: Object,
   isFavorited: Function,
-  toggleFavorite: Function,
-  isLoadingArrival: Boolean
+  toggleFavorite: Function
 })
 
 defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
@@ -182,32 +174,6 @@ defineEmits(['selectStop', 'selectAsStart', 'selectAsEnd'])
   font-size: 14px;
   color: #999;
   padding-top: 5px;
-}
-
-.loading-arrival {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.loading-spinner-small {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.loading-text-small {
-  color: #666;
-  font-size: 0.85rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 </style>

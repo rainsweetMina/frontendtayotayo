@@ -77,9 +77,9 @@ export const useAuthStore = defineStore('auth', {
             this.tokenExpiry  = Date.now() + expiresIn * 1000
 
             try {
-                localStorage.setItem('accessToken',  accessToken ?? '')
-                localStorage.setItem('refreshToken', refreshToken ?? '')
-                localStorage.setItem('tokenExpiry',  String(this.tokenExpiry))
+            localStorage.setItem('accessToken',  accessToken ?? '')
+            localStorage.setItem('refreshToken', refreshToken ?? '')
+            localStorage.setItem('tokenExpiry',  String(this.tokenExpiry))
                 console.log('[auth] localStorage 저장 성공')
             } catch (error) {
                 console.error('[auth] localStorage 저장 실패:', error)
