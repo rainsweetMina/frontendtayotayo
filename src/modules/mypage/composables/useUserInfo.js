@@ -25,6 +25,9 @@ export function useUserInfo() {
         isLoading.value         = true
 
         try {
+            // 토큰 복원 시도
+            auth.restoreTokens()
+            
             // 세션/쿠키 기반이면 withCredentials 옵션 유지
             const { data } = await api.get('/api/user/info', { withCredentials: true })
 
@@ -45,7 +48,15 @@ export function useUserInfo() {
 
             user.value = userData
             userStore.setUser(userData)
-            auth.login(userData)            // accessToken 보관은 login 내부에서 처리
+            
+            // 토큰이 있으면 토큰과 함께 로그인, 없으면 사용자 정보만 설정
+            const accessToken = localStorage.getItem('accessToken')
+            if (accessToken) {
+                auth.login(userData)
+            } else {
+                // 토큰 없이 사용자 정보만 설정
+                Object.assign(auth, userData, { isLoggedIn: true })
+            }
 
             return true
         } catch (err) {

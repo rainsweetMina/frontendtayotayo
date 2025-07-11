@@ -155,13 +155,16 @@ const fetchAllSummaries = async () => {
   }
 }
 
-/* 초기 로딩 (강제 새로고침) */
+/* 초기 로딩 */
 onMounted(async () => {
   try {
-    const ok = await fetchUserInfo(true)   // ← 수정 후에도 즉시 최신 반영
-    if (!ok) {
-      console.error('❌ 사용자 정보 로드 실패')
-      return router.push('/login')
+    // 사용자 정보가 이미 있으면 그대로 사용, 없으면 로드
+    if (!user.value) {
+      const ok = await fetchUserInfo()
+      if (!ok) {
+        console.error('❌ 사용자 정보 로드 실패')
+        return router.push('/login')
+      }
     }
     await fetchAllSummaries()
   } catch (e) {

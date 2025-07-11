@@ -169,13 +169,21 @@ router.beforeEach(async (to, from, next) => {
             userId: auth.userId 
         })
         
-        if (!auth.isLoggedIn) {
-            console.log('[Router] 로그인 상태가 아님, 사용자 정보 복원 시도')
+        // 토큰이 있지만 로그인 상태가 아니면 복원 시도
+        const accessToken = localStorage.getItem('accessToken')
+        if (!auth.isLoggedIn && accessToken) {
+            console.log('[Router] 토큰은 있지만 로그인 상태가 아님, 사용자 정보 복원 시도')
             const ok = await fetchUserInfo(true)
             if (!ok) {
                 console.log('[Router] 사용자 정보 복원 실패, 로그인 페이지로 리다이렉트')
-                return next('/login')
+                return next({ path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } })
             }
+        }
+        
+        // 여전히 로그인 상태가 아니면 로그인 페이지로
+        if (!auth.isLoggedIn) {
+            console.log('[Router] 로그인 상태가 아님, 로그인 페이지로 리다이렉트')
+            return next({ path: '/login', query: { redirect: encodeURIComponent(to.fullPath) } })
         }
         
         if (auth.role !== 'USER') {
