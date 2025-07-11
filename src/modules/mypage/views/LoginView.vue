@@ -3,9 +3,12 @@
     <div class="login-container">
       <h2>로그인</h2>
       <p>
-        관리자 로그인 아이디: admin, 비밀번호: !1aaaaaa
-        버스 운영자 로그인 아이디: bus1, 비밀번호: !1aaaaaa
-        사용자 로그인 아이디: user, 비밀번호: !1aaaaaa
+        관리자 아이디: admin
+            비밀번호: !1aaaaaa
+        버스 아이디: bus1
+            비밀번호: !1aaaaaa
+        사용자 아이디: user
+            비밀번호: !1aaaaaa
       </p>
 
       <!-- ─────────── 로그인 폼 ─────────── -->
