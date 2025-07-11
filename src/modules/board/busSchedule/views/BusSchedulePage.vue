@@ -42,7 +42,7 @@
 
 
 <script setup>
-import api from '@/api/axiosInstance'
+import { publicApi } from '@/api/axiosInstance'
 import {computed, ref, watch} from 'vue'
 import ScheduleSelector from '@/modules/board/busSchedule/components/ScheduleSelector.vue'
 import RouteMap from '@/modules/board/busSchedule/components/RouteMap.vue'
@@ -63,19 +63,19 @@ const shouldLoadSchedule = computed(() => {
 })
 
 async function handleRouteIdUpdated(data) {
+  routeId.value = data.routeId
+  moveDir.value = data.moveDir
+  routeNote.value = data.routeNote
+
+  // ❗ 방면/방향이 아직 선택되지 않았으면 selectedStops 초기화만
+  if (!data.routeNote && data.moveDir === null) {
+    selectedStops.value = []
+    return
+  }
+
+  // ✅ 선택된 이후에만 호출
   try {
-    routeId.value = data.routeId
-    moveDir.value = data.moveDir
-    routeNote.value = data.routeNote
-
-    // ❗ 방면/방향이 아직 선택되지 않았으면 selectedStops 초기화만
-    if (!data.routeNote && data.moveDir === null) {
-      selectedStops.value = []
-      return
-    }
-
-    // ✅ 선택된 이후에만 호출
-    const res = await api.get('/api/schedule-header', {
+    const res = await publicApi.get('/api/schedule-header', {
       params: {
         routeId: data.routeId,
         ...(data.moveDir !== null && {moveDir: data.moveDir})
@@ -85,8 +85,6 @@ async function handleRouteIdUpdated(data) {
   } catch (err) {
     console.error('정류장 헤더 불러오기 실패:', err)
     selectedStops.value = []
-    // 사용자에게 에러 알림
-    alert('정류장 정보를 불러오는 중 오류가 발생했습니다.')
   }
 }
 
