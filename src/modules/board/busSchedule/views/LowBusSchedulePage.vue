@@ -123,5 +123,5 @@ const loadSchedule = async (routeNo, routeNote = '', moveDir = null) => {
 </script>
 
 <style scoped>
-@import '@/modules/board/assets/schedule.css';
+@import '../../assets/schedule.css';
 </style>

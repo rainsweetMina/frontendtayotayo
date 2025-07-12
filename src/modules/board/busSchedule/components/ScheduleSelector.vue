@@ -270,7 +270,7 @@ async function retryLoad() {
 </script>
 
 <style scoped>
-@import "@/modules/board/assets/schedule.css";
+@import "../../assets/schedule.css";
 
 .loading-indicator {
   font-size: 12px;

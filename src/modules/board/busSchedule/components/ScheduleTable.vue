@@ -158,7 +158,7 @@ function formatTime(timeStr) {
 </script>
 
 <style scoped>
-@import "@/modules/board/assets/schedule.css";
+@import "../../assets/schedule.css";
 
 .loading-message,
 .error-message,

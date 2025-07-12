@@ -96,7 +96,7 @@ watch([routeNo, routeNote, moveDir], () => {
 
 <style scoped>
 /*@import "@/modules/board/assets/boardCommon.css";*/
-@import "@/modules/board/assets/schedule.css";
+@import "../../assets/schedule.css";
 
 /* 기본 상태: 가운데 정렬 */
 .bus-schedule-layout {
