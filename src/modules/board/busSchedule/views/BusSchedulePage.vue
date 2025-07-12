@@ -8,12 +8,12 @@
         <h1 class="title mb-0">버스 운행 시간표</h1>
       </div>
 
-      <ScheduleSelector
+      <!-- <ScheduleSelector
           v-model:routeNo="routeNo"
           v-model:routeNote="routeNote"
           v-model:moveDir="moveDir"
           @route-id-updated="handleRouteIdUpdated"
-      />
+      /> -->
 
       <hr />
 
