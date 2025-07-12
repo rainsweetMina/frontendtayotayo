@@ -17,7 +17,7 @@ export function useWebSocket() {
   /**
    * WebSocket 연결
    */
-  const connect = (url = 'https://docs.yi.or.kr:8096/ws') => {
+  const connect = (url = '/ws') => {
     if (isConnected.value) {
       console.log('이미 연결되어 있습니다.')
       return

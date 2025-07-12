@@ -298,7 +298,7 @@ const requestVolumeData = ref({
 
 const connectWebSocket = () => {
   console.log('Attempting to connect to WebSocket...')
-  const socket = new SockJS(`https://docs.yi.or.kr:8096/ws`)
+  const socket = new SockJS(`/ws`)
 
   socket.onopen = () => {
     console.log('SockJS connection opened')
