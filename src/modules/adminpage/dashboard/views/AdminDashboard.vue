@@ -547,36 +547,8 @@ const getActivityEmoji = (type) => {
 // 초기 활동 로그 로드
 const loadInitialLogs = async () => {
   try {
-    const response = await api.get('/api/admin/logs', {
-      params: {limit: 10} // 필터링 후 충분한 로그를 확보하기 위해 더 많이 가져옴
-    })
-    const data = response.data
-    console.log('Received audit logs:', data)
-
-    // 데이터가 content 필드 내에 있는 경우를 처리
-    const logs = Array.isArray(data) ? data : (data.content || [])
-
-    // user 활동 및 버스 회사 조회 로그 필터링
-    const filteredLogs = logs.filter(log => {
-      // user 활동 제외
-      if (log.adminId &&
-          (log.adminId.toLowerCase() === 'user' ||
-              log.adminId.toLowerCase() === 'anonymoususer')) {
-        return false;
-      }
-
-      // 버스 회사 조회 로그 제외
-      if (log.action && log.target &&
-          (log.action.includes('조회') || log.action.includes('확인') || log.action.includes('검색')) &&
-          (log.target.includes('버스') || log.target.includes('Bus') ||
-              log.target.includes('bus') || log.target.includes('BusCompany') ||
-              log.target.includes('버스회사'))) {
-        return false;
-      }
-
-      return true;
-    });
-
+    const logs = await getAdminLogs(10);
+    console.log('Received audit logs:', logs);
     // 최대 5개만 사용
     recentActivities.value = filteredLogs.slice(0, 5).map(log => ({
       id: log.id,
