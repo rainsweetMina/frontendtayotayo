@@ -501,3 +501,48 @@ export const testFileDownloadUrls = async (noticeId) => {
   
   return null;
 }; 
+
+/**
+ * 관리자 감사 로그를 가져옵니다.
+ * @param {number} limit - 가져올 로그 개수 (기본값: 10)
+ * @returns {Promise<Array>} 관리자 로그 목록
+ */
+export const getAdminLogs = async (limit = 10) => {
+  try {
+    const response = await api.get('/api/admin/logs', {
+      params: { page: 0, size: limit }
+    });
+    
+    console.log('관리자 로그 원본 응답:', response.data);
+    
+    // Page 객체에서 content 추출
+    const logs = response.data.content || response.data || [];
+    
+    // user 활동 및 버스 회사 조회 로그 필터링
+    const filteredLogs = logs.filter(log => {
+      // user 활동 제외
+      if (log.adminId &&
+          (log.adminId.toLowerCase() === 'user' ||
+              log.adminId.toLowerCase() === 'anonymoususer')) {
+        return false;
+      }
+
+      // 버스 회사 조회 로그 제외
+      if (log.action && log.target &&
+          (log.action.includes('조회') || log.action.includes('확인') || log.action.includes('검색')) &&
+          (log.target.includes('버스') || log.target.includes('Bus') ||
+              log.target.includes('bus') || log.target.includes('BusCompany') ||
+              log.target.includes('버스회사'))) {
+        return false;
+      }
+
+      return true;
+    });
+    
+    console.log('필터링된 관리자 로그:', filteredLogs);
+    return filteredLogs;
+  } catch (error) {
+    console.error('관리자 로그 조회 중 오류 발생:', error);
+    return [];
+  }
+}; 

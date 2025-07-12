@@ -235,7 +235,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import Chart from 'chart.js/auto'
-import { getDashboardStats, getPostsStats, getUserStats, getRequestVolume } from '@/api/admin'
+import { getDashboardStats, getPostsStats, getUserStats, getRequestVolume, getAdminLogs } from '@/api/admin'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import axios from '@/api/axiosInstance'
@@ -583,7 +583,9 @@ const loadInitialLogs = async () => {
       type: getActivityType(log.action),
       description: `${log.adminId}님이 ${log.target}을(를) ${log.action}했습니다.`,
       timestamp: new Date(log.timestamp).toLocaleString()
-    }))
+    }));
+    
+    console.log('최근 활동 로그 설정 완료:', recentActivities.value);
   } catch (error) {
     console.error('Failed to load initial audit logs:', error)
 
