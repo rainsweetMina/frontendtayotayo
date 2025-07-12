@@ -61,13 +61,20 @@ export default defineConfig({
                 target: 'https://docs.yi.or.kr:8096',
                 changeOrigin: true,
                 secure: false, // 자체 서명 인증서 허용(개발용)
-                ws: false
+                ws: true // WebSocket 프록시 활성화
             },
             '/auth': {
                 target: 'https://docs.yi.or.kr:8096',
                 changeOrigin: true,
                 secure: false,
-                ws: false
+                ws: true // WebSocket 프록시 활성화
+            },
+            // WebSocket 엔드포인트 프록시 추가
+            '/ws': {
+                target: 'https://docs.yi.or.kr:8096',
+                changeOrigin: true,
+                secure: false,
+                ws: true // WebSocket 프록시 활성화
             }
         },
         // ✅ 여기서 Vue Router fallback 적용!
@@ -81,6 +88,7 @@ export default defineConfig({
                         { from: /^\/mypage.*$/, to: '/index.html' },
                         { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
                         { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
+                        { from: /^\/ws.*$/, to: ctx => ctx.parsedUrl.pathname }, // WebSocket 경로는 프록시로 처리
                         { from: /./, to: '/index.html' }
                     ]
                 })
