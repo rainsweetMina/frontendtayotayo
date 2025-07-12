@@ -8,6 +8,7 @@ import fs from 'fs'
 
 
 export default defineConfig({
+    base: '/',
     plugins: [
         vue(),
         vueDevTools(),
@@ -30,11 +31,7 @@ export default defineConfig({
             plugins: [nodePolyfills()],
             output: {
                 manualChunks: {
-                    'vue-vendor': ['vue', 'vue-router'],
-                    'board-modules': [
-                        '@/modules/board/busSchedule/views/BusSchedulePage.vue',
-                        '@/modules/board/busSchedule/views/LowBusSchedulePage.vue'
-                    ]
+                    'vue-vendor': ['vue', 'vue-router']
                 }
             }
         }
