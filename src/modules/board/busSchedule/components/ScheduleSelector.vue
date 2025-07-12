@@ -67,7 +67,7 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue'
 import api from '@/api/axiosInstance'
-import DirectionModal from './DirectionModal.vue'
+import DirectionModal from '@/modules/board/busSchedule/components/DirectionModal.vue'
 
 const emit = defineEmits(['update:routeNo', 'update:routeNote', 'update:moveDir', 'route-id-updated'])
 
