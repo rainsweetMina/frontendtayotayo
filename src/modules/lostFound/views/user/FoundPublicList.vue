@@ -188,7 +188,7 @@ const selectedCompanyId = ref('');
 const selectedRoute = ref('');
 const busCompanies = ref([]);
 const busRoutes = ref([]);
-const IMAGE_BASE_URL = "import.meta.env.VITE_IMAGE_BASE_URL || '';"
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
 const items = ref([]);
 
