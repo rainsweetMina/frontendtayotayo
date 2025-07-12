@@ -8,7 +8,7 @@ import fs from 'fs'
 
 
 export default defineConfig({
-    base: '/',
+    base: './',
     plugins: [
         vue(),
         vueDevTools(),
@@ -39,6 +39,7 @@ export default defineConfig({
     server: {
         port: 5173,
         host: '0.0.0.0',
+        origin: 'https://docs.yi.or.kr:5173',
         open: false,
         https: {
             key: fs.readFileSync('./localhost+2-key.pem'),
