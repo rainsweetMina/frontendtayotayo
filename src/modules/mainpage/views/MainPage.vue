@@ -498,14 +498,33 @@ const fetchPopupNotice = async () => {
     const dismissed = JSON.parse(localStorage.getItem('dismissedNoticePopups') || '{}')
     // 이미 닫은 팝업은 오늘 다시 안 띄움
     if (dismissed[today]) return
-    let res = await api.get('/api/public/notices/popup', { headers: { Accept: 'application/json' } })
+    let res = await api.get('/api/public/notices/popup', { 
+      headers: { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      } 
+    })
+    
+    // 204 No Content 응답 처리
+    if (res.status === 204) {
+      console.log('공지 팝업 데이터가 없음 (204 No Content)')
+      return
+    }
+    
     let data = res.data
+    
+    // 응답 데이터 검증
+    if (!data) {
+      console.log('공지 팝업 데이터가 없음')
+      return
+    }
+    
     // 만약 문자열(XML/HTML 등)로 오면 JSON 파싱 시도
     if (typeof data === 'string') {
       try {
         data = JSON.parse(data)
       } catch (e) {
-        console.warn('공지 팝업 응답이 JSON이 아님:', data)
+        console.warn('공지 팝업 응답이 JSON이 아님:', data.substring(0, 100) + '...')
         return
       }
     }
