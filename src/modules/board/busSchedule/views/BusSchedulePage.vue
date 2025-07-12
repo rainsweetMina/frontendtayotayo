@@ -17,14 +17,14 @@
 
       <hr />
 
-      <ScheduleTable
+      <!-- <ScheduleTable
           v-if="shouldLoadSchedule"
           :route-id="routeId"
           :move-dir="moveDir"
           :selected-stops="selectedStops"
           :route-no="routeNo"
           :route-note="routeNote"
-      />
+      /> -->
 
       <div class="route-toggle" v-if="shouldLoadSchedule">
         <button class="toggle-btn" @click="showRouteMap = !showRouteMap">
