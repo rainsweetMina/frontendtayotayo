@@ -206,10 +206,12 @@
       :isOpen="loginModalOpen"
       title="로그인 필요"
       :message="loginModalMessage"
-      :showCancel="false"
+      :showCancel="true"
+      cancelText="취소"
       confirmText="로그인하기"
       @close="handleLoginModalClose"
-      @confirm="handleLoginModalClose"
+      @cancel="handleLoginModalCancel"
+      @confirm="handleLoginModalConfirm"
     />
 
   </div>
@@ -252,6 +254,16 @@ const goToCreatePage = () => {
 
 // 모달 닫기 처리
 const handleLoginModalClose = () => {
+  loginModalOpen.value = false;
+};
+
+// 모달 취소 처리 (목록 페이지에 그대로 있음)
+const handleLoginModalCancel = () => {
+  loginModalOpen.value = false;
+};
+
+// 모달 확인 처리 (로그인 페이지로 이동)
+const handleLoginModalConfirm = () => {
   loginModalOpen.value = false;
   router.push('/login');
 };
