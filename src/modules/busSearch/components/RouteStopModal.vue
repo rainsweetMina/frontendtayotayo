@@ -79,14 +79,23 @@
                  </div>
                </div>
                <div class="text-right">
-                 <div class="text-sm text-gray-500">
-                   {{ stop.moveDir === '1' ? '정방향' : '역방향' }}
+                 <div class="flex items-center justify-end mb-1">
+                   <span :class="[
+                     'px-2 py-1 rounded-full text-xs text-white font-medium',
+                     stop.moveDir === '1' ? 'bg-blue-500' : 'bg-red-500'
+                   ]">
+                     {{ stop.moveDir === '1' ? '정방향' : '역방향' }}
+                   </span>
                  </div>
-                 <div class="text-xs text-gray-400">
-                   {{ stop.seq }}번
+                 <div class="text-xs text-gray-500">
+                   <div v-if="route?.stNm && route?.edNm" class="text-gray-600">
+                     {{ stop.moveDir === '1' ? route.stNm : route.edNm }} 
+                     <span class="text-gray-400">→</span> 
+                     {{ stop.moveDir === '1' ? route.edNm : route.stNm }}
+                   </div>
+                   <div class="text-gray-400 mt-1">{{ stop.seq }}번 정류장</div>
                  </div>
                </div>
-             </div>
            </div>
          </div>
       </div>
