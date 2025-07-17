@@ -53,6 +53,15 @@ const handleCreate = async (formData) => {
     modalOpen.value = true;
   } catch (error) {
     console.error('분실물 등록 실패:', error);
+    
+    // 로그인이 필요한 경우 로그인 페이지로 이동
+    if (error.message === '로그인 필요' || error.message.includes('로그인')) {
+      alert('분실물 등록을 위해 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      router.push('/login');
+      return;
+    }
+    
+    // 기타 오류는 모달로 표시
     modalMessage.value = '등록 중 오류가 발생했습니다.';
     modalOpen.value = true;
   }

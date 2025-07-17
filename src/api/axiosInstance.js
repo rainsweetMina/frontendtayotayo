@@ -140,7 +140,9 @@ publicApi.interceptors.response.use(
                            response.config?.url?.includes('/api/auth/validate');
         
         if (isHtml && isLoginPage && !isPublicApi) {
-            console.warn('[publicApi] 로그인 페이지 HTML이 반환됨 (비로그인 허용 페이지, 리다이렉트 없음)');
+            console.warn('[publicApi] 로그인 페이지 HTML이 반환됨 - 로그인 페이지로 이동');
+            // 로그인 페이지로 이동
+            window.location.href = '/login';
             return Promise.reject(new Error('로그인 필요'));
         }
 
