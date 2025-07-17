@@ -244,12 +244,38 @@ const fetchBusCompanies = async () => {
 };
 
 const handleCompanyChange = async () => {
-  const company = busCompanies.value.find(c => c.id === selectedBusCompanyId.value);
-  if (company) {
-    const { data } = await getBusesByCompany(company.id);
-    buses.value = data;
-  } else {
+  try {
+    const company = busCompanies.value.find(c => c.id === selectedBusCompanyId.value);
+    if (company) {
+      const { data } = await getBusesByCompany(company.id);
+      
+      // HTML 응답 필터링
+      if (Array.isArray(data)) {
+        buses.value = data.filter(item => {
+          // HTML 태그나 특수문자가 포함된 항목 제거
+          if (typeof item === 'string') {
+            return !item.includes('<') && !item.includes('>') && !item.includes('&lt;') && !item.includes('&gt;');
+          }
+          return true;
+        });
+      } else {
+        console.warn('노선 데이터가 배열이 아닙니다:', data);
+        buses.value = [];
+      }
+    } else {
+      buses.value = [];
+    }
+  } catch (error) {
+    console.error('노선 목록 조회 실패:', error);
     buses.value = [];
+    
+    // HTML 응답인 경우 로그인 페이지로 리다이렉트
+    if (error.response && error.response.data && typeof error.response.data === 'string' && error.response.data.includes('<!DOCTYPE html>')) {
+      console.warn('HTML 응답 감지 - 인증이 필요할 수 있습니다');
+      // 사용자에게 알림
+      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      window.location.href = '/login';
+    }
   }
 };
 
