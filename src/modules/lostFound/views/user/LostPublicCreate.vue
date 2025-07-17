@@ -23,7 +23,7 @@
       title="알림"
       :message="modalMessage"
       :showCancel="false"
-      confirmText="닫기"
+      :confirmText="modalMessage === '분실물이 등록되었습니다.' ? '확인' : '로그인하기'"
       @close="handleModalClose"
       @confirm="handleModalClose"
     />
@@ -54,10 +54,10 @@ const handleCreate = async (formData) => {
   } catch (error) {
     console.error('분실물 등록 실패:', error);
     
-    // 로그인이 필요한 경우 로그인 페이지로 이동
+    // 로그인이 필요한 경우 안내 모달 표시
     if (error.message === '로그인 필요' || error.message.includes('로그인')) {
-      alert('분실물 등록을 위해 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-      router.push('/login');
+      modalMessage.value = '분실물 등록을 위해 로그인 또는 회원가입이 필요합니다.';
+      modalOpen.value = true;
       return;
     }
     
@@ -69,8 +69,14 @@ const handleCreate = async (formData) => {
 
 const handleModalClose = () => {
   modalOpen.value = false;
+  
+  // 등록 성공 시 목록으로 이동
   if (modalMessage.value === '분실물이 등록되었습니다.') {
     router.push('/lost');
+  }
+  // 로그인 필요 시 로그인 페이지로 이동
+  else if (modalMessage.value === '분실물 등록을 위해 로그인 또는 회원가입이 필요합니다.') {
+    router.push('/login');
   }
 };
 </script>
