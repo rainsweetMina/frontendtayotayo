@@ -1,10 +1,9 @@
 <template>
   <div v-if="visible" class="fixed inset-0 z-[9999] flex items-start justify-start pointer-events-none">
-    <!-- 배경 오버레이 -->
+    <!-- 배경 오버레이 - 지도 클릭 시 모달이 닫히지 않도록 수정 -->
     <div 
-      class="absolute inset-0 bg-black bg-opacity-30 pointer-events-auto" 
-      @click="closeModal"
-      @wheel.passive
+      class="absolute inset-0 bg-black bg-opacity-30 pointer-events-none" 
+      @wheel.stop
     ></div>
     
     <!-- 모달 컨테이너 - 동적 위치 -->
@@ -18,6 +17,8 @@
       }"
       @click.stop
       @wheel.stop
+      @mousedown.stop
+      @mouseup.stop
     >
       <!-- 헤더 -->
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
@@ -39,7 +40,7 @@
       </div>
       
       <!-- 정류장 목록 -->
-      <div class="overflow-y-auto max-h-[60vh]" @wheel.stop @wheel.passive>
+      <div class="overflow-y-auto max-h-[60vh]" @wheel.stop>
         <div v-if="loading" class="p-4 text-center text-gray-500">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
           <p class="mt-2">정류장 정보를 불러오는 중...</p>
