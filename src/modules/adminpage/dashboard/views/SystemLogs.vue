@@ -538,16 +538,42 @@ const loadAllLogs = async () => {
 // 데이터 가져오기
 const fetchLogs = async (page) => {
   try {
-    // 원래 API 엔드포인트 사용 (페이지 번호를 0부터 시작하도록 변경)
+    // axiosInstance 사용하여 인증 토큰 자동 포함
     const response = await fetch(
-      `/api/admin/logs?page=${page-1}&size=20`
+      `/api/admin/logs?page=${page-1}&size=20`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, application/xml'
+        },
+        credentials: 'include'
+      }
     )
     
     // HTTP 상태 코드 확인
     if (!response.ok) {
+      // 401, 403 오류는 인증 문제
+      if (response.status === 401 || response.status === 403) {
+        console.error('인증 오류: 로그인이 필요합니다.');
+        alert('로그인이 필요합니다. 다시 로그인해주세요.');
+        // 로그인 페이지로 리다이렉트
+        window.location.href = '/admin/login';
+        return;
+      }
+      
       // 응답이 성공적이지 않은 경우, 텍스트로 오류 메시지를 가져옴
       const errorText = await response.text();
       console.error(`오류 응답 (${response.status}):`, errorText);
+      
+      // HTML 로그인 페이지가 반환된 경우
+      if (errorText.includes('로그인') || errorText.includes('<!DOCTYPE html>')) {
+        console.error('로그인 페이지가 반환됨 - 세션 만료');
+        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        window.location.href = '/admin/login';
+        return;
+      }
+      
       throw new Error(`서버 응답 오류 ${response.status}: ${errorText}`);
     }
     
@@ -610,12 +636,11 @@ const fetchLogs = async (page) => {
       
       // 각 페이지에 데이터가 있는지 확인하기 위한 totalElements 추출
       let totalElements = 0;
-      const totalElementsNodes = xmlDoc.getElementsByTagName('totalElements');
-      if (totalElementsNodes.length > 0) {
-        totalElements = parseInt(totalElementsNodes[0].textContent) || 0;
+      const totalElementsElements = xmlDoc.getElementsByTagName('totalElements');
+      if (totalElementsElements.length > 0) {
+        totalElements = parseInt(totalElementsElements[0].textContent) || 0;
       }
       
-      // 데이터 설정
       data = {
         content: parsedLogs,
         totalPages: totalPagesValue,
@@ -624,30 +649,17 @@ const fetchLogs = async (page) => {
       
       console.log('파싱된 XML 데이터:', data);
     } 
-    // JSON 응답 처리
-    else if (contentType && contentType.includes("application/json")) {
+    // JSON 처리
+    else {
       try {
         data = JSON.parse(responseText);
-        console.log('JSON 응답 파싱됨:', data);
+        console.log('파싱된 데이터:', data);
       } catch (e) {
         console.error('JSON 파싱 오류:', e);
-        throw new Error('서버 응답을 JSON으로 파싱할 수 없습니다');
+        throw new Error('응답을 JSON으로 파싱할 수 없습니다');
       }
-    } 
-    // 기타 응답 형식
-    else {
-      console.error("지원되지 않는 응답 형식:", contentType);
-      throw new Error("서버에서 지원되지 않는 응답 형식이 반환되었습니다");
     }
     
-    // 디버깅용 정보 출력
-    console.log('파싱된 데이터:', data);
-    if (data && data.content && data.content.length > 0) {
-      console.log('로그 항목의 첫 번째 데이터 구조:', data.content[0]);
-      console.log('로그 항목의 첫 번째 객체 키:', Object.keys(data.content[0]));
-    }
-    
-    // 응답 형식 처리 (data.content에 실제 로그 데이터가 있음)
     if (data && Array.isArray(data.content)) {
       // user와 anonymousUser 로그를 필터링하고, 버스 회사 조회 로그도 제외
       const filteredContent = data.content.filter(log => {
@@ -706,8 +718,10 @@ const fetchLogs = async (page) => {
     logs.value = [] // 오류 시 로그 목록 초기화
     totalPages.value = 1 // 오류 시 페이지 수 초기화
     
-    // 사용자에게 오류 표시 (선택적으로 alert 또는 다른 UI 요소 사용)
-    alert('시스템 로그를 불러오는 중 오류가 발생했습니다: ' + error.message)
+    // 인증 오류가 아닌 경우에만 사용자에게 오류 표시
+    if (!error.message.includes('로그인') && !error.message.includes('세션')) {
+      alert('시스템 로그를 불러오는 중 오류가 발생했습니다: ' + error.message)
+    }
   }
 }
 

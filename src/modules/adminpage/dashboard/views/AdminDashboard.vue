@@ -325,46 +325,49 @@ const connectWebSocket = () => {
     'heart-beat': '10000,10000'
   }
 
-  stompClient.connect(headers, frame => {
-    console.log('STOMP Connected:', frame)
+  stompClient.connect(headers, 
+    frame => {
+      console.log('STOMP Connected:', frame)
 
-    // Redis 메모리 정보 구독
-    stompClient.subscribe('/topic/redis-memory', message => {
-      console.log('Received Redis memory info:', message.body)
-      try {
-        // 메시지 파싱
-        const memoryInfo = typeof message.body === 'string' ? JSON.parse(message.body) : message.body;
+      // Redis 메모리 정보 구독
+      stompClient.subscribe('/topic/redis-memory', message => {
+        console.log('Received Redis memory info:', message.body)
+        try {
+          // 메시지 파싱
+          const memoryInfo = typeof message.body === 'string' ? JSON.parse(message.body) : message.body;
 
-        // 유효성 검사
-        if (!memoryInfo || typeof memoryInfo.usedMemory !== 'number') {
-          console.error('유효하지 않은 Redis 메모리 정보:', memoryInfo);
-          return;
+          // 유효성 검사
+          if (!memoryInfo || typeof memoryInfo.usedMemory !== 'number') {
+            console.error('유효하지 않은 Redis 메모리 정보:', memoryInfo);
+            return;
+          }
+
+          console.log('처리된 Redis 메모리 정보:',
+              `메모리 사용량=${memoryInfo.usedMemory.toFixed(2)}MB, ` +
+              `클라이언트=${memoryInfo.connectedClients}`);
+
+          // 차트 업데이트
+          updateRedisChart(memoryInfo);
+        } catch (error) {
+          console.error('Redis 메모리 정보 처리 오류:', error, message.body);
         }
+      })
 
-        console.log('처리된 Redis 메모리 정보:',
-            `메모리 사용량=${memoryInfo.usedMemory.toFixed(2)}MB, ` +
-            `클라이언트=${memoryInfo.connectedClients}`);
-
-        // 차트 업데이트
-        updateRedisChart(memoryInfo);
-      } catch (error) {
-        console.error('Redis 메모리 정보 처리 오류:', error, message.body);
-      }
-    })
-
-    // 관리자 활동 로그 구독
-    stompClient.subscribe('/topic/admin-audit-logs', message => {
-      try {
-        const logEntry = JSON.parse(message.body)
-        addActivityLog(logEntry)
-      } catch (error) {
-        console.error('Failed to parse admin audit log:', error)
-      }
-    })
-  }, error => {
-    console.error('STOMP connection failed:', error)
-    setTimeout(connectWebSocket, 3000)
-  })
+      // 관리자 활동 로그 구독
+      stompClient.subscribe('/topic/admin-audit-logs', message => {
+        try {
+          const logEntry = JSON.parse(message.body)
+          addActivityLog(logEntry)
+        } catch (error) {
+          console.error('Failed to parse admin audit log:', error)
+        }
+      })
+    }, 
+    error => {
+      console.error('STOMP connection failed:', error)
+      setTimeout(connectWebSocket, 3000)
+    }
+  )
 }
 
 const updateRedisChart = (memoryInfo) => {
