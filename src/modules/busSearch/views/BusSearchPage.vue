@@ -268,66 +268,76 @@ function setEndStop(stop) {
   tryFindRoute()
 }
 
-function selectRoute(route) {
+async function selectRoute(route) {
   const routeId = route.routeId
   const map = window.leafletMap
   clearMapElements(map)
 
-  Promise.all([
-    api.get('/api/bus/bus-route', {params: {routeId}}),
-    api.get('/api/bus/bus-route-link', {params: {routeId}}),
-    api.get('/api/bus/bus-route-Bus', {params: {routeId}})
-  ])
-      .then(([stopRes, linkRes, busRes]) => {
-        const stops = stopRes.data
-        const forward = linkRes.data.forward || []
-        const reverse = linkRes.data.reverse || []
-        const buses = busRes.data || []
+  try {
+    // 각 API를 개별적으로 호출하여 일부 실패해도 다른 기능은 정상 작동하도록 함
+    const [stopRes, linkRes] = await Promise.all([
+      api.get('/api/bus/bus-route', {params: {routeId}}),
+      api.get('/api/bus/bus-route-link', {params: {routeId}})
+    ])
 
-        drawBusStopMarkersWithArrival(map, stops)
-        drawBusRouteMapORS(map, forward, 'pink')
-        drawBusRouteMapORS(map, reverse, 'skyblue')
+    const stops = stopRes.data
+    const forward = linkRes.data.forward || []
+    const reverse = linkRes.data.reverse || []
 
-        // ✅ 실시간 버스 마커 찍기
-        window.busLocationMarkers = []
-        buses.forEach(bus => {
-          const lat = parseFloat(bus.ypos || bus.lat)
-          const lng = parseFloat(bus.xpos || bus.lng)
+    // 정류장과 경로 정보 표시
+    drawBusStopMarkersWithArrival(map, stops)
+    drawBusRouteMapORS(map, forward, 'pink')
+    drawBusRouteMapORS(map, reverse, 'skyblue')
 
-          if (!isNaN(lat) && !isNaN(lng)) {
-            const isReverse = bus.moveDir === 0
-            const iconUrl = isReverse
-                ? '/images/bus-reverse-solid.svg'
-                : '/images/bus-forward-solid.svg'
+    // 실시간 버스 위치는 별도로 처리 (실패해도 다른 기능은 정상 작동)
+    try {
+      const busRes = await api.get('/api/bus/bus-route-Bus', {params: {routeId}})
+      const buses = busRes.data || []
 
-            const marker = L.marker([lat, lng], {
-              icon: L.icon({
-                iconUrl,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-              })
-            }).addTo(map)
+      // ✅ 실시간 버스 마커 찍기
+      window.busLocationMarkers = []
+      buses.forEach(bus => {
+        const lat = parseFloat(bus.ypos || bus.lat)
+        const lng = parseFloat(bus.xpos || bus.lng)
 
-            marker.bindPopup(`🚌 ${bus.routeNo}<br>
-                                방향: <strong>${isReverse ? '역방향' : '정방향'}</strong>
-                              `)
-            window.busLocationMarkers.push(marker)
-          }
-        })
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const isReverse = bus.moveDir === 0
+          const iconUrl = isReverse
+              ? '/images/bus-reverse-solid.svg'
+              : '/images/bus-forward-solid.svg'
 
-        if (forward.length > 0) {
-          const {yPos, xPos} = forward[0]
-          const lat = parseFloat(yPos)
-          const lng = parseFloat(xPos)
-          if (!isNaN(lat) && !isNaN(lng)) {
-            map.flyTo([lat, lng], 16)
-          }
+          const marker = L.marker([lat, lng], {
+            icon: L.icon({
+              iconUrl,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          }).addTo(map)
+
+          marker.bindPopup(`🚌 ${bus.routeNo}<br>
+                              방향: <strong>${isReverse ? '역방향' : '정방향'}</strong>
+                            `)
+          window.busLocationMarkers.push(marker)
         }
       })
-      .catch((err) => {
-        console.error('🛑 노선 데이터 조회 실패:', err)
-        alert('노선 정보를 불러오는 데 실패했습니다.')
-      })
+    } catch (busErr) {
+      console.warn('⚠️ 실시간 버스 위치 조회 실패 (무시됨):', busErr.message)
+      // 실시간 버스 위치 실패는 무시하고 계속 진행
+    }
+
+    // 지도 이동
+    if (forward.length > 0) {
+      const {yPos, xPos} = forward[0]
+      const lat = parseFloat(yPos)
+      const lng = parseFloat(xPos)
+      if (!isNaN(lat) && !isNaN(lng)) {
+        map.flyTo([lat, lng], 16)
+      }
+    }
+  } catch (err) {
+    console.error('🛑 노선 데이터 조회 실패:', err)
+    alert('노선 정보를 불러오는 데 실패했습니다.')
+  }
 }
 
 async function bindArrivalPopup(marker, bsId, bsNm) {
