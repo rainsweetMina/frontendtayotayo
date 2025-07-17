@@ -1,10 +1,18 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
+  <div v-if="visible" class="fixed inset-0 z-50 flex items-start justify-start">
     <!-- 배경 오버레이 -->
-    <div class="absolute inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
+    <div class="absolute inset-0 bg-black bg-opacity-30" @click="closeModal"></div>
     
-    <!-- 모달 컨테이너 -->
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+    <!-- 모달 컨테이너 - 동적 위치 -->
+    <div 
+      class="relative bg-white rounded-lg shadow-2xl border border-gray-200 w-96 max-h-[calc(100vh-2rem)] overflow-hidden"
+      :style="{
+        position: 'absolute',
+        top: position.top,
+        left: position.left,
+        zIndex: 1000
+      }"
+    >
       <!-- 헤더 -->
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
         <div class="flex items-center">
@@ -106,7 +114,11 @@ import { getSortedArrivalsFromApi } from '@/composables/arrival-utils'
 
 const props = defineProps({
   visible: Boolean,
-  route: Object
+  route: Object,
+  position: {
+    type: Object,
+    default: () => ({ top: '1rem', left: '1rem' })
+  }
 })
 
 const emit = defineEmits(['close', 'selectStop', 'showOnMap', 'drawRoute', 'moveToStop', 'clearRoute'])
@@ -145,8 +157,7 @@ async function fetchRouteStops() {
 function closeModal() {
   selectedStop.value = null
   stopArrivals.value = {}
-  // 모달이 닫힐 때 지도에서 노선 지우기
-  emit('clearRoute')
+  // 모달이 닫혀도 지도에 노선 표시는 유지
   emit('close')
 }
 

@@ -4,7 +4,7 @@
         v-for="route in routes"
         :key="route.routeId"
         class="px-[18px] py-[18px] border border-gray-200 mb-2 rounded-lg cursor-pointer bg-white transition-colors hover:bg-gray-50 overflow-hidden whitespace-nowrap text-ellipsis"
-        @click="showRouteStops(route)"
+        @click="showRouteStops(route, $event)"
     >
       <!-- 노선번호와 색상 뱃지 -->
       <strong class="text-[17px]" :class="getTextColorClass(route.routeNo)">
@@ -22,12 +22,12 @@
     <RouteStopModal
       :visible="modalVisible"
       :route="selectedRoute"
+      :position="modalPosition"
       @close="closeModal"
       @selectStop="handleStopSelect"
       @showOnMap="handleShowOnMap"
       @drawRoute="handleDrawRoute"
       @moveToStop="handleMoveToStop"
-      @clearRoute="handleClearRoute"
     />
   </div>
 </template>
@@ -44,10 +44,38 @@ const emit = defineEmits(['select'])
 
 const modalVisible = ref(false)
 const selectedRoute = ref(null)
+const modalPosition = ref({ top: '1rem', left: '1rem' })
 
-function showRouteStops(route) {
+function showRouteStops(route, event) {
   selectedRoute.value = route
   modalVisible.value = true
+  
+  // 클릭된 요소의 위치를 기준으로 모달 위치 계산
+  const rect = event.currentTarget.getBoundingClientRect()
+  const sidebarWidth = 400 // 사이드바 대략적 너비
+  const modalWidth = 400 // 모달 대략적 너비
+  const modalHeight = 600 // 모달 대략적 높이
+  
+  let left = sidebarWidth + 20
+  let top = rect.top
+  
+  // 화면 경계 체크
+  if (left + modalWidth > window.innerWidth) {
+    left = window.innerWidth - modalWidth - 20
+  }
+  
+  if (top + modalHeight > window.innerHeight) {
+    top = window.innerHeight - modalHeight - 20
+  }
+  
+  if (top < 20) {
+    top = 20
+  }
+  
+  modalPosition.value = {
+    top: `${top}px`,
+    left: `${left}px`
+  }
 }
 
 function closeModal() {
@@ -75,10 +103,7 @@ function handleMoveToStop(stop) {
   emit('moveToStop', stop)
 }
 
-function handleClearRoute() {
-  // 지도에서 노선 지우기
-  emit('clearRoute')
-}
+
 
 function getRouteType(routeNo) {
   if (routeNo.startsWith('순환')) return '순환'

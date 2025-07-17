@@ -38,7 +38,6 @@
         :routes="store.busRoutes" 
         @select="selectRoute"
         @moveToStop="handleMoveToStop"
-        @clearRoute="handleClearRoute"
       />
     </div>
     <div v-else>
