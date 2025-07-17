@@ -52,7 +52,7 @@ import { useRouter } from 'vue-router'
 import api from '@/api/axiosInstance.js'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
-import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival} from '@/composables/map-utils'
+import {drawBusRouteMapORS, clearMapElements, drawBusStopMarkersWithArrival, showBusStopMarkers} from '@/composables/map-utils'
 import {renderPopupComponent} from '@/utils/popup-mount'
 import {useMapMarkers} from "@/modules/busMap/composables/useMapMarkers.js";
 import {useStopArrival} from '../composables/useStopArrival.js'
@@ -223,6 +223,9 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     }).addTo(map).bindPopup(`도착: ${end.bsNm}`)
   }
 
+  // 길찾기에서는 정류장 마커를 항상 표시
+  showBusStopMarkers(map)
+  
   // 네이버 지도처럼 전체 경로를 한 번에 보여주기
   if (polyline && polyline.length > 0) {
     // 모든 좌표를 수집하여 경계 계산

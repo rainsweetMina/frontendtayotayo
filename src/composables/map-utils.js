@@ -2,6 +2,12 @@ import api from '@/api/axiosInstance.js'
 import { renderPopupComponent } from '@/utils/popup-mount';
 import { getSortedArrivalsFromApi } from '@/composables/arrival-utils.js';
 
+// 줌 레벨 설정 (네이버 지도 스타일)
+const ZOOM_LEVELS = {
+    SHOW_STOPS: 15, // 15 이상일 때 정류장 마커 표시 (더 세밀한 뷰)
+    HIDE_STOPS: 14  // 14 이하일 때 정류장 마커 숨김 (전체 경로 뷰)
+};
+
 // 버스 노선 경로 폴리라인 그리기
 export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
     if (!Array.isArray(coordinates) || coordinates.length === 0) {
@@ -67,13 +73,53 @@ export function clearMapElements(map) {
     });
 }
 
-// 정류장 마커 + 도착 정보 팝업
+// 정류장 마커 표시/숨김 처리
+function toggleBusStopMarkers(map, show) {
+    if (!window.busStopMarkers) return;
+    
+    window.busStopMarkers.forEach(marker => {
+        if (show) {
+            if (!map.hasLayer(marker)) {
+                map.addLayer(marker);
+            }
+        } else {
+            if (map.hasLayer(marker)) {
+                map.removeLayer(marker);
+            }
+        }
+    });
+    
+    console.log(`��️ 정류장 마커 ${show ? '표시' : '숨김'} (줌 레벨: ${map.getZoom()})`);
+}
+
+// 줌 레벨에 따른 정류장 마커 제어
+function handleZoomChange(map) {
+    const currentZoom = map.getZoom();
+    const shouldShowStops = currentZoom >= ZOOM_LEVELS.SHOW_STOPS;
+    
+    toggleBusStopMarkers(map, shouldShowStops);
+    
+    // 줌 레벨 정보 표시 (디버깅용)
+    if (currentZoom >= ZOOM_LEVELS.SHOW_STOPS) {
+        console.log(`🔍 줌 레벨: ${currentZoom} - 정류장 마커 표시 모드`);
+    } else {
+        console.log(`🔍 줌 레벨: ${currentZoom} - 전체 경로 뷰 모드`);
+    }
+}
+
+// 정류장 마커 + 도착 정보 팝업 (줌 레벨 기반 표시)
 export function drawBusStopMarkersWithArrival(map, stops) {
     if (!map || !Array.isArray(stops)) return;
 
-    window.busStopMarkers?.forEach(m => m.remove());
+    // 기존 마커 제거
+    window.busStopMarkers?.forEach(m => {
+        if (map.hasLayer(m)) {
+            map.removeLayer(m);
+        }
+    });
     window.busStopMarkers = [];
 
+    // 새로운 마커 생성 (초기에는 지도에 추가하지 않음)
     stops.forEach(stop => {
         const lat = parseFloat(stop.yPos ?? stop.ypos);
         const lng = parseFloat(stop.xPos ?? stop.xpos);
@@ -81,7 +127,7 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
         const marker = L.marker([lat, lng], {
             title: stop.bsNm
-        }).addTo(map);
+        });
 
         marker.on('click', async () => {
             try {
@@ -101,4 +147,24 @@ export function drawBusStopMarkersWithArrival(map, stops) {
 
         window.busStopMarkers.push(marker);
     });
+
+    // 줌 이벤트 리스너 등록 (한 번만 등록)
+    if (!window.zoomListenerAdded) {
+        map.on('zoomend', () => handleZoomChange(map));
+        window.zoomListenerAdded = true;
+        console.log('🔍 줌 이벤트 리스너 등록 완료');
+    }
+
+    // 현재 줌 레벨에 따라 마커 표시/숨김
+    handleZoomChange(map);
+}
+
+// 정류장 마커 강제 표시 (길찾기 등에서 사용)
+export function showBusStopMarkers(map) {
+    toggleBusStopMarkers(map, true);
+}
+
+// 정류장 마커 강제 숨김
+export function hideBusStopMarkers(map) {
+    toggleBusStopMarkers(map, false);
 }
