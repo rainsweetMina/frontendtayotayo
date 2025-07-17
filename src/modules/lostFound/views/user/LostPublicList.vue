@@ -212,9 +212,32 @@ import { publicApi } from '@/api/axiosInstance.js'
 import { getAllLostItems, getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js';
 
 const router = useRouter();
-const goToMyLostItems = () => router.push('/mypage/lost');
+
+// 로그인 상태 확인 함수
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('accessToken');
+  return token && token !== 'undefined' && token !== 'null';
+};
+
+const goToMyLostItems = () => {
+  if (!checkLoginStatus()) {
+    alert('내 글을 보려면 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+    router.push('/login');
+    return;
+  }
+  router.push('/mypage/lost');
+};
+
 const goToItemDetail = (id) => router.push(`/lost/${id}`);
-const goToCreatePage = () => router.push('/lost/create');
+
+const goToCreatePage = () => {
+  if (!checkLoginStatus()) {
+    alert('분실물 등록을 위해 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+    router.push('/login');
+    return;
+  }
+  router.push('/lost/create');
+};
 
 const lostItems = ref([]);
 
