@@ -14,18 +14,18 @@ export function useMapInit(mapRef) {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-    // 줌 휠 이벤트를 1씩 변경하도록 설정
+    // 줌 휠 이벤트를 0.25씩 변경하도록 설정 (더 세밀한 조정)
     map.on('wheel', function(e) {
         e.originalEvent.preventDefault()
         const delta = e.originalEvent.deltaY
         const currentZoom = map.getZoom()
         
         if (delta > 0) {
-            // 줌 아웃
-            map.setZoom(currentZoom - 1)
+            // 줌 아웃 (0.25씩)
+            map.setZoom(Math.max(currentZoom - 0.25, map.getMinZoom()))
         } else {
-            // 줌 인
-            map.setZoom(currentZoom + 1)
+            // 줌 인 (0.25씩)
+            map.setZoom(Math.min(currentZoom + 0.25, map.getMaxZoom()))
         }
     })
 

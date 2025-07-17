@@ -23,7 +23,7 @@
       :visible="modalVisible"
       :route="selectedRoute"
       :position="modalPosition"
-      @close="closeModal"
+      @close="handleModalClose"
       @selectStop="handleStopSelect"
       @showOnMap="handleShowOnMap"
       @drawRoute="handleDrawRoute"
@@ -81,6 +81,14 @@ function showRouteStops(route, event) {
 function closeModal() {
   modalVisible.value = false
   selectedRoute.value = null
+}
+
+// 모달 외부 클릭 시에만 닫히도록 처리
+function handleModalClose() {
+  // 지도 줌 이벤트로 인한 닫힘 방지
+  if (modalVisible.value) {
+    closeModal()
+  }
 }
 
 function handleStopSelect(stop) {
