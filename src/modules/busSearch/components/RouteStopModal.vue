@@ -32,7 +32,8 @@
         </div>
         
         <div v-else-if="stops.length === 0" class="p-4 text-center text-gray-500">
-          <p>정류장 정보가 없습니다.</p>
+          <p>정류장 정보를 불러올 수 없습니다.</p>
+          <p class="text-sm mt-1">백엔드 서버가 실행 중인지 확인해주세요.</p>
         </div>
         
                  <div v-else class="divide-y divide-gray-100">
@@ -55,7 +56,9 @@
                    <span class="text-blue-600">{{ arrival.arrivalTime }}</span>
                  </div>
                </div>
-               <div v-else class="text-xs text-gray-500">도착 정보 없음</div>
+               <div v-else class="text-xs text-gray-500">
+                 {{ stopArrivals.value[stop.bsId] === undefined ? '로딩 중...' : '도착 정보 없음' }}
+               </div>
              </div>
              <div class="flex items-center justify-between">
                <div class="flex items-center">
@@ -72,7 +75,7 @@
                    {{ stop.moveDir === '1' ? '정방향' : '역방향' }}
                  </div>
                  <div class="text-xs text-gray-400">
-                   {{ stopArrivals.value[stop.bsId]?.length || 0 }}개 버스
+                   {{ stop.seq }}번
                  </div>
                </div>
              </div>
@@ -128,17 +131,7 @@ async function fetchRouteStops() {
   try {
     const response = await api.get(`/api/bus/bus-route?routeId=${props.route.routeId}`)
     stops.value = response.data || []
-    
-    // 각 정류장의 도착 정보 미리 가져오기
-    for (const stop of stops.value) {
-      try {
-        const arrivals = await getSortedArrivalsFromApi(stop.bsId)
-        stopArrivals.value[stop.bsId] = arrivals
-      } catch (error) {
-        console.error(`정류장 ${stop.bsNm} 도착 정보 가져오기 실패:`, error)
-        stopArrivals.value[stop.bsId] = []
-      }
-    }
+    console.log('정류장 정보 로드 완료:', stops.value.length, '개')
   } catch (error) {
     console.error('노선 정류장 정보 가져오기 실패:', error)
     stops.value = []
@@ -161,6 +154,18 @@ async function selectStop(stop) {
   }
   
   selectedStop.value = stop
+  
+  // 선택된 정류장의 도착 정보 가져오기
+  if (!stopArrivals.value[stop.bsId]) {
+    try {
+      const arrivals = await getSortedArrivalsFromApi(stop.bsId)
+      stopArrivals.value[stop.bsId] = arrivals
+    } catch (error) {
+      console.error(`정류장 ${stop.bsNm} 도착 정보 가져오기 실패:`, error)
+      stopArrivals.value[stop.bsId] = []
+    }
+  }
+  
   emit('selectStop', stop)
 }
 
