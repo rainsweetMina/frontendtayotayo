@@ -25,6 +25,9 @@
       @close="closeModal"
       @selectStop="handleStopSelect"
       @showOnMap="handleShowOnMap"
+      @drawRoute="handleDrawRoute"
+      @moveToStop="handleMoveToStop"
+      @clearRoute="handleClearRoute"
     />
   </div>
 </template>
@@ -60,6 +63,21 @@ function handleStopSelect(stop) {
 function handleShowOnMap(route) {
   // 지도에서 보기 클릭 시 원래 select 이벤트 발생
   emit('select', route)
+}
+
+function handleDrawRoute(route) {
+  // 지도에 노선 그리기
+  emit('select', route)
+}
+
+function handleMoveToStop(stop) {
+  // 지도에서 정류장으로 이동
+  emit('moveToStop', stop)
+}
+
+function handleClearRoute() {
+  // 지도에서 노선 지우기
+  emit('clearRoute')
 }
 
 function getRouteType(routeNo) {

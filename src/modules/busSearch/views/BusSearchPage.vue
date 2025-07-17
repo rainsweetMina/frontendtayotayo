@@ -34,7 +34,12 @@
           @selectAsStart="setStartStop"
           @selectAsEnd="setEndStop"
       />
-      <BusRouteList :routes="store.busRoutes" @select="selectRoute"/>
+      <BusRouteList 
+        :routes="store.busRoutes" 
+        @select="selectRoute"
+        @moveToStop="handleMoveToStop"
+        @clearRoute="handleClearRoute"
+      />
     </div>
     <div v-else>
       <p class="text-center text-gray-500 mt-4">🔄 경로 탐색 중입니다...</p>
@@ -49,6 +54,7 @@ import arrivalIcon from '@/assets/icons/arrival_icon.png'
 import {ref, watch, onMounted, computed} from 'vue'
 import { debounce } from 'lodash'
 import { useRouter } from 'vue-router'
+import L from 'leaflet'
 import api from '@/api/axiosInstance.js'
 import {useSearchStore} from '@/stores/searchStore'
 import {tryFindRoute} from "@/utils/route-search.js";
@@ -470,6 +476,84 @@ async function bindArrivalPopup(marker, bsId, bsNm) {
     console.error('도착 정보 조회 실패:', err)
     marker.bindPopup(`<b>${bsNm}</b><br>도착 정보 조회 실패`).openPopup()
   }
+}
+
+// 정류장으로 지도 이동
+function handleMoveToStop(stop) {
+  const map = window.leafletMap
+  if (!map) return
+  
+  const lat = parseFloat(stop.yPos || stop.ypos)
+  const lng = parseFloat(stop.xPos || stop.xpos)
+  
+  if (!isNaN(lat) && !isNaN(lng)) {
+    // 해당 정류장으로 부드럽게 이동
+    map.flyTo([lat, lng], 18, {
+      animate: true,
+      duration: 1.0
+    })
+    
+    // 정류장 마커에 하이라이트 효과 추가
+    if (window.busStopMarkers) {
+      window.busStopMarkers.forEach(marker => {
+        const markerLat = marker.getLatLng().lat
+        const markerLng = marker.getLatLng().lng
+        
+        // 해당 정류장과 일치하는 마커 찾기
+        if (Math.abs(markerLat - lat) < 0.0001 && Math.abs(markerLng - lng) < 0.0001) {
+          // 기존 팝업이 있다면 열기
+          if (marker.isPopupOpen()) {
+            marker.closePopup()
+          } else {
+            marker.openPopup()
+          }
+          
+          // 마커에 깜빡이는 효과 추가
+          const originalIcon = marker.getIcon()
+          let blinkCount = 0
+          const blinkInterval = setInterval(() => {
+            if (blinkCount % 2 === 0) {
+              marker.setIcon(L.icon({
+                iconUrl: '/images/arrival_icon.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+              }))
+            } else {
+              marker.setIcon(originalIcon)
+            }
+            blinkCount++
+            if (blinkCount >= 6) {
+              clearInterval(blinkInterval)
+              marker.setIcon(originalIcon)
+            }
+          }, 300)
+        }
+      })
+    }
+    
+    console.log(`✅ 정류장 "${stop.bsNm}"으로 이동 완료`)
+  }
+}
+
+// 모달이 닫힐 때 지도에서 노선 지우기
+function handleClearRoute() {
+  const map = window.leafletMap
+  if (!map) return
+  
+  // 지도에서 노선 관련 요소들 제거
+  clearMapElements(map)
+  
+  // 실시간 버스 마커 제거
+  if (window.busLocationMarkers) {
+    window.busLocationMarkers.forEach(marker => {
+      if (map.hasLayer(marker)) {
+        map.removeLayer(marker)
+      }
+    })
+    window.busLocationMarkers = []
+  }
+  
+  console.log('✅ 지도에서 노선 정보 제거 완료')
 }
 
 watch(() => store.lastSearchedKeyword, debounce(async (keyword) => {

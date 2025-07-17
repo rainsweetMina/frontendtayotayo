@@ -109,7 +109,7 @@ const props = defineProps({
   route: Object
 })
 
-const emit = defineEmits(['close', 'selectStop', 'showOnMap'])
+const emit = defineEmits(['close', 'selectStop', 'showOnMap', 'drawRoute', 'moveToStop', 'clearRoute'])
 
 const loading = ref(false)
 const stops = ref([])
@@ -120,6 +120,8 @@ const stopArrivals = ref({})
 watch(() => props.visible, async (newVisible) => {
   if (newVisible && props.route) {
     await fetchRouteStops()
+    // 모달이 열릴 때 지도에 노선 그리기
+    emit('drawRoute', props.route)
   }
 })
 
@@ -143,6 +145,8 @@ async function fetchRouteStops() {
 function closeModal() {
   selectedStop.value = null
   stopArrivals.value = {}
+  // 모달이 닫힐 때 지도에서 노선 지우기
+  emit('clearRoute')
   emit('close')
 }
 
@@ -165,6 +169,9 @@ async function selectStop(stop) {
       stopArrivals.value[stop.bsId] = []
     }
   }
+  
+  // 지도에서 해당 정류장으로 이동
+  emit('moveToStop', stop)
   
   emit('selectStop', stop)
 }
