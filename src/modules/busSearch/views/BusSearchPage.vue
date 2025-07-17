@@ -178,11 +178,11 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
       const beforeTransfer = polyline.slice(0, splitIndex + 1)
       const afterTransfer = polyline.slice(splitIndex)
 
-      drawBusRouteMapORS(map, beforeTransfer, 'yellowgreen')
-      drawBusRouteMapORS(map, afterTransfer, 'orange')
+      drawBusRouteMapORS(map, beforeTransfer, '#2563eb')  // 파란색
+      drawBusRouteMapORS(map, afterTransfer, '#1d4ed8')   // 진한 파란색
     } else {
       console.warn('❌ splitIndex 찾기 실패 → fallback 처리됨', splitIndex)
-      drawBusRouteMapORS(map, polyline, 'gray')
+      drawBusRouteMapORS(map, polyline, '#3b82f6')        // 밝은 파란색
     }
 
     // 🔁 환승 마커
@@ -198,7 +198,7 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     }
   } else {
     // 환승 없을 경우 단일 경로
-    drawBusRouteMapORS(map, polyline, 'yellowgreen')
+    drawBusRouteMapORS(map, polyline, '#2563eb')  // 파란색
   }
 
   // 출발 마커
@@ -337,7 +337,7 @@ async function selectRoute(route) {
     // 정방향 경로 그리기
     if (forward.length > 0) {
       try {
-        drawBusRouteMapORS(map, forward, 'pink')
+        drawBusRouteMapORS(map, forward, '#2563eb')  // 파란색
         console.log('✅ 정방향 경로 그리기 완료')
       } catch (err) {
         console.error('❌ 정방향 경로 그리기 실패:', err)
@@ -349,7 +349,7 @@ async function selectRoute(route) {
     // 역방향 경로 그리기 (데이터가 있을 때만)
     if (reverse.length > 0) {
       try {
-        drawBusRouteMapORS(map, reverse, 'skyblue') 
+        drawBusRouteMapORS(map, reverse, '#1d4ed8')  // 진한 파란색
         console.log('✅ 역방향 경로 그리기 완료')
       } catch (err) {
         console.error('❌ 역방향 경로 그리기 실패:', err)

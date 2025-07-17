@@ -9,7 +9,7 @@ const ZOOM_LEVELS = {
 };
 
 // 버스 노선 경로 폴리라인 그리기
-export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
+export function drawBusRouteMapORS(map, coordinates, color = '#2563eb') {
     if (!Array.isArray(coordinates) || coordinates.length === 0) {
         console.warn('❌ 경로 데이터 없음');
         return;

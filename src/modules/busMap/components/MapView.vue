@@ -260,10 +260,10 @@ function handleSelectedRoute(route) {
   )
 
   if (transferIdx > 0) {
-    drawBusRouteMapORS(map.value, allStations.slice(0, transferIdx + 1), 'yellowgreen')
-    drawBusRouteMapORS(map.value, allStations.slice(transferIdx), 'orange')
-  } else {
-    drawBusRouteMapORS(map.value, allStations, 'gray')
+            drawBusRouteMapORS(map.value, allStations.slice(0, transferIdx + 1), '#2563eb')  // 파란색
+        drawBusRouteMapORS(map.value, allStations.slice(transferIdx), '#1d4ed8')        // 진한 파란색
+      } else {
+        drawBusRouteMapORS(map.value, allStations, '#3b82f6')                           // 밝은 파란색
   }
 
   marker.on('click', async () => {
