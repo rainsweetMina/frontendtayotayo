@@ -201,6 +201,16 @@
       </button>
     </div>
 
+    <!-- 로그인 필요 모달 -->
+    <CommonModal
+      :isOpen="loginModalOpen"
+      title="로그인 필요"
+      :message="loginModalMessage"
+      :showCancel="false"
+      confirmText="로그인하기"
+      @close="handleLoginModalClose"
+      @confirm="handleLoginModalClose"
+    />
 
   </div>
 </template>
@@ -210,6 +220,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { publicApi } from '@/api/axiosInstance.js'
 import { getAllLostItems, getBusCompanies, getBusesByCompany } from '@/modules/lostFound/api/lostPublic.js';
+import CommonModal from '@/components/CommonModal.vue';
 
 const router = useRouter();
 
@@ -221,8 +232,8 @@ const checkLoginStatus = () => {
 
 const goToMyLostItems = () => {
   if (!checkLoginStatus()) {
-    alert('내 글을 보려면 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-    router.push('/login');
+    loginModalMessage.value = '내 글을 보려면 로그인이 필요합니다.';
+    loginModalOpen.value = true;
     return;
   }
   router.push('/mypage/lost');
@@ -232,14 +243,24 @@ const goToItemDetail = (id) => router.push(`/lost/${id}`);
 
 const goToCreatePage = () => {
   if (!checkLoginStatus()) {
-    alert('분실물 등록을 위해 로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-    router.push('/login');
+    loginModalMessage.value = '분실물 등록을 위해 로그인이 필요합니다.';
+    loginModalOpen.value = true;
     return;
   }
   router.push('/lost/create');
 };
 
+// 모달 닫기 처리
+const handleLoginModalClose = () => {
+  loginModalOpen.value = false;
+  router.push('/login');
+};
+
 const lostItems = ref([]);
+
+// 모달 상태
+const loginModalOpen = ref(false);
+const loginModalMessage = ref('');
 
 const period = ref('7');
 const itemName = ref('');
