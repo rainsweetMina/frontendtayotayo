@@ -223,7 +223,49 @@ function drawOrsPolyline({polyline, start, end, transferStation}) {
     }).addTo(map).bindPopup(`도착: ${end.bsNm}`)
   }
 
-  map.flyTo([start.yPos, start.xPos], 16)
+  // 네이버 지도처럼 전체 경로를 한 번에 보여주기
+  if (polyline && polyline.length > 0) {
+    // 모든 좌표를 수집하여 경계 계산
+    const allCoordinates = []
+    
+    // 경로 좌표 추가
+    polyline.forEach(coord => {
+      const lat = parseFloat(coord.yPos || coord.ypos)
+      const lng = parseFloat(coord.xPos || coord.xpos)
+      if (!isNaN(lat) && !isNaN(lng)) {
+        allCoordinates.push([lat, lng])
+      }
+    })
+    
+    // 출발/도착 정류장 좌표도 추가
+    if (start?.yPos && start?.xPos) {
+      allCoordinates.push([parseFloat(start.yPos), parseFloat(start.xPos)])
+    }
+    if (end?.yPos && end?.xPos) {
+      allCoordinates.push([parseFloat(end.yPos), parseFloat(end.xPos)])
+    }
+    
+    if (allCoordinates.length > 0) {
+      // 모든 좌표를 포함하는 경계 계산
+      const bounds = L.latLngBounds(allCoordinates)
+      
+      // 경계에 여백 추가 (네이버 지도 스타일)
+      bounds.pad(0.1)
+      
+      // 전체 경로가 보이도록 지도 이동
+      map.fitBounds(bounds, {
+        maxZoom: 16, // 너무 확대되지 않도록 제한
+        animate: true,
+        duration: 1.0
+      })
+      
+      console.log('✅ 길찾기 전체 경로가 보이도록 지도 이동 완료')
+    }
+  } else {
+    // 경로 데이터가 없는 경우 출발지로 이동 (fallback)
+    map.flyTo([start.yPos, start.xPos], 16)
+    console.log('ℹ️ 경로 데이터 없음 - 출발지로 이동')
+  }
 }
 
 function selectRouteFromPath(route) {
@@ -289,18 +331,28 @@ async function selectRoute(route) {
     console.log('🚌 정방향 경로 데이터:', forward)
     console.log('🚌 역방향 경로 데이터:', reverse)
     
-    try {
-      drawBusRouteMapORS(map, forward, 'pink')
-      console.log('✅ 정방향 경로 그리기 완료')
-    } catch (err) {
-      console.error('❌ 정방향 경로 그리기 실패:', err)
+    // 정방향 경로 그리기
+    if (forward.length > 0) {
+      try {
+        drawBusRouteMapORS(map, forward, 'pink')
+        console.log('✅ 정방향 경로 그리기 완료')
+      } catch (err) {
+        console.error('❌ 정방향 경로 그리기 실패:', err)
+      }
+    } else {
+      console.log('ℹ️ 정방향 경로 데이터 없음 - 그리기 건너뜀')
     }
 
-    try {
-      drawBusRouteMapORS(map, reverse, 'skyblue') 
-      console.log('✅ 역방향 경로 그리기 완료')
-    } catch (err) {
-      console.error('❌ 역방향 경로 그리기 실패:', err)
+    // 역방향 경로 그리기 (데이터가 있을 때만)
+    if (reverse.length > 0) {
+      try {
+        drawBusRouteMapORS(map, reverse, 'skyblue') 
+        console.log('✅ 역방향 경로 그리기 완료')
+      } catch (err) {
+        console.error('❌ 역방향 경로 그리기 실패:', err)
+      }
+    } else {
+      console.log('ℹ️ 역방향 경로 데이터 없음 - 그리기 건너뜀')
     }
 
     // 실시간 버스 위치는 별도로 처리 (실패해도 다른 기능은 정상 작동)
@@ -339,13 +391,64 @@ async function selectRoute(route) {
       // 실시간 버스 위치 실패는 무시하고 계속 진행
     }
 
-    // 지도 이동
-    if (forward.length > 0) {
-      const {yPos, xPos} = forward[0]
-      const lat = parseFloat(yPos)
-      const lng = parseFloat(xPos)
-      if (!isNaN(lat) && !isNaN(lng)) {
-        map.flyTo([lat, lng], 16)
+    // 네이버 지도처럼 전체 경로를 한 번에 보여주기
+    if (forward.length > 0 || reverse.length > 0) {
+      // 모든 좌표를 수집하여 경계 계산
+      const allCoordinates = []
+      
+      // 정방향 좌표 추가
+      forward.forEach(coord => {
+        const lat = parseFloat(coord.yPos || coord.ypos)
+        const lng = parseFloat(coord.xPos || coord.xpos)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          allCoordinates.push([lat, lng])
+        }
+      })
+      
+      // 역방향 좌표 추가
+      reverse.forEach(coord => {
+        const lat = parseFloat(coord.yPos || coord.ypos)
+        const lng = parseFloat(coord.xPos || coord.xpos)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          allCoordinates.push([lat, lng])
+        }
+      })
+      
+      // 정류장 좌표도 추가
+      stops.forEach(stop => {
+        const lat = parseFloat(stop.yPos || stop.ypos)
+        const lng = parseFloat(stop.xPos || stop.xpos)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          allCoordinates.push([lat, lng])
+        }
+      })
+      
+      if (allCoordinates.length > 0) {
+        // 모든 좌표를 포함하는 경계 계산
+        const bounds = L.latLngBounds(allCoordinates)
+        
+        // 경계에 여백 추가 (네이버 지도 스타일)
+        bounds.pad(0.1)
+        
+        // 전체 경로가 보이도록 지도 이동
+        map.fitBounds(bounds, {
+          maxZoom: 16, // 너무 확대되지 않도록 제한
+          animate: true,
+          duration: 1.0
+        })
+        
+        console.log('✅ 전체 경로가 보이도록 지도 이동 완료')
+      }
+    } else {
+      // 경로 데이터가 없는 경우 첫 번째 정류장으로 이동 (fallback)
+      if (stops.length > 0) {
+        const firstStop = stops[0]
+        const lat = parseFloat(firstStop.yPos || firstStop.ypos)
+        const lng = parseFloat(firstStop.xPos || firstStop.xpos)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          map.flyTo([lat, lng], 16)
+          console.log('ℹ️ 경로 데이터 없음 - 첫 번째 정류장으로 이동')
+        }
       }
     }
   } catch (err) {

@@ -26,7 +26,8 @@ export function drawBusRouteMapORS(map, coordinates, color = 'skyblue') {
     window.routePolylines = window.routePolylines || [];
     window.routePolylines.push(polyline);
 
-    map.fitBounds(polyline.getBounds());
+    // 개별 경로는 지도를 이동시키지 않음 (전체 경로를 한 번에 보여주기 위해)
+    // map.fitBounds(polyline.getBounds());
 
     return polyline;
 }
