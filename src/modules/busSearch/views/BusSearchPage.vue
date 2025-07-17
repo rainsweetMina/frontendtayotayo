@@ -286,8 +286,22 @@ async function selectRoute(route) {
 
     // 정류장과 경로 정보 표시
     drawBusStopMarkersWithArrival(map, stops)
-    drawBusRouteMapORS(map, forward, 'pink')
-    drawBusRouteMapORS(map, reverse, 'skyblue')
+    console.log('🚌 정방향 경로 데이터:', forward)
+    console.log('🚌 역방향 경로 데이터:', reverse)
+    
+    try {
+      drawBusRouteMapORS(map, forward, 'pink')
+      console.log('✅ 정방향 경로 그리기 완료')
+    } catch (err) {
+      console.error('❌ 정방향 경로 그리기 실패:', err)
+    }
+
+    try {
+      drawBusRouteMapORS(map, reverse, 'skyblue') 
+      console.log('✅ 역방향 경로 그리기 완료')
+    } catch (err) {
+      console.error('❌ 역방향 경로 그리기 실패:', err)
+    }
 
     // 실시간 버스 위치는 별도로 처리 (실패해도 다른 기능은 정상 작동)
     try {
