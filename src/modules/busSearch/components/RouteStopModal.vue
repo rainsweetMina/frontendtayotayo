@@ -1,18 +1,10 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50 flex items-start justify-start">
+  <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
     <!-- 배경 오버레이 -->
-    <div class="absolute inset-0 bg-black bg-opacity-30" @click="closeModal"></div>
+    <div class="absolute inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
     
-    <!-- 모달 컨테이너 - 동적 위치 -->
-    <div 
-      class="relative bg-white rounded-lg shadow-2xl border border-gray-200 w-96 max-h-[calc(100vh-2rem)] overflow-hidden"
-      :style="{
-        position: 'absolute',
-        top: position.top,
-        left: position.left,
-        zIndex: 1000
-      }"
-    >
+    <!-- 모달 컨테이너 -->
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
       <!-- 헤더 -->
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
         <div class="flex items-center">
@@ -79,23 +71,14 @@
                  </div>
                </div>
                <div class="text-right">
-                 <div class="flex items-center justify-end mb-1">
-                   <span :class="[
-                     'px-2 py-1 rounded-full text-xs text-white font-medium',
-                     stop.moveDir === '1' ? 'bg-blue-500' : 'bg-red-500'
-                   ]">
-                     {{ stop.moveDir === '1' ? '정방향' : '역방향' }}
-                   </span>
+                 <div class="text-sm text-gray-500">
+                   {{ stop.moveDir === '1' ? '정방향' : '역방향' }}
                  </div>
-                 <div class="text-xs text-gray-500">
-                   <div v-if="route?.stNm && route?.edNm" class="text-gray-600">
-                     {{ stop.moveDir === '1' ? route.stNm : route.edNm }} 
-                     <span class="text-gray-400">→</span> 
-                     {{ stop.moveDir === '1' ? route.edNm : route.stNm }}
-                   </div>
-                   <div class="text-gray-400 mt-1">{{ stop.seq }}번 정류장</div>
+                 <div class="text-xs text-gray-400">
+                   {{ stop.seq }}번
                  </div>
                </div>
+             </div>
            </div>
          </div>
       </div>
@@ -123,14 +106,10 @@ import { getSortedArrivalsFromApi } from '@/composables/arrival-utils'
 
 const props = defineProps({
   visible: Boolean,
-  route: Object,
-  position: {
-    type: Object,
-    default: () => ({ top: '1rem', left: '1rem' })
-  }
+  route: Object
 })
 
-const emit = defineEmits(['close', 'selectStop', 'showOnMap', 'drawRoute', 'moveToStop', 'clearRoute'])
+const emit = defineEmits(['close', 'selectStop', 'showOnMap'])
 
 const loading = ref(false)
 const stops = ref([])
@@ -141,8 +120,6 @@ const stopArrivals = ref({})
 watch(() => props.visible, async (newVisible) => {
   if (newVisible && props.route) {
     await fetchRouteStops()
-    // 모달이 열릴 때 지도에 노선 그리기
-    emit('drawRoute', props.route)
   }
 })
 
@@ -166,7 +143,6 @@ async function fetchRouteStops() {
 function closeModal() {
   selectedStop.value = null
   stopArrivals.value = {}
-  // 모달이 닫혀도 지도에 노선 표시는 유지
   emit('close')
 }
 
@@ -189,9 +165,6 @@ async function selectStop(stop) {
       stopArrivals.value[stop.bsId] = []
     }
   }
-  
-  // 지도에서 해당 정류장으로 이동
-  emit('moveToStop', stop)
   
   emit('selectStop', stop)
 }
