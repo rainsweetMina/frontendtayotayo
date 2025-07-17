@@ -1,11 +1,12 @@
+import L from 'leaflet'
 import api from '@/api/axiosInstance.js'
 import { renderPopupComponent } from '@/utils/popup-mount';
 import { getSortedArrivalsFromApi } from '@/composables/arrival-utils.js';
 
 // 줌 레벨 설정 (네이버 지도 스타일)
 const ZOOM_LEVELS = {
-    SHOW_STOPS: 15, // 15 이상일 때 정류장 마커 표시 (더 세밀한 뷰)
-    HIDE_STOPS: 14  // 14 이하일 때 정류장 마커 숨김 (전체 경로 뷰)
+    SHOW_STOPS: 17, // 17 이상일 때 정류장 마커 표시 (더 세밀한 뷰)
+    HIDE_STOPS: 16  // 16 이하일 때 정류장 마커 숨김 (전체 경로 뷰)
 };
 
 // 버스 노선 경로 폴리라인 그리기
@@ -125,8 +126,34 @@ export function drawBusStopMarkersWithArrival(map, stops) {
         const lng = parseFloat(stop.xPos ?? stop.xpos);
         if (isNaN(lat) || isNaN(lng)) return;
 
+        // 버스 모양 아이콘 생성
+        const busIcon = L.divIcon({
+            className: 'bus-stop-icon',
+            html: `
+                <div style="
+                    width: 20px; 
+                    height: 20px; 
+                    background: #2563eb; 
+                    border: 2px solid white; 
+                    border-radius: 50%; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    font-size: 10px;
+                    color: white;
+                    font-weight: bold;
+                ">
+                    🚌
+                </div>
+            `,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
         const marker = L.marker([lat, lng], {
-            title: stop.bsNm
+            title: stop.bsNm,
+            icon: busIcon
         });
 
         marker.on('click', async () => {

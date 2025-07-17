@@ -3,7 +3,9 @@ import L from 'leaflet'
 export function useMapInit(mapRef) {
     const map = L.map(mapRef.value, {
         zoomControl: false,
-        zoomAnimation: false
+        zoomAnimation: false,
+        wheelPxPerZoomLevel: 60, // 줌 휠 감도 조정 (기본값 60)
+        wheelDebounceTime: 40    // 줌 휠 디바운스 시간
     }).setView([35.865, 128.593], 16)
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -11,6 +13,21 @@ export function useMapInit(mapRef) {
     }).addTo(map)
 
     L.control.zoom({ position: 'bottomright' }).addTo(map)
+
+    // 줌 휠 이벤트를 1씩 변경하도록 설정
+    map.on('wheel', function(e) {
+        e.originalEvent.preventDefault()
+        const delta = e.originalEvent.deltaY
+        const currentZoom = map.getZoom()
+        
+        if (delta > 0) {
+            // 줌 아웃
+            map.setZoom(currentZoom - 1)
+        } else {
+            // 줌 인
+            map.setZoom(currentZoom + 1)
+        }
+    })
 
     // 전역에 등록
     window.leafletMap = map

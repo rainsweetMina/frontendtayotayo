@@ -507,16 +507,37 @@ function handleMoveToStop(stop) {
             marker.openPopup()
           }
           
-          // 마커에 깜빡이는 효과 추가
+          // 마커에 깜빡이는 효과 추가 (버스 아이콘으로 하이라이트)
           const originalIcon = marker.getIcon()
           let blinkCount = 0
           const blinkInterval = setInterval(() => {
             if (blinkCount % 2 === 0) {
-              marker.setIcon(L.icon({
-                iconUrl: '/images/arrival_icon.png',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32]
-              }))
+              // 하이라이트용 버스 아이콘
+              const highlightIcon = L.divIcon({
+                className: 'bus-stop-highlight',
+                html: `
+                    <div style="
+                        width: 24px; 
+                        height: 24px; 
+                        background: #dc2626; 
+                        border: 3px solid white; 
+                        border-radius: 50%; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+                        font-size: 12px;
+                        color: white;
+                        font-weight: bold;
+                        animation: pulse 0.3s ease-in-out;
+                    ">
+                        🚌
+                    </div>
+                `,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+              })
+              marker.setIcon(highlightIcon)
             } else {
               marker.setIcon(originalIcon)
             }
@@ -576,3 +597,21 @@ watch(() => store.lastSearchedKeyword, debounce(async (keyword) => {
   }
 }, 300), { immediate: true })
 </script>
+
+<style scoped>
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.bus-stop-highlight {
+  animation: pulse 0.3s ease-in-out;
+}
+</style>
