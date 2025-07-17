@@ -204,6 +204,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { downloadSystemLogs } from '@/api/admin'
 
 // 상태 데이터
 const logs = ref([])
@@ -836,28 +837,8 @@ const getActionLabel = (action) => {
 // 로그 다운로드
 const downloadLogs = async () => {
   try {
-    // 파일 다운로드 요청
-    const response = await fetch('/api/admin/logs/download', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      }
-    })
-    
-    // HTTP 상태 코드 확인
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`다운로드 오류 응답 (${response.status}):`, errorText);
-      throw new Error(`서버 응답 오류 ${response.status}: ${errorText}`);
-    }
-    
-    // 응답 헤더에서 콘텐츠 타입과 파일명 확인 (디버깅용)
-    const contentType = response.headers.get('Content-Type');
-    const contentDisposition = response.headers.get('Content-Disposition');
-    console.log('응답 콘텐츠 타입:', contentType);
-    console.log('응답 Content-Disposition:', contentDisposition);
-    
-    const blob = await response.blob()
+    // api를 사용하여 파일 다운로드 요청
+    const blob = await downloadSystemLogs()
     
     // Blob의 타입을 Excel MIME 타입으로 설정
     const excelBlob = new Blob([blob], { 
@@ -868,20 +849,18 @@ const downloadLogs = async () => {
     const a = document.createElement('a')
     a.href = url
     
-    // 파일명 가져오기 또는 기본값 사용
-    let filename = 'system-logs.xlsx';
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
-      if (filenameMatch && filenameMatch[1]) {
-        filename = filenameMatch[1];
-      }
-    }
+    // 파일명 설정 (현재 날짜/시간 포함)
+    const now = new Date()
+    const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `system_logs_${timestamp}.xlsx`
     
     a.download = filename;
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
+    
+    console.log('로그 다운로드 완료:', filename)
   } catch (error) {
     console.error('로그 다운로드 실패:', error)
     alert('시스템 로그 다운로드 중 오류가 발생했습니다: ' + error.message)

@@ -546,3 +546,23 @@ export const getAdminLogs = async (limit = 10) => {
     return [];
   }
 }; 
+
+/**
+ * 시스템 로그 다운로드
+ * @returns {Promise<Blob>} Excel 파일 Blob
+ */
+export const downloadSystemLogs = async () => {
+  try {
+    const response = await api.get('/api/admin/logs/download', {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('시스템 로그 다운로드 실패:', error)
+    throw error
+  }
+} 
