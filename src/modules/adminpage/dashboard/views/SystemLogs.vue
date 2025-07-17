@@ -964,6 +964,47 @@ const findSpecificLog = (id) => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
+  // 인증 상태 확인
+  const token = localStorage.getItem('accessToken');
+  console.log('🔐 인증 토큰 확인:', token ? '토큰 존재' : '토큰 없음');
+  
+  if (!token) {
+    console.error('인증 토큰이 없습니다. 로그인이 필요합니다.');
+    alert('로그인이 필요합니다. 관리자 페이지로 이동합니다.');
+    window.location.href = '/admin/login';
+    return;
+  }
+  
+  // 토큰 유효성 간단 체크
+  try {
+    const tokenParts = token.split('.');
+    if (tokenParts.length !== 3) {
+      console.error('잘못된 JWT 토큰 형식');
+      alert('잘못된 인증 토큰입니다. 다시 로그인해주세요.');
+      window.location.href = '/admin/login';
+      return;
+    }
+    
+    // 토큰 페이로드 디코딩 (간단한 체크)
+    const payload = JSON.parse(atob(tokenParts[1]));
+    console.log('🔐 토큰 페이로드:', payload);
+    
+    // 토큰 만료 확인
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      console.error('토큰이 만료되었습니다.');
+      alert('인증 토큰이 만료되었습니다. 다시 로그인해주세요.');
+      window.location.href = '/admin/login';
+      return;
+    }
+  } catch (error) {
+    console.error('토큰 파싱 오류:', error);
+    alert('인증 토큰을 확인할 수 없습니다. 다시 로그인해주세요.');
+    window.location.href = '/admin/login';
+    return;
+  }
+  
+  console.log('✅ 인증 토큰 유효성 확인 완료');
+  
   fetchLogs(1).then(() => {
     // 사용 가능한 페이지 업데이트
     updateAvailablePages();
