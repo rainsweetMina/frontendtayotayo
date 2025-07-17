@@ -96,49 +96,79 @@
       </div>
     </div>
 
-    <!-- 목록 테이블 -->
-    <div class="content-card mb-6">
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">번호</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">분실물</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">분실일</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">버스정보</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr 
-              v-for="item in pagedItems" 
-              :key="item.id" 
-              @click="goToItemDetail(item.id)" 
-              class="hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ item.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{{ displayText(item.title) }}</td>
-              <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate text-center">{{ trimText(item.content) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ formatDate(item.lostTime) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                <div>
-                  <div class="font-medium">{{ displayText(item.busCompany) }}</div>
-                  <div class="text-gray-500">{{ displayText(item.busNumber) }}</div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- 목록 테이블과 버튼 영역 -->
+    <div class="flex gap-6">
+      <!-- 목록 테이블 -->
+      <div class="content-card mb-6 flex-1">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">번호</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">분실물</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">분실일</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">버스정보</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr 
+                v-for="item in pagedItems" 
+                :key="item.id" 
+                @click="goToItemDetail(item.id)" 
+                class="hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ item.id }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{{ displayText(item.title) }}</td>
+                <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate text-center">{{ trimText(item.content) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ formatDate(item.lostTime) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                  <div>
+                    <div class="font-medium">{{ displayText(item.busCompany) }}</div>
+                    <div class="text-gray-500">{{ displayText(item.busNumber) }}</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 빈 상태 -->
+        <div v-if="!pagedItems.length" class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">등록된 분실물 신고가 없습니다</h3>
+          <p class="mt-1 text-sm text-gray-500">검색 조건을 변경해보세요.</p>
+        </div>
       </div>
-      
-      <!-- 빈 상태 -->
-      <div v-if="!pagedItems.length" class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">등록된 분실물 신고가 없습니다</h3>
-        <p class="mt-1 text-sm text-gray-500">검색 조건을 변경해보세요.</p>
+
+      <!-- 우측 버튼 영역 -->
+      <div class="flex flex-col space-y-4 w-48">
+        <!-- 내 글 모아보기 버튼 -->
+        <button 
+          @click="goToMyLostItems"
+          class="inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors w-full"
+          title="내 글 모아보기"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          내 글
+        </button>
+        
+        <!-- 분실물 등록 버튼 -->
+        <button 
+          @click="goToCreatePage"
+          class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors w-full"
+          title="분실물 등록"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          등록
+        </button>
       </div>
     </div>
 
@@ -171,32 +201,7 @@
       </button>
     </div>
 
-    <!-- 플로팅 버튼들 -->
-    <div class="fixed bottom-8 right-8 flex flex-col space-y-3">
-      <!-- 내 글 모아보기 버튼 -->
-      <button 
-        @click="goToMyLostItems"
-        class="inline-flex items-center px-4 py-3 border border-transparent rounded-full shadow-lg text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-        title="내 글 모아보기"
-      >
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-        </svg>
-        내 글
-      </button>
-      
-      <!-- 분실물 등록 버튼 -->
-      <button 
-        @click="goToCreatePage"
-        class="inline-flex items-center px-6 py-3 border border-transparent rounded-full shadow-lg text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-        title="분실물 등록"
-      >
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        등록
-      </button>
-    </div>
+
   </div>
 </template>
 
