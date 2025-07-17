@@ -241,11 +241,15 @@ api.interceptors.request.use(
         const isFormData = config.data instanceof FormData;
         console.log('[api] FormData 요청 여부:', isFormData);
 
-        // JWT 토큰을 헤더에 추가
+        // JWT 토큰을 헤더에 추가 (버스 관련 API는 토큰 없이도 허용)
+        const isBusApi = config.url?.includes('/api/bus/');
         const accessToken = getJwtToken();
+        
         if (accessToken && accessToken !== 'undefined' && accessToken !== 'null') {
             config.headers.Authorization = `Bearer ${accessToken}`;
             console.log('[JWT] Authorization header added to request:', config.url);
+        } else if (isBusApi) {
+            console.log('[JWT] Bus API - 토큰 없이 요청 진행:', config.url);
         } else {
             console.log('[JWT] No valid token found for request:', config.url);
         }
