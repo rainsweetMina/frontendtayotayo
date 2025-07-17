@@ -50,30 +50,19 @@ function showRouteStops(route, event) {
   selectedRoute.value = route
   modalVisible.value = true
   
-  // 클릭된 요소의 위치를 기준으로 모달 위치 계산
-  const rect = event.currentTarget.getBoundingClientRect()
+  // 모달 위치를 브라우저 상단에서 50px 고정
   const sidebarWidth = 400 // 사이드바 대략적 너비
   const modalWidth = 400 // 모달 대략적 너비
-  const modalHeight = 600 // 모달 대략적 높이
   
   let left = sidebarWidth + 20
-  let top = rect.top
   
   // 화면 경계 체크
   if (left + modalWidth > window.innerWidth) {
     left = window.innerWidth - modalWidth - 20
   }
   
-  if (top + modalHeight > window.innerHeight) {
-    top = window.innerHeight - modalHeight - 20
-  }
-  
-  if (top < 20) {
-    top = 20
-  }
-  
   modalPosition.value = {
-    top: `${top}px`,
+    top: '50px', // 브라우저 상단에서 50px 고정
     left: `${left}px`
   }
 }

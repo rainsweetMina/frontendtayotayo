@@ -16,16 +16,26 @@ export function useMapInit(mapRef) {
 
     // 줌 휠 이벤트를 0.25씩 변경하도록 설정 (더 세밀한 조정)
     map.on('wheel', function(e) {
-        e.originalEvent.preventDefault()
+        // 모달이 열려있을 때는 지도 줌을 막지 않음
+        const modalOpen = document.querySelector('.fixed.inset-0.z-\\[9999\\]') !== null
+        
+        // 모달이 열려있지 않을 때만 기본 동작 방지
+        if (!modalOpen) {
+            e.originalEvent.preventDefault()
+        }
+        
         const delta = e.originalEvent.deltaY
         const currentZoom = map.getZoom()
         
+        // 모달이 열려있을 때는 더 작은 단위로 줌
+        const zoomStep = modalOpen ? 0.1 : 0.25
+        
         if (delta > 0) {
-            // 줌 아웃 (0.25씩)
-            map.setZoom(Math.max(currentZoom - 0.25, map.getMinZoom()))
+            // 줌 아웃
+            map.setZoom(Math.max(currentZoom - zoomStep, map.getMinZoom()))
         } else {
-            // 줌 인 (0.25씩)
-            map.setZoom(Math.min(currentZoom + 0.25, map.getMaxZoom()))
+            // 줌 인
+            map.setZoom(Math.min(currentZoom + zoomStep, map.getMaxZoom()))
         }
     })
 

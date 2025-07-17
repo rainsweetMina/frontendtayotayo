@@ -1,16 +1,20 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50 flex items-start justify-start">
+  <div v-if="visible" class="fixed inset-0 z-[9999] flex items-start justify-start pointer-events-none">
     <!-- 배경 오버레이 -->
-    <div class="absolute inset-0 bg-black bg-opacity-30" @click="closeModal"></div>
+    <div 
+      class="absolute inset-0 bg-black bg-opacity-30 pointer-events-auto" 
+      @click="closeModal"
+      @wheel.passive
+    ></div>
     
     <!-- 모달 컨테이너 - 동적 위치 -->
     <div 
-      class="relative bg-white rounded-lg shadow-2xl border border-gray-200 w-96 max-h-[calc(100vh-2rem)] overflow-hidden"
+      class="relative bg-white rounded-lg shadow-2xl border border-gray-200 w-96 max-h-[calc(100vh-100px)] overflow-hidden pointer-events-auto"
       :style="{
         position: 'absolute',
         top: position.top,
         left: position.left,
-        zIndex: 1000
+        zIndex: 10000
       }"
       @click.stop
       @wheel.stop
@@ -35,7 +39,7 @@
       </div>
       
       <!-- 정류장 목록 -->
-      <div class="overflow-y-auto max-h-[60vh]" @wheel.stop>
+      <div class="overflow-y-auto max-h-[60vh]" @wheel.stop @wheel.passive>
         <div v-if="loading" class="p-4 text-center text-gray-500">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
           <p class="mt-2">정류장 정보를 불러오는 중...</p>
