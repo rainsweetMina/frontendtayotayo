@@ -4,7 +4,7 @@
         v-for="route in routes"
         :key="route.routeId"
         class="px-[18px] py-[18px] border border-gray-200 mb-2 rounded-lg cursor-pointer bg-white transition-colors hover:bg-gray-50 overflow-hidden whitespace-nowrap text-ellipsis"
-        @click="selectRoute(route)"
+        @click="showRouteStops(route)"
     >
       <!-- 노선번호와 색상 뱃지 -->
       <strong class="text-[17px]" :class="getTextColorClass(route.routeNo)">
@@ -17,17 +17,48 @@
         ({{ route.routeNote }})
       </span>
     </div>
+    
+    <!-- 정류장 목록 모달 -->
+    <RouteStopModal
+      :visible="modalVisible"
+      :route="selectedRoute"
+      @close="closeModal"
+      @selectStop="handleStopSelect"
+      @showOnMap="handleShowOnMap"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import RouteStopModal from './RouteStopModal.vue'
+
 defineProps({
   routes: Array
 })
 
 const emit = defineEmits(['select'])
 
-function selectRoute(route) {
+const modalVisible = ref(false)
+const selectedRoute = ref(null)
+
+function showRouteStops(route) {
+  selectedRoute.value = route
+  modalVisible.value = true
+}
+
+function closeModal() {
+  modalVisible.value = false
+  selectedRoute.value = null
+}
+
+function handleStopSelect(stop) {
+  // 정류장 선택 시 처리 (필요시 구현)
+  console.log('선택된 정류장:', stop)
+}
+
+function handleShowOnMap(route) {
+  // 지도에서 보기 클릭 시 원래 select 이벤트 발생
   emit('select', route)
 }
 
