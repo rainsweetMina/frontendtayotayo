@@ -72,7 +72,6 @@ export default defineConfig({
                 target: 'https://docs.yi.or.kr:8096',
                 changeOrigin: true,
                 secure: false
-                ws: true // WebSocket 프록시 활성화
             },
             // WebSocket 엔드포인트 프록시 추가
             '/ws': {
