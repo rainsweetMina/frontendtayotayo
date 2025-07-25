@@ -48,7 +48,7 @@ export async function deleteAd(id) {
 
 // 광고 연장
 export async function extendAd(adId, newEndDateTime) {
-    return await api.multipartPut(`/api/ad/${adId}/extend`, {
+    return await api.put(`/api/ad/${adId}/extend`, {
         newEndDateTime: newEndDateTime
     });
 }
