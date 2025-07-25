@@ -1,7 +1,7 @@
 <template>
   <div class="board-main-container">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="title">분실물 목록</h1>
+      <h1 class="title">분실물 신고 목록</h1>
     </div>
 
     <!-- 검색 카드 -->
