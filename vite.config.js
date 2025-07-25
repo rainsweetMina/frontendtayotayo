@@ -39,7 +39,7 @@ export default defineConfig({
     server: {
         port: 5173,
         host: '0.0.0.0',
-        origin: 'https://docs.yi.or.kr:5173',
+        origin: 'https://docs.yi.or.kr:15173',
         open: false,
         https: {
             key: fs.readFileSync('./localhost+2-key.pem'),
@@ -92,6 +92,7 @@ export default defineConfig({
                         { from: /^\/mypage.*$/, to: '/index.html' },
                         { from: /^\/api\/.*$/, to: ctx => ctx.parsedUrl.pathname },
                         { from: /^\/auth\/.*$/, to: ctx => ctx.parsedUrl.pathname },
+                        { from: /^\/uploads\/.*$/, to: ctx => ctx.parsedUrl.pathname }, // 이미지 파일은 프록시로 처리
                         { from: /^\/ws.*$/, to: ctx => ctx.parsedUrl.pathname }, // WebSocket 경로는 프록시로 처리
                         { from: /./, to: '/index.html' }
                     ]
