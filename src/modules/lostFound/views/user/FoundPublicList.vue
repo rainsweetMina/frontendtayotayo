@@ -134,11 +134,11 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ item.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-center">
               <div class="flex-shrink-0 h-16 w-16 mx-auto">
-                <img
-                    v-if="item.photoUrl"
-                    :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`"
-                    alt="사진"
-                    class="h-16 w-16 rounded-lg object-cover border border-gray-200"
+                <img 
+                  v-if="item.photoUrl" 
+                  :src="`/uploads/found/${item.photoUrl}`" 
+                  alt="물품 이미지" 
+                  class="w-24 h-24 object-cover rounded-lg shadow-sm border"
                 />
                 <div v-else class="h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center">
                   <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +188,6 @@ const selectedCompanyId = ref('');
 const selectedRoute = ref('');
 const busCompanies = ref([]);
 const busRoutes = ref([]);
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
 const items = ref([]);
 

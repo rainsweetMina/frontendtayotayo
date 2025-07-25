@@ -67,6 +67,12 @@ export default defineConfig({
                 secure: false,
                 ws: true // WebSocket 프록시 활성화
             },
+            // 이미지 파일 프록시 추가
+            '/uploads': {
+                target: 'https://docs.yi.or.kr:8096',
+                changeOrigin: true,
+                secure: false
+            },
             // WebSocket 엔드포인트 프록시 추가
             '/ws': {
                 target: 'https://docs.yi.or.kr:8096',

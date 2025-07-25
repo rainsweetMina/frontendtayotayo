@@ -104,7 +104,7 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                   <img 
                     v-if="item.photoUrl" 
-                    :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
+                    :src="`/uploads/found/${item.photoUrl}`" 
                     alt="사진" 
                     class="w-28 h-20 object-cover rounded" 
                   />
@@ -242,8 +242,6 @@ import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.
 import CommonModal from '@/components/CommonModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import AlertMessage from '@/modules/adminpage/dashboard/components/AlertMessage.vue'
-
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 const router = useRouter()
 const foundItems = ref([])

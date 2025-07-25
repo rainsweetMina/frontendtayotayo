@@ -46,21 +46,16 @@
               </svg>
               물품 이미지
             </h3>
-            <div class="flex justify-center">
+            <!-- 이미지 -->
+            <div class="flex flex-col items-center mb-6">
               <img 
                 v-if="item.photoUrl" 
-                :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
+                :src="`/uploads/found/${item.photoUrl}`" 
                 alt="등록된 이미지" 
-                class="max-w-full h-auto rounded-lg shadow-md object-cover" 
-                style="max-height: 300px;" 
+                class="w-64 h-40 object-cover rounded-lg shadow border" 
               />
-              <div v-else class="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                <div class="text-center">
-                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <p class="mt-2 text-sm text-gray-500">이미지 없음</p>
-                </div>
+              <div v-else class="w-64 h-40 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400">
+                이미지 없음
               </div>
             </div>
           </div>
@@ -210,7 +205,6 @@ const route = useRoute();
 const item = ref(null);
 const loading = ref(true);
 const error = ref(false);
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
 const goBack = () => {
   router.push('/found');

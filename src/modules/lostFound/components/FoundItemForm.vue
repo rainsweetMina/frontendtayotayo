@@ -8,11 +8,12 @@
       <div class="space-y-6">
         <!-- 이미지 영역 -->
         <div class="flex flex-col items-center">
-          <div v-if="props.item && props.item.photoUrl" class="mb-2">
-            <img
-              :src="`${IMAGE_BASE_URL}/found/${props.item.photoUrl}`"
-              alt="현재 이미지"
-              class="w-36 h-36 object-cover rounded-xl shadow border mb-2 ring-2 ring-blue-200"
+          <div v-if="props.item?.photoUrl" class="mb-2">
+            <img 
+              v-if="props.item?.photoUrl" 
+              :src="`/uploads/found/${props.item.photoUrl}`" 
+              alt="기존 이미지" 
+              class="w-32 h-32 object-cover rounded-lg border"
             />
           </div>
           <div class="w-full max-w-md">
@@ -117,7 +118,6 @@ const busCompanies = ref([]);
 const busRoutes = ref([]);
 const imageFile = ref(null);
 const fileInput = ref(null);
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 
 const form = reactive({
   id: null,

@@ -32,7 +32,7 @@
           <div class="flex flex-col items-center mb-6">
             <img 
               v-if="item.photoUrl" 
-              :src="`${IMAGE_BASE_URL}/found/${item.photoUrl}`" 
+              :src="`/uploads/found/${item.photoUrl}`" 
               alt="등록된 이미지" 
               class="w-64 h-40 object-cover rounded-lg shadow border" 
             />
@@ -140,7 +140,6 @@ const router = useRouter()
 const route = useRoute()
 const item = ref(null)
 const loading = ref(true)
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || '';
 const authStore = useAuthStore()
 
 // 모달 상태 관리
