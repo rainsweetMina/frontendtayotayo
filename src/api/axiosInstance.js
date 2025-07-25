@@ -135,8 +135,6 @@ publicApi.interceptors.response.use(
                            response.config?.url?.includes('/api/schedule-header') ||
                            response.config?.url?.includes('/api/route-map') ||
                            response.config?.url?.includes('/api/lowbus-scheduls') ||
-                           response.config?.url?.includes('/api/qna/page') ||
-                           response.config?.url?.includes('/api/qna/') ||
                            response.config?.url?.includes('/api/auth/login') ||
                            response.config?.url?.includes('/api/auth/refresh') ||
                            response.config?.url?.includes('/api/auth/validate');
