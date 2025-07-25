@@ -5,7 +5,7 @@
          :style="{ transform: `translateX(-${currentIndex * 100}%)` }">
       <div v-for="(ad, idx) in banners" :key="ad.id" class="min-w-full relative cursor-pointer group"
            @click="goToAdLink(ad.linkUrl)">
-        <img :src="`${IMAGE_BASE_URL}/ad/${ad.imageUrl}`"
+        <img :src="`/uploads/ad/${ad.imageUrl}`"
              :alt="ad.title"
              class="w-full h-full object-contain bg-white" />
 <!--        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-blue-400/40 flex flex-col justify-center text-white p-6">-->
@@ -38,7 +38,6 @@
 <script setup>
 import { ref, watch } from 'vue'
 const props = defineProps({ banners: { type: Array, default: () => [] } })
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 
 const currentIndex = ref(0)
 

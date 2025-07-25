@@ -245,7 +245,7 @@ onMounted(async () => {
             ? String(ad.company.id)
             : ''
     form.value.isPopup = !!ad.showPopup
-    preview.value = `${import.meta.env.VITE_IMAGE_BASE_URL}/ad/${ad.imageUrl}`
+    preview.value = `/uploads/ad/${ad.imageUrl}`
   }
 
   // 디버깅 로그

@@ -138,7 +138,7 @@
               <td class="px-6 py-4 flex justify-center items-center">
                 <img
                     v-if="ad.imageUrl"
-                    :src="`${IMAGE_BASE_URL}/ad/${ad.imageUrl}`"
+                    :src="`/uploads/ad/${ad.imageUrl}`"
                     alt="광고 이미지"
                     class="w-80 h-20 object-cover rounded-lg shadow"
                     style="min-width: 320px; min-height: 80px;"
@@ -240,7 +240,6 @@ import AppBreadcrumb from '@/partials/AppBreadcrumb.vue'
 import CommonModal from '@/components/CommonModal.vue'
 import AlertMessage from '@/modules/adminpage/dashboard/components/AlertMessage.vue'
 import { api } from '@/api/axiosInstance.js'
-const IMAGE_BASE_URL = import.meta.env.VITE_BASE_URL+"/uploads"
 
 const router = useRouter()
 const adList = ref([])

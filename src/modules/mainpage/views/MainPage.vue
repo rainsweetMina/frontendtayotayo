@@ -99,7 +99,7 @@
     >
       <a :href="popupAd.linkUrl" target="_blank">
         <img
-            :src="`${IMAGE_BASE_URL}/ad/${popupAd.imageUrl}`"
+            :src="`/uploads/ad/${popupAd.imageUrl}`"
             alt="광고 이미지"
             class="w-full h-auto rounded"
             @error="handleImageError"
@@ -209,7 +209,6 @@ import MainWeatherDisplay from '@/modules/mainpage/components/MainWeatherDisplay
 import mainBusImg from '@/assets/images/mainbus.png';
 import busStopImg from '@/assets/images/bus-stop.png';
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 import AlbumBannerCarousel from '@/modules/ad/views/ad/AlbumBannerCarousel.vue'
 
 const banners = ref([])

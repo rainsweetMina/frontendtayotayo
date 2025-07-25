@@ -35,7 +35,7 @@
               <div class="flex justify-center">
                 <img
                     v-if="ad.imageUrl"
-                    :src="`${IMAGE_BASE_URL}/ad/${ad.imageUrl}`"
+                    :src="`/uploads/ad/${ad.imageUrl}`"
                     alt="광고 이미지"
                     class="max-w-full h-auto rounded-lg shadow-lg"
                     style="max-height: 400px;"
@@ -85,8 +85,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { fetchAd, deleteAd } from '@/modules/ad/api/adApi.js'
 import AppBreadcrumb from '@/modules/adminpage/dashboard/partials/AppBreadcrumb.vue'
 import CommonModal from '@/components/CommonModal.vue'
-
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL
 
 const route = useRoute()
 const router = useRouter()
